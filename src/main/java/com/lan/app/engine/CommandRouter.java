@@ -9,8 +9,12 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class CommandRouter {
 
+    private final FlowRegistry registry;
+
     @Inject
-    FlowRegistry registry;
+    public CommandRouter(FlowRegistry registry) {
+        this.registry = registry;
+    }
 
     public StepResult route(UpdateContext ctx, Session session) {
         String command = normalizeCommand(ctx.command());

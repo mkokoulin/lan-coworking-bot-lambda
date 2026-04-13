@@ -8,7 +8,6 @@ import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.inject.Inject;
 
 import java.util.List;
 import java.util.Map;
@@ -16,8 +15,16 @@ import java.util.Map;
 @ApplicationScoped
 public class KotologHomeHandler implements StepHandler {
 
-    @Inject TelegramClient telegramClient;
-    @Inject I18n i18n;
+        private final TelegramClient telegramClient;
+        private final I18n i18n;
+
+        public KotologHomeHandler(
+                TelegramClient telegramClient,
+                I18n i18n
+        ){
+                this.telegramClient = telegramClient;
+                this.i18n = i18n;
+        }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {

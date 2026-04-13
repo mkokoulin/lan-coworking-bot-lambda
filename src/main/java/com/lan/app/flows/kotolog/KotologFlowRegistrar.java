@@ -8,9 +8,20 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class KotologFlowRegistrar {
 
-    @Inject FlowRegistry registry;
-    @Inject KotologHomeHandler homeHandler;
-    @Inject KotologHelpHandler helpHandler;
+    private final FlowRegistry registry;
+    private final KotologHomeHandler homeHandler;
+    private final KotologHelpHandler helpHandler;
+
+    @Inject
+    public KotologFlowRegistrar(
+        FlowRegistry registry,
+        KotologHomeHandler homeHandler,
+        KotologHelpHandler helpHandler
+    ) {
+        this.registry = registry;
+        this.homeHandler = homeHandler;
+        this.helpHandler = helpHandler;
+    }
 
     public void register() {
         registry.registerStep(KotologFlowDef.FLOW, KotologFlowDef.STEP_HOME, homeHandler);

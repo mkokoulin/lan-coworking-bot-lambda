@@ -17,14 +17,20 @@ import java.util.List;
 @ApplicationScoped
 public class CoworkingHomeHandler implements StepHandler {
 
-    @Inject
-    TelegramClient telegramClient;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
+    private final FlowRegistry registry;
 
     @Inject
-    I18n i18n;
-
-    @Inject
-    FlowRegistry registry;
+    public CoworkingHomeHandler(
+        TelegramClient telegramClient,
+        I18n i18n,
+        FlowRegistry registry
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+        this.registry = registry;
+    }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {

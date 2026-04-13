@@ -1,6 +1,7 @@
 package com.lan.app.domain;
 
 public class IncomingUpdate {
+    
     private Long updateId;
     private Long userId;
     private Long chatId;

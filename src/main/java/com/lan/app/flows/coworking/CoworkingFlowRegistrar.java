@@ -8,11 +8,17 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class CoworkingFlowRegistrar {
 
-    @Inject
-    FlowRegistry registry;
+    private final FlowRegistry registry;
+    private final CoworkingHomeHandler coworkingHomeHandler;
 
     @Inject
-    CoworkingHomeHandler coworkingHomeHandler;
+    public CoworkingFlowRegistrar(
+        FlowRegistry registry,
+        CoworkingHomeHandler coworkingHomeHandler
+    ) {
+        this.registry = registry;
+        this.coworkingHomeHandler = coworkingHomeHandler;
+    }
 
     public void register() {
         registry.registerStep(CoworkingFlowDef.FLOW, CoworkingFlowDef.STEP_HOME, coworkingHomeHandler);

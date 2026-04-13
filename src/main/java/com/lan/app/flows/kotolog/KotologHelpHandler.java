@@ -15,11 +15,20 @@ import java.util.List;
 @ApplicationScoped
 public class KotologHelpHandler implements StepHandler {
 
-    @Inject TelegramClient telegramClient;
-    @Inject I18n i18n;
+        private final TelegramClient telegramClient;
+        private final I18n i18n;
 
-    @Override
-    public StepResult handle(UpdateContext ctx, Session session) {
+        @Inject
+        public KotologHelpHandler(
+                TelegramClient telegramClient,
+                I18n i18n
+        ) {
+                this.telegramClient = telegramClient;
+                this.i18n = i18n;
+        }
+
+        @Override
+        public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
         String text = i18n.t(lang, "kotolog_help_text")
@@ -34,6 +43,6 @@ public class KotologHelpHandler implements StepHandler {
 
         telegramClient.sendHtml(session.getChatId(), text, kb);
 
-        return StepResult.stay(KotologFlowDef.FLOW, KotologFlowDef.STEP_HELP);
-    }
+                return StepResult.stay(KotologFlowDef.FLOW, KotologFlowDef.STEP_HELP);
+        }
 }

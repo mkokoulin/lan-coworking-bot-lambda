@@ -14,17 +14,23 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class FlowBootstrap {
 
-    @Inject
-    StartFlowRegistrar startFlowRegistrar;
+    private final StartFlowRegistrar startFlowRegistrar;
+    private final CoworkingFlowRegistrar coworkingFlowRegistrar;
+    private final KotologFlowRegistrar kotologFlowRegistrar;
+    private final MeetingFlowRegistrar meetingFlowRegistrar;
 
     @Inject
-    CoworkingFlowRegistrar coworkingFlowRegistrar;
-
-    @Inject
-    KotologFlowRegistrar kotologFlowRegistrar;
-
-    @Inject
-    MeetingFlowRegistrar meetingFlowRegistrar;
+    public FlowBootstrap(
+        StartFlowRegistrar startFlowRegistrar,
+        CoworkingFlowRegistrar coworkingFlowRegistrar,
+        KotologFlowRegistrar kotologFlowRegistrar,
+        MeetingFlowRegistrar meetingFlowRegistrar
+    ) {
+        this.startFlowRegistrar = startFlowRegistrar;
+        this.coworkingFlowRegistrar = coworkingFlowRegistrar;
+        this.kotologFlowRegistrar = kotologFlowRegistrar;
+        this.meetingFlowRegistrar = meetingFlowRegistrar;
+    }
 
     void onStart(@Observes StartupEvent event) {
         startFlowRegistrar.register();
