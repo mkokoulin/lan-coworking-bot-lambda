@@ -15,34 +15,34 @@ import java.util.List;
 @ApplicationScoped
 public class KotologHelpHandler implements StepHandler {
 
-        private final TelegramClient telegramClient;
-        private final I18n i18n;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
 
-        @Inject
-        public KotologHelpHandler(
-                TelegramClient telegramClient,
-                I18n i18n
-        ) {
-                this.telegramClient = telegramClient;
-                this.i18n = i18n;
-        }
+    @Inject
+    public KotologHelpHandler(
+        TelegramClient telegramClient,
+        I18n i18n
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+    }
 
-        @Override
-        public StepResult handle(UpdateContext ctx, Session session) {
-        String lang = session.getLang();
+    @Override
+    public StepResult handle(UpdateContext ctx, Session session) {
+    String lang = session.getLang();
 
-        String text = i18n.t(lang, "kotolog_help_text")
-                + "\n\n"
-                + i18n.t(lang, "kotolog_donate_note");
+    String text = i18n.t(lang, "kotolog_help_text")
+            + "\n\n"
+            + i18n.t(lang, "kotolog_donate_note");
 
-        var kb = KeyboardBuilder.inline(List.of(
-                KeyboardBuilder.row(
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "kotolog_btn_back"), KotologFlowDef.CB_HOME)
-                )
-        ));
+    var kb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "kotolog_btn_back"), KotologFlowDef.CB_HOME)
+            )
+    ));
 
-        telegramClient.sendHtml(session.getChatId(), text, kb);
+    telegramClient.sendHtml(session.getChatId(), text, kb);
 
-                return StepResult.stay(KotologFlowDef.FLOW, KotologFlowDef.STEP_HELP);
-        }
+            return StepResult.stay(KotologFlowDef.FLOW, KotologFlowDef.STEP_HELP);
+    }
 }

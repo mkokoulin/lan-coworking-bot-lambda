@@ -8,11 +8,17 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class StartFlowRegistrar {
 
-    @Inject
-    FlowRegistry registry;
+    private final FlowRegistry registry;
+    private final StartShowHandler startShowHandler;
 
     @Inject
-    StartShowHandler startShowHandler;
+    public StartFlowRegistrar(
+        FlowRegistry registry,
+        StartShowHandler startShowHandler
+    ) {
+        this.registry = registry;
+        this.startShowHandler = startShowHandler;
+    }
 
     public void register() {
         registry.registerStep(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW, startShowHandler);

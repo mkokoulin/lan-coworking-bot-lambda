@@ -15,11 +15,17 @@ import java.util.List;
 @ApplicationScoped
 public class StartShowHandler implements StepHandler {
 
-    @Inject
-    TelegramClient telegramClient;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
 
     @Inject
-    I18n i18n;
+    public StartShowHandler(
+        TelegramClient telegramClient,
+        I18n i18n
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+    }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {

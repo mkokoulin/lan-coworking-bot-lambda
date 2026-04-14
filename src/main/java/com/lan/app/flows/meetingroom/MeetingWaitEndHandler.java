@@ -13,8 +13,17 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 @ApplicationScoped
 public class MeetingWaitEndHandler implements StepHandler {
 
-    @Inject TelegramClient telegramClient;
-    @Inject I18n i18n;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
+
+    @Inject
+    public MeetingWaitEndHandler(
+        TelegramClient telegramClient,
+        I18n i18n
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+    }
 
     @ConfigProperty(name = "telegram.admin-chat-id")
     Long adminChatId;

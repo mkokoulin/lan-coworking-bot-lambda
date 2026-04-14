@@ -12,8 +12,17 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class MeetingWaitStartHandler implements StepHandler {
 
-    @Inject TelegramClient telegramClient;
-    @Inject I18n i18n;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
+
+    @Inject
+    public MeetingWaitStartHandler(
+        TelegramClient telegramClient,
+        I18n i18n
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+    }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {

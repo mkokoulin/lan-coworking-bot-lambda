@@ -9,8 +9,14 @@ import java.util.Optional;
 @ApplicationScoped
 public class BackendSessionRepository implements SessionRepository {
 
+    private final BackendClient backendClient;
+
     @Inject
-    BackendClient backendClient;
+    public BackendSessionRepository(
+        BackendClient backendClient
+    ) {
+        this.backendClient = backendClient;
+    }
 
     @Override
     public Optional<Session> findByUserId(Long userId) {

@@ -12,8 +12,14 @@ public class TelegramWebhookResource {
 
     private static final String EXPECTED_SECRET = "my_secret";
 
+    private final UpdateHandler updateHandler;
+
     @Inject
-    UpdateHandler updateHandler;
+    public TelegramWebhookResource(
+        UpdateHandler updateHandler
+    ) {
+        this.updateHandler = updateHandler;
+    }
 
     @GET
     @Produces(MediaType.TEXT_PLAIN)

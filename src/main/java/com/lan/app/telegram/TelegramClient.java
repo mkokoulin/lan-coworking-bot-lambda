@@ -14,11 +14,16 @@ import java.util.Map;
 @ApplicationScoped
 public class TelegramClient {
 
-    @Inject
-    TelegramConfig telegramConfig;
-
+    private final TelegramConfig telegramConfig;
     private final HttpClient http = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
+
+    @Inject
+    public TelegramClient(
+        TelegramConfig telegramConfig
+    ) {
+        this.telegramConfig = telegramConfig;
+    }
 
     public void sendHtml(Long chatId, String text, Object replyMarkup) {
         try {

@@ -8,12 +8,29 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class MeetingFlowRegistrar {
 
-    @Inject FlowRegistry registry;
-    @Inject MeetingPromptHandler      promptHandler;
-    @Inject MeetingWaitDateHandler    waitDateHandler;
-    @Inject MeetingWaitStartHandler   waitStartHandler;
-    @Inject MeetingWaitEndHandler     waitEndHandler;
-    @Inject MeetingWaitContactHandler waitContactHandler;
+    private final FlowRegistry registry;
+    private final MeetingPromptHandler promptHandler;
+    private final MeetingWaitDateHandler waitDateHandler;
+    private final MeetingWaitStartHandler waitStartHandler;
+    private final MeetingWaitEndHandler waitEndHandler;
+    private final MeetingWaitContactHandler waitContactHandler;
+
+    @Inject
+    public MeetingFlowRegistrar(
+        FlowRegistry registry,
+        MeetingPromptHandler promptHandler,
+        MeetingWaitDateHandler waitDateHandler,
+        MeetingWaitStartHandler waitStartHandler,
+        MeetingWaitEndHandler waitEndHandler,
+        MeetingWaitContactHandler waitContactHandler
+    ) {
+        this.registry = registry;
+        this.promptHandler = promptHandler;
+        this.waitDateHandler = waitDateHandler;
+        this.waitStartHandler = waitStartHandler;
+        this.waitEndHandler = waitEndHandler;
+        this.waitContactHandler = waitContactHandler;
+    }
 
     public void register() {
         registry.registerStep(MeetingFlowDef.FLOW, MeetingFlowDef.STEP_PROMPT,       promptHandler);

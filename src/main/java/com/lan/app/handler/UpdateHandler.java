@@ -15,14 +15,20 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class UpdateHandler {
 
-    @Inject
-    IncomingUpdateFactory incomingUpdateFactory;
+    private final IncomingUpdateFactory incomingUpdateFactory;
+    private final SessionRepository sessionRepository;
+    private final CommandRouter commandRouter;
 
     @Inject
-    SessionRepository sessionRepository;
-
-    @Inject
-    CommandRouter commandRouter;
+    public UpdateHandler(
+        IncomingUpdateFactory incomingUpdateFactory,
+        SessionRepository sessionRepository,
+        CommandRouter commandRouter
+    ) {
+        this.incomingUpdateFactory = incomingUpdateFactory;
+        this.sessionRepository = sessionRepository;
+        this.commandRouter = commandRouter;
+    }
 
     public void handle(TelegramUpdate rawUpdate) {
         IncomingUpdate update = incomingUpdateFactory.fromTelegram(rawUpdate);

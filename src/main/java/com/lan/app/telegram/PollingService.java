@@ -27,11 +27,17 @@ public class PollingService {
     @ConfigProperty(name = "telegram.api-base-url")
     String apiBaseUrl;
 
-    @Inject
-    UpdateHandler updateHandler;
+    private final UpdateHandler updateHandler;
 
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    @Inject
+    public PollingService(
+        UpdateHandler updateHandler
+    ) {
+        this.updateHandler = updateHandler;
+    }
 
     void onStart(@Observes StartupEvent event) {
         if (!"polling".equals(mode)) {
