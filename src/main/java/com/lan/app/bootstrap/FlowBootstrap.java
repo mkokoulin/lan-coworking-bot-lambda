@@ -2,6 +2,7 @@ package com.lan.app.bootstrap;
 
 import com.lan.app.flows.about.AboutFlowRegistrar;
 import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
+import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
@@ -22,6 +23,7 @@ public class FlowBootstrap {
     private final MeetingFlowRegistrar meetingFlowRegistrar;
     private final AboutFlowRegistrar aboutFlowRegistrar;
     private final LanguageFlowRegistrar languageFlowRegistrar;
+    private final DonationFlowRegistrar donationFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -30,7 +32,8 @@ public class FlowBootstrap {
         KotologFlowRegistrar kotologFlowRegistrar,
         MeetingFlowRegistrar meetingFlowRegistrar,
         AboutFlowRegistrar aboutFlowRegistrar,
-        LanguageFlowRegistrar languageFlowRegistrar
+        LanguageFlowRegistrar languageFlowRegistrar,
+        DonationFlowRegistrar donationFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -38,6 +41,7 @@ public class FlowBootstrap {
         this.meetingFlowRegistrar = meetingFlowRegistrar;
         this.aboutFlowRegistrar = aboutFlowRegistrar;
         this.languageFlowRegistrar = languageFlowRegistrar;
+        this.donationFlowRegistrar = donationFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -47,5 +51,6 @@ public class FlowBootstrap {
         meetingFlowRegistrar.register();
         aboutFlowRegistrar.register();
         languageFlowRegistrar.register();
+        donationFlowRegistrar.register();
     }
 }
