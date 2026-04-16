@@ -1,5 +1,6 @@
 package com.lan.app.bootstrap;
 
+import com.lan.app.flows.about.AboutFlowRegistrar;
 import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
@@ -18,18 +19,21 @@ public class FlowBootstrap {
     private final CoworkingFlowRegistrar coworkingFlowRegistrar;
     private final KotologFlowRegistrar kotologFlowRegistrar;
     private final MeetingFlowRegistrar meetingFlowRegistrar;
+    private final AboutFlowRegistrar aboutFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
         StartFlowRegistrar startFlowRegistrar,
         CoworkingFlowRegistrar coworkingFlowRegistrar,
         KotologFlowRegistrar kotologFlowRegistrar,
-        MeetingFlowRegistrar meetingFlowRegistrar
+        MeetingFlowRegistrar meetingFlowRegistrar,
+        AboutFlowRegistrar aboutFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
         this.kotologFlowRegistrar = kotologFlowRegistrar;
         this.meetingFlowRegistrar = meetingFlowRegistrar;
+        this.aboutFlowRegistrar = aboutFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -37,5 +41,6 @@ public class FlowBootstrap {
         coworkingFlowRegistrar.register();
         kotologFlowRegistrar.register();
         meetingFlowRegistrar.register();
+        aboutFlowRegistrar.register();
     }
 }

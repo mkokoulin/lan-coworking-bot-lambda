@@ -54,4 +54,51 @@ public class TelegramClient {
             throw new TelegramClientException("Failed to send message to Telegram", e);
         }
     }
+
+     public void sendPhoto(Long chatId, String photoPath, String caption) {
+        try {
+            java.nio.file.Path path = java.nio.file.Path.of(photoPath);
+            if (!java.nio.file.Files.exists(path)) {
+                return;
+            }
+            byte[] fileBytes = java.nio.file.Files.readAllBytes(path);
+            String fileName  = path.getFileName().toString();
+            String boundary  = "----FormBoundary" + System.currentTimeMillis();
+
+            var baos = new java.io.ByteArrayOutputStream();
+            writeFormField(baos, boundary, "chat_id", String.valueOf(chatId));
+            if (caption != null && !caption.isBlank()) {
+                writeFormField(baos, boundary, "caption", caption);
+                writeFormField(baos, boundary, "parse_mode", "HTML");
+            }
+            // file part
+            baos.write(("--" + boundary + "\r\n").getBytes());
+            baos.write(("Content-Disposition: form-data; name=\"photo\"; filename=\"" + fileName + "\"\r\n").getBytes());
+            baos.write("Content-Type: image/jpeg\r\n\r\n".getBytes());
+            baos.write(fileBytes);
+            baos.write(("\r\n--" + boundary + "--\r\n").getBytes());
+
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendPhoto";
+            var req = java.net.http.HttpRequest.newBuilder()
+                    .uri(java.net.URI.create(url))
+                    .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                    .POST(java.net.http.HttpRequest.BodyPublishers.ofByteArray(baos.toByteArray()))
+                    .build();
+
+            var resp = http.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 300) {
+                System.err.println("[TelegramClient] sendPhoto failed: " + resp.body());
+            }
+        } catch (Exception e) {
+            System.err.println("[TelegramClient] sendPhoto error: " + e.getMessage());
+        }
+    }
+
+    private static void writeFormField(java.io.ByteArrayOutputStream baos,
+                                       String boundary, String name, String value)
+            throws java.io.IOException {
+        baos.write(("--" + boundary + "\r\n").getBytes());
+        baos.write(("Content-Disposition: form-data; name=\"" + name + "\"\r\n\r\n").getBytes());
+        baos.write((value + "\r\n").getBytes());
+    }
 }
