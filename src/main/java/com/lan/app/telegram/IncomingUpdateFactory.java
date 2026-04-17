@@ -10,56 +10,54 @@ import jakarta.enterprise.context.ApplicationScoped;
 public class IncomingUpdateFactory {
 
     public IncomingUpdate fromTelegram(TelegramUpdate update) {
-        if (update == null) {
-            return null;
-        }
+        if (update == null) return null;
 
-        IncomingUpdate result = IncomingUpdate.create();
-        result = result.withUpdateId(update.update_id);
+        IncomingUpdate result = new IncomingUpdate();
+        result.setUpdateId(update.update_id);
 
         if (update.message != null) {
-            result = fillFromMessage(result, update.message);
-            return result.withType(IncomingUpdate.UpdateType.MESSAGE);
+            fillFromMessage(result, update.message);
+            result.setType(IncomingUpdate.UpdateType.MESSAGE);
+            return result;
         }
 
         if (update.callback_query != null) {
-            result = fillFromCallback(result, update.callback_query);
-            return result.withType(IncomingUpdate.UpdateType.CALLBACK);
+            fillFromCallback(result, update.callback_query);
+            result.setType(IncomingUpdate.UpdateType.CALLBACK);
+            return result;
         }
 
         return null;
     }
 
-    private IncomingUpdate fillFromMessage(IncomingUpdate target, TelegramMessage message) {
-        var output = target.copy();
-
+    private void fillFromMessage(IncomingUpdate target, TelegramMessage message) {
         if (message.from != null) {
-            output = output.withUserId(message.from.id);
-            output = output.withUserLanguageCode(message.from.language_code);
-            output = output.withFirstName(message.from.first_name);
-            output = output.withUsername(message.from.username);
+            target.setUserId(message.from.id);
+            target.setUserLanguageCode(message.from.language_code);
+            target.setFirstName(message.from.first_name);
+            target.setUsername(message.from.username);
         }
         if (message.chat != null) {
-            output = output.withChatId(message.chat.id);
+            target.setChatId(message.chat.id);
         }
-        output = output.withText(message.text == null ? "" : message.text.trim());
+        target.setText(message.text == null ? "" : message.text.trim());
 
-        return output;
+        // Контакт (кнопка «Поделиться номером»)
+        if (message.contact != null && message.contact.phone_number != null) {
+            target.setSharedPhone(message.contact.phone_number);
+        }
     }
 
-    private IncomingUpdate fillFromCallback(IncomingUpdate target, TelegramCallbackQuery callback) {
-        var output = target.copy();
-
+    private void fillFromCallback(IncomingUpdate target, TelegramCallbackQuery callback) {
         if (callback.from != null) {
-            output = output.withUserId(callback.from.id);
-            output = output.withUserLanguageCode(callback.from.language_code);
-            output = output.withFirstName(callback.from.first_name);
-            output = output.withUsername(callback.from.username);
+            target.setUserId(callback.from.id);
+            target.setUserLanguageCode(callback.from.language_code);
+            target.setFirstName(callback.from.first_name);
+            target.setUsername(callback.from.username);
         }
         if (callback.message != null && callback.message.chat != null) {
-            output = output.withChatId(callback.message.chat.id);
+            target.setChatId(callback.message.chat.id);
         }
-
-        return output.withCallbackData(callback.data == null ? "" : callback.data.trim());
+        target.setCallbackData(callback.data == null ? "" : callback.data.trim());
     }
 }

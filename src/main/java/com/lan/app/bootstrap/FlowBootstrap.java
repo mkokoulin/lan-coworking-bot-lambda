@@ -6,6 +6,7 @@ import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
+import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
@@ -24,6 +25,7 @@ public class FlowBootstrap {
     private final AboutFlowRegistrar aboutFlowRegistrar;
     private final LanguageFlowRegistrar languageFlowRegistrar;
     private final DonationFlowRegistrar donationFlowRegistrar;
+    private final RegistrationFlowRegistrar registrationFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -33,7 +35,8 @@ public class FlowBootstrap {
         MeetingFlowRegistrar meetingFlowRegistrar,
         AboutFlowRegistrar aboutFlowRegistrar,
         LanguageFlowRegistrar languageFlowRegistrar,
-        DonationFlowRegistrar donationFlowRegistrar
+        DonationFlowRegistrar donationFlowRegistrar,
+        RegistrationFlowRegistrar registrationFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -42,6 +45,7 @@ public class FlowBootstrap {
         this.aboutFlowRegistrar = aboutFlowRegistrar;
         this.languageFlowRegistrar = languageFlowRegistrar;
         this.donationFlowRegistrar = donationFlowRegistrar;
+        this.registrationFlowRegistrar = registrationFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -52,5 +56,6 @@ public class FlowBootstrap {
         aboutFlowRegistrar.register();
         languageFlowRegistrar.register();
         donationFlowRegistrar.register();
+        registrationFlowRegistrar.register();
     }
 }

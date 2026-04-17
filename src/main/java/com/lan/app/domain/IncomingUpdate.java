@@ -1,173 +1,49 @@
 package com.lan.app.domain;
 
-public record IncomingUpdate(
-    Long updateId,
-    Long userId,
-    Long chatId,
-    String text,
-    String callbackData,
-    UpdateType type,
-    String userLanguageCode,
-    String firstName,
-    String username
-) {
-    public IncomingUpdate withUpdateId(Long updateId) {
-        return new IncomingUpdate(
-            updateId, 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withType(UpdateType type) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            type,
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withUserId(Long userId) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            userId, 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    
-    public IncomingUpdate withChatId(Long chatId) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            chatId,
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withText(String text) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            text,
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withCallbackData(String callbackData) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            callbackData,
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withUserLanguageCode(String userLanguageCode) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            userLanguageCode,
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withFirstName(String firstName) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            firstName,
-            this.username()
-        );
-    }
-
-    public IncomingUpdate withUsername(String username) {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            username
-        );
-    }
-
-    public IncomingUpdate copy() {
-        return new IncomingUpdate(
-            this.updateId(), 
-            this.userId(), 
-            this.chatId(),
-            this.text(),
-            this.callbackData(),
-            this.type(),
-            this.userLanguageCode(),
-            this.firstName(),
-            this.username()
-        );
-    }
-
-    public static IncomingUpdate create() {
-        return new IncomingUpdate(
-            Long.MIN_VALUE,
-            Long.MIN_VALUE,
-            Long.MIN_VALUE,
-            "",
-            "",
-            UpdateType.MESSAGE,
-            "",
-            "",
-            ""
-        );
-    }
+public class IncomingUpdate {
+    private Long   updateId;
+    private Long   userId;
+    private Long   chatId;
+    private String text;
+    private String callbackData;
+    private UpdateType type;
+    private String userLanguageCode;
+    private String firstName;
+    private String username;
+    private String sharedPhone; // номер из contact (кнопка «Поделиться»)
 
     public enum UpdateType {
         MESSAGE,
         CALLBACK
     }
+
+    public Long getUpdateId()                      { return updateId; }
+    public void setUpdateId(Long updateId)         { this.updateId = updateId; }
+
+    public Long getUserId()                        { return userId; }
+    public void setUserId(Long userId)             { this.userId = userId; }
+
+    public Long getChatId()                        { return chatId; }
+    public void setChatId(Long chatId)             { this.chatId = chatId; }
+
+    public String getText()                        { return text; }
+    public void setText(String text)               { this.text = text; }
+
+    public String getCallbackData()                { return callbackData; }
+    public void setCallbackData(String callbackData) { this.callbackData = callbackData; }
+
+    public UpdateType getType()                    { return type; }
+    public void setType(UpdateType type)           { this.type = type; }
+
+    public String getUserLanguageCode()            { return userLanguageCode; }
+    public void setUserLanguageCode(String v)      { this.userLanguageCode = v; }
+
+    public String getFirstName()                   { return firstName; }
+    public void setFirstName(String firstName)     { this.firstName = firstName; }
+
+    public String getUsername()                    { return username; }
+    public void setUsername(String username)       { this.username = username; }
+
+    public String getSharedPhone()                 { return sharedPhone; }
+    public void setSharedPhone(String sharedPhone) { this.sharedPhone = sharedPhone; }
 }

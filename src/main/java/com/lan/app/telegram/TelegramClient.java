@@ -10,6 +10,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ApplicationScoped
@@ -93,6 +94,66 @@ public class TelegramClient {
             System.err.println("[TelegramClient] sendPhoto error: " + e.getMessage());
         }
     }
+
+    // ─── Добавить в TelegramClient.java ─────────────────────────────────────────
+// Отправляет сообщение с ReplyKeyboard-кнопкой «Поделиться номером».
+// После нажатия Telegram присылает update с contact.phone_number.
+
+    public void sendPhoneRequest(Long chatId, String text, String buttonLabel) {
+        try {
+            var keyboard = Map.of(
+                    "keyboard", List.of(List.of(
+                            Map.of(
+                                    "text", buttonLabel,
+                                    "request_contact", true
+                            )
+                    )),
+                    "resize_keyboard", true,
+                    "one_time_keyboard", true
+            );
+
+            var body = Map.of(
+                    "chat_id",      chatId,
+                    "text",         text,
+                    "parse_mode",   "HTML",
+                    "reply_markup", keyboard
+            );
+
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendMessage";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+
+            var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 300) {
+                throw new RuntimeException("sendPhoneRequest failed: " + resp.body());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    // После получения контакта нужно убрать ReplyKeyboard:
+    public void removeKeyboard(Long chatId, String text) {
+        try {
+            var body = Map.of(
+                    "chat_id",      chatId,
+                    "text",         text,
+                    "parse_mode",   "HTML",
+                    "reply_markup", Map.of("remove_keyboard", true)
+            );
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendMessage";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+            http.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (Exception ignored) {}
+    }
+
 
     private static void writeFormField(java.io.ByteArrayOutputStream baos,
                                        String boundary, String name, String value)

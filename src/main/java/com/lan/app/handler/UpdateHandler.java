@@ -32,16 +32,16 @@ public class UpdateHandler {
 
     public void handle(TelegramUpdate rawUpdate) {
         IncomingUpdate update = incomingUpdateFactory.fromTelegram(rawUpdate);
-        if (update == null || update.userId() == null || update.chatId() == null) {
+        if (update == null || update.getUserId() == null || update.getChatId() == null) {
             System.out.println("Skip update: invalid mapped update");
             return;
         }
 
-        Session session = sessionRepository.findByUserId(update.userId())
+        Session session = sessionRepository.findByUserId(update.getUserId())
                 .orElseGet(() -> newSession(update));
 
         if (alreadyProcessed(session, update)) {
-            System.out.println("Skip update: already processed updateId=" + update.updateId());
+            System.out.println("Skip update: already processed updateId=" + update.getUpdateId());
             return;
         }
 
@@ -50,7 +50,7 @@ public class UpdateHandler {
         StepResult result = commandRouter.route(ctx, session);
         applyStepResult(session, result);
 
-        session.setLastProcessedUpdateId(update.updateId());
+        session.setLastProcessedUpdateId(update.getUpdateId());
         sessionRepository.save(session);
     }
 
@@ -70,19 +70,19 @@ public class UpdateHandler {
 
     private Session newSession(IncomingUpdate update) {
         Session session = new Session();
-        session.setUserId(update.userId());
-        session.setChatId(update.chatId());
+        session.setUserId(update.getUserId());
+        session.setChatId(update.getChatId());
         session.setFlow(StartFlowDef.FLOW);
         session.setStep(StartFlowDef.STEP_SHOW);
         session.setPayloadJson("{}");
-        session.setLang(detectLanguage(update.userLanguageCode()));
+        session.setLang(detectLanguage(update.getUserLanguageCode()));
         return session;
     }
 
     private boolean alreadyProcessed(Session session, IncomingUpdate update) {
-        return update.updateId() != null
+        return update.getUpdateId() != null
                 && session.getLastProcessedUpdateId() != null
-                && update.updateId() <= session.getLastProcessedUpdateId();
+                && update.getUpdateId() <= session.getLastProcessedUpdateId();
     }
 
     private String detectLanguage(String code) {
