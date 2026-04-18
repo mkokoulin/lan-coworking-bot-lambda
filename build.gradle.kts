@@ -27,6 +27,12 @@ dependencies {
     implementation("io.quarkus:quarkus-logging-json")
     implementation("io.quarkus:quarkus-amazon-lambda-http")
 
+    implementation("io.quarkiverse.openapi.generator:quarkus-openapi-generator:2.14.0-lts")
+
+    implementation("io.quarkus:quarkus-rest-client")
+    implementation("io.quarkus:quarkus-rest-client-jackson")
+
+
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
 }
@@ -42,4 +48,12 @@ java {
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
     options.compilerArgs.add("-parameters")
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs("build/classes/java/quarkus-generated-sources/open-api")
+        }
+    }
 }

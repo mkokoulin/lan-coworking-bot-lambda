@@ -4,10 +4,29 @@ quarkus:
   rest-client:
     telegram-api:
       url: https://api.telegram.org
+    "com.lan.app.client.baserow.api.CoworkingGuestsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingTariffsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingMeetingRoomBookingsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingActiveTariffsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingNotificationsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
   default-locale: en
   locales:
     - en
     - ru
+  openapi-generator:
+    codegen:
+      spec:
+        baserow_api_json:
+          base-package: com.lan.app.client.baserow
+    baserow_api_json:
+      auth:
+        bearerAuth:
+          bearer-token: ${BASEROW_TOKEN}
   log:
     console:
       json: false
@@ -33,3 +52,6 @@ app:
       enabled: false
   telegram:
     webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:dummy-secret}
+
+  baserow:
+    token: ${BASEROW_TOKEN:}
