@@ -20,6 +20,7 @@ final class RegistrationSession {
     static void setFirstName(Session s, String v) { put(s, RegistrationFlowDef.KEY_FIRST_NAME, v); }
     static void setLastName(Session s, String v)  { put(s, RegistrationFlowDef.KEY_LAST_NAME, v); }
     static void setPhone(Session s, String v)     { put(s, RegistrationFlowDef.KEY_PHONE, v); }
+    static void setAdditionalPhone(Session s, String v) { put(s, RegistrationFlowDef.KEY_ADDITIONAL_PHONE, v); }
     static void setUsername(Session s, String v)  { put(s, RegistrationFlowDef.KEY_USERNAME, v); }
     static void markRegistered(Session s)         { put(s, RegistrationFlowDef.KEY_REGISTERED, "true"); }
 
@@ -28,7 +29,8 @@ final class RegistrationSession {
         data.remove(RegistrationFlowDef.KEY_FIRST_NAME);
         data.remove(RegistrationFlowDef.KEY_LAST_NAME);
         data.remove(RegistrationFlowDef.KEY_PHONE);
-        // username и reg.done оставляем — они нужны после регистрации
+        data.remove(RegistrationFlowDef.KEY_ADDITIONAL_PHONE);
+
         save(s, data);
     }
 

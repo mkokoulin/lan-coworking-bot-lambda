@@ -29,7 +29,6 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE);
         }
 
-        // Телеграм присылает контакт (кнопка «Поделиться») или текст (ручной ввод)
         String rawPhone = ctx.sharedPhone() != null ? ctx.sharedPhone() : ctx.messageText();
         if (rawPhone == null || rawPhone.isBlank()) {
             telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), null);
@@ -44,7 +43,6 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
         RegistrationSession.setPhone(session, normalized);
 
-        // Верификация: просим последние 4 цифры
         String lastFour = PhoneValidator.lastFour(normalized);
         telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "reg_verify_phone").formatted(

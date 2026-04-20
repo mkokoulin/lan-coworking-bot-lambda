@@ -31,20 +31,19 @@ public class IncomingUpdateFactory {
     }
 
     private void fillFromMessage(IncomingUpdate target, TelegramMessage message) {
-        if (message.from != null) {
-            target.setUserId(message.from.id);
-            target.setUserLanguageCode(message.from.language_code);
-            target.setFirstName(message.from.first_name);
-            target.setUsername(message.from.username);
+        if (message.from() != null) {
+            target.setUserId(message.from().id);
+            target.setUserLanguageCode(message.from().language_code);
+            target.setFirstName(message.from().first_name);
+            target.setUsername(message.from().username);
         }
-        if (message.chat != null) {
-            target.setChatId(message.chat.id);
+        if (message.chat() != null) {
+            target.setChatId(message.chat().id);
         }
-        target.setText(message.text == null ? "" : message.text.trim());
+        target.setText(message.text() == null ? "" : message.text().trim());
 
-        // Контакт (кнопка «Поделиться номером»)
-        if (message.contact != null && message.contact.phone_number != null) {
-            target.setSharedPhone(message.contact.phone_number);
+        if (message.contact() != null && message.contact().phone_number() != null) {
+            target.setSharedPhone(message.contact().phone_number().trim());
         }
     }
 
@@ -55,8 +54,8 @@ public class IncomingUpdateFactory {
             target.setFirstName(callback.from.first_name);
             target.setUsername(callback.from.username);
         }
-        if (callback.message != null && callback.message.chat != null) {
-            target.setChatId(callback.message.chat.id);
+        if (callback.message != null && callback.message.chat() != null) {
+            target.setChatId(callback.message.chat().id);
         }
         target.setCallbackData(callback.data == null ? "" : callback.data.trim());
     }

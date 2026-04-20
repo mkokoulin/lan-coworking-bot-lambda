@@ -95,10 +95,6 @@ public class TelegramClient {
         }
     }
 
-    // ─── Добавить в TelegramClient.java ─────────────────────────────────────────
-// Отправляет сообщение с ReplyKeyboard-кнопкой «Поделиться номером».
-// После нажатия Telegram присылает update с contact.phone_number.
-
     public void sendPhoneRequest(Long chatId, String text, String buttonLabel) {
         try {
             var keyboard = Map.of(

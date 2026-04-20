@@ -13,6 +13,7 @@ public final class RegistrationFlowDef {
     static final String KEY_FIRST_NAME = "reg.firstName";
     static final String KEY_LAST_NAME  = "reg.lastName";
     static final String KEY_PHONE      = "reg.phone";
+    static final String KEY_ADDITIONAL_PHONE = "reg.additional_phone";
     static final String KEY_USERNAME   = "reg.username";
     static final String KEY_REGISTERED = "reg.done";
 

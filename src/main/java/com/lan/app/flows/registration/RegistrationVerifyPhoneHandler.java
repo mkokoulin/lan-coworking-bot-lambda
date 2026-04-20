@@ -29,8 +29,6 @@ public class RegistrationVerifyPhoneHandler implements StepHandler {
         this.i18n = i18n;
     }
 
-
-
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
@@ -51,7 +49,6 @@ public class RegistrationVerifyPhoneHandler implements StepHandler {
         String firstName = RegistrationSession.getFirstName(session);
         String lastName  = RegistrationSession.getLastName(session);
 
-        // Ник: сохранённый при вводе имени или свежий из текущего сообщения
         String username = RegistrationSession.getUsername(session);
         if ((username == null || username.isBlank()) && ctx.username() != null) {
             username = ctx.username();
@@ -61,8 +58,8 @@ public class RegistrationVerifyPhoneHandler implements StepHandler {
         RegistrationSession.markRegistered(session);
 
         String contactLine = (username != null && !username.isBlank())
-                ? "@" + username                          // есть ник — удобная ссылка
-                : "tg://user?id=" + session.getUserId(); // нет ника — deep link по ID
+                ? "@" + username
+                : "tg://user?id=" + session.getUserId();
 
         String adminMsg = "🆕 Новый гость:\n"
                 + "👤 " + firstName + " " + lastName + "\n"
