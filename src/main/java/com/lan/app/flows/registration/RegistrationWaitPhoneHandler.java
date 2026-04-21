@@ -37,8 +37,15 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
         String normalized = PhoneValidator.normalize(rawPhone.trim());
         if (normalized == null) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_invalid"), null);
-            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE);
+            StringBuilder stringBuilder = new StringBuilder();
+            stringBuilder.append("Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n");
+            stringBuilder.append("Например: +374 XX XXX XXX\n\n");
+            stringBuilder.append("Нет армянского номера? Не страшно, просто нажми /skip 👌");
+            telegramClient.sendHtml(
+                session.getChatId(),
+                stringBuilder.toString(), null);
+            
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);   
         }
 
         RegistrationSession.setPhone(session, normalized);

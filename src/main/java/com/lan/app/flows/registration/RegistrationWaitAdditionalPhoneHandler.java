@@ -32,10 +32,19 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
-        String lang = session.getLang();
+        // String lang = session.getLang();
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_verify_wrong"), null);
+        String rawPhone = ctx.messageText();
 
-        return StepResult.finish();
+        if ("/skip".equals(rawPhone.trim())) {
+            // return StepResult.next(RegistrationFlowDef.FLOW, RegistrationFlowDef.NEXT_STEP);
+            return StepResult.finish();
+        }
+
+        telegramClient.sendHtml(session.getChatId(), "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n" + //
+                        "Например: +374 XX XXX XXX", null);
+
+        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
     }
 }
+

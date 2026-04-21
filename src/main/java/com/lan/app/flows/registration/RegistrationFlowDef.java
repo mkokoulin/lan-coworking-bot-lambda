@@ -5,6 +5,7 @@ public final class RegistrationFlowDef {
     public static final String STEP_START        = "reg:start";
     public static final String STEP_WAIT_NAME    = "reg:wait_name";
     public static final String STEP_WAIT_PHONE   = "reg:wait_phone";
+    public static final String STEP_WAIT_ADDITIONAL_PHONE   = "reg:wait_additional_phone";
     public static final String STEP_VERIFY_PHONE = "reg:verify_phone";
     public static final String STEP_DONE         = "reg:done";
 

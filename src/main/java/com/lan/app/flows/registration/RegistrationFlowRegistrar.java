@@ -12,6 +12,7 @@ public class RegistrationFlowRegistrar {
     private final RegistrationStartHandler       startHandler;
     private final RegistrationWaitNameHandler    waitNameHandler;
     private final RegistrationWaitPhoneHandler   waitPhoneHandler;
+    private final RegistrationWaitAdditionalPhoneHandler waitAdditionalPhoneHandler;
     private final RegistrationVerifyPhoneHandler verifyPhoneHandler;
 
     @Inject
@@ -20,19 +21,22 @@ public class RegistrationFlowRegistrar {
         RegistrationStartHandler startHandler,
         RegistrationWaitNameHandler waitNameHandler,
         RegistrationWaitPhoneHandler waitPhoneHandler,
+        RegistrationWaitAdditionalPhoneHandler waitAdditionalPhoneHandler,
         RegistrationVerifyPhoneHandler verifyPhoneHandler
     ) {
         this.registry = registry;
         this.startHandler = startHandler;
         this.waitNameHandler = waitNameHandler;
         this.waitPhoneHandler = waitPhoneHandler;
+        this.waitAdditionalPhoneHandler = waitAdditionalPhoneHandler;
         this.verifyPhoneHandler = verifyPhoneHandler;   
     }
 
     public void register() {
-        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_START,        startHandler);
-        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_NAME,    waitNameHandler);
-        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE,   waitPhoneHandler);
+        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_START, startHandler);
+        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_NAME, waitNameHandler);
+        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE, waitPhoneHandler);
+        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE, waitAdditionalPhoneHandler);
         registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE, verifyPhoneHandler);
 
         FlowEntry start = new FlowEntry(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_START);
