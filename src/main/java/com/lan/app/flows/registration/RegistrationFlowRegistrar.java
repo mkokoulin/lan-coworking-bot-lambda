@@ -14,6 +14,7 @@ public class RegistrationFlowRegistrar {
     private final RegistrationWaitPhoneHandler   waitPhoneHandler;
     private final RegistrationWaitAdditionalPhoneHandler waitAdditionalPhoneHandler;
     private final RegistrationVerifyPhoneHandler verifyPhoneHandler;
+    private final RegistrationSummaryHandler summaryHandler;
 
     @Inject
     public RegistrationFlowRegistrar(
@@ -22,14 +23,16 @@ public class RegistrationFlowRegistrar {
         RegistrationWaitNameHandler waitNameHandler,
         RegistrationWaitPhoneHandler waitPhoneHandler,
         RegistrationWaitAdditionalPhoneHandler waitAdditionalPhoneHandler,
-        RegistrationVerifyPhoneHandler verifyPhoneHandler
+        RegistrationVerifyPhoneHandler verifyPhoneHandler,
+        RegistrationSummaryHandler summaryHandler
     ) {
         this.registry = registry;
         this.startHandler = startHandler;
         this.waitNameHandler = waitNameHandler;
         this.waitPhoneHandler = waitPhoneHandler;
         this.waitAdditionalPhoneHandler = waitAdditionalPhoneHandler;
-        this.verifyPhoneHandler = verifyPhoneHandler;   
+        this.verifyPhoneHandler = verifyPhoneHandler;
+        this.summaryHandler = summaryHandler;
     }
 
     public void register() {
@@ -38,7 +41,8 @@ public class RegistrationFlowRegistrar {
         registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE, waitPhoneHandler);
         registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE, waitAdditionalPhoneHandler);
         registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE, verifyPhoneHandler);
-
+        registry.registerStep(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY, summaryHandler);
+        
         FlowEntry start = new FlowEntry(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_START);
         registry.registerCommand("registration", start);
         registry.registerCommand("register",     start);

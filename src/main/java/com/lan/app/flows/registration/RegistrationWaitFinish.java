@@ -32,33 +32,33 @@ public class RegistrationWaitFinish implements StepHandler {
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
-        String firstName = RegistrationSession.getFirstName(session);
-        String lastName  = RegistrationSession.getLastName(session);
+        // String firstName = RegistrationSession.getFirstName(session);
+        // String lastName  = RegistrationSession.getLastName(session);
 
-        String username = RegistrationSession.getUsername(session);
-        if ((username == null || username.isBlank()) && ctx.username() != null) {
-            username = ctx.username();
-            RegistrationSession.setUsername(session, username);
-        }
+        // String username = RegistrationSession.getUsername(session);
+        // if ((username == null || username.isBlank()) && ctx.username() != null) {
+        //     username = ctx.username();
+        //     RegistrationSession.setUsername(session, username);
+        // }
 
-        RegistrationSession.markRegistered(session);
+        // RegistrationSession.markRegistered(session);
 
-        String contactLine = (username != null && !username.isBlank())
-                ? "@" + username
-                : "tg://user?id=" + session.getUserId();
+        // String contactLine = (username != null && !username.isBlank())
+        //         ? "@" + username
+        //         : "tg://user?id=" + session.getUserId();
 
-        String adminMsg = "🆕 Новый гость:\n"
-                + "👤 " + firstName + " " + lastName + "\n"
-                + "📞 " + phone + "\n"
-                + "✈️ " + contactLine;
-        telegramClient.sendHtml(adminChatId, adminMsg, null);
+        // String adminMsg = "🆕 Новый гость:\n"
+        //         + "👤 " + firstName + " " + lastName + "\n"
+        //         + "📞 " + phone + "\n"
+        //         + "✈️ " + contactLine;
+        // telegramClient.sendHtml(adminChatId, adminMsg, null);
 
-        telegramClient.sendHtml(session.getChatId(),
-                i18n.t(lang, "reg_success").formatted(firstName), null);
+        // telegramClient.sendHtml(session.getChatId(),
+        //         i18n.t(lang, "reg_success").formatted(firstName), null);
 
-        RegistrationSession.clearTemp(session);
-        session.setFlow("");
-        session.setStep("");
+        // RegistrationSession.clearTemp(session);
+        // session.setFlow("");
+        // session.setStep("");
         return StepResult.finish();
     }
 }

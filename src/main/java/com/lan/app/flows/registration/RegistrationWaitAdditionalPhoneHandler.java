@@ -37,8 +37,7 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
         String rawPhone = ctx.messageText();
 
         if ("/skip".equals(rawPhone.trim())) {
-            // return StepResult.next(RegistrationFlowDef.FLOW, RegistrationFlowDef.NEXT_STEP);
-            return StepResult.finish();
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
         }
 
         telegramClient.sendHtml(session.getChatId(), "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n" + //
