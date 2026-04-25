@@ -50,12 +50,16 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
         RegistrationSession.setPhone(session, normalized);
 
-        // String lastFour = PhoneValidator.lastFour(normalized);
-        telegramClient.sendHtml(session.getChatId(),
-                i18n.t(lang, "reg_verify_phone").formatted(
-                        normalized.substring(0, normalized.length() - 4) + "****"
-                ), null);
+        // // String lastFour = PhoneValidator.lastFour(normalized);
+        // telegramClient.sendHtml(session.getChatId(),
+        //         i18n.t(lang, "reg_verify_phone").formatted(
+        //                 normalized.substring(0, normalized.length() - 4) + "****"
+        //         ), null);
 
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
+        // return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
+
+        // return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
+
+        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
     }
 }

@@ -1,5 +1,6 @@
 package com.lan.app.flows.registration;
 
+// @TODO - rename to RegistrationFlowConstants to /signup
 public final class RegistrationFlowDef {
     public static final String FLOW = "registration";
     public static final String STEP_START = "reg:start";

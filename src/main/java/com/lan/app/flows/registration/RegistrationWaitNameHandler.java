@@ -55,11 +55,15 @@ public class RegistrationWaitNameHandler implements StepHandler {
             RegistrationSession.setUsername(session, username);
         }
 
-        telegramClient.sendPhoneRequest(
+        if (ctx.chatType() != null && ctx.chatType().equals("private")) {
+            telegramClient.sendPhoneRequest(
                 session.getChatId(),
                 i18n.t(lang, "reg_ask_phone"),
                 i18n.t(lang, "reg_btn_share_phone")
-        );
+            );
+        } else {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_ask_phone"), null);
+        }
 
         return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE);
     }

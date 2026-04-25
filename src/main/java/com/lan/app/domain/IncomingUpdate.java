@@ -4,13 +4,14 @@ public class IncomingUpdate {
     private Long   updateId;
     private Long   userId;
     private Long   chatId;
+    private String chatType;
     private String text;
     private String callbackData;
     private UpdateType type;
     private String userLanguageCode;
     private String firstName;
     private String username;
-    private String sharedPhone; // номер из contact (кнопка «Поделиться»)
+    private String sharedPhone;
 
     public enum UpdateType {
         MESSAGE,
@@ -34,6 +35,9 @@ public class IncomingUpdate {
 
     public UpdateType getType()                    { return type; }
     public void setType(UpdateType type)           { this.type = type; }
+
+    public String getChatType()                    { return chatType; }
+    public void setChatType(String chatType)       { this.chatType = chatType; }
 
     public String getUserLanguageCode()            { return userLanguageCode; }
     public void setUserLanguageCode(String v)      { this.userLanguageCode = v; }

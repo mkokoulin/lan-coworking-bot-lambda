@@ -1,5 +1,8 @@
 package com.lan.app.handler;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.lan.app.domain.IncomingUpdate;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.CommandRouter;
@@ -14,6 +17,8 @@ import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class UpdateHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(UpdateHandler.class);
 
     private final IncomingUpdateFactory incomingUpdateFactory;
     private final SessionRepository sessionRepository;
@@ -32,8 +37,11 @@ public class UpdateHandler {
 
     public void handle(TelegramUpdate rawUpdate) {
         IncomingUpdate update = incomingUpdateFactory.fromTelegram(rawUpdate);
+        
+        logger.info("Received update: {}", update);
+        
         if (update == null || update.getUserId() == null || update.getChatId() == null) {
-            System.out.println("Skip update: invalid mapped update");
+            logger.info("Skip update: invalid mapped update");
             return;
         }
 
@@ -41,7 +49,7 @@ public class UpdateHandler {
                 .orElseGet(() -> newSession(update));
 
         if (alreadyProcessed(session, update)) {
-            System.out.println("Skip update: already processed updateId=" + update.getUpdateId());
+            logger.info("Skip update: already processed updateId={}", update.getUpdateId());
             return;
         }
 

@@ -39,6 +39,7 @@ public class IncomingUpdateFactory {
         }
         if (message.chat() != null) {
             target.setChatId(message.chat().id);
+            target.setChatType(message.chat().type);
         }
         target.setText(message.text() == null ? "" : message.text().trim());
 

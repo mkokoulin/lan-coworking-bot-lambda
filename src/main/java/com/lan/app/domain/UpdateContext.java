@@ -2,6 +2,7 @@ package com.lan.app.domain;
 
 public record UpdateContext(
         Long    chatId,
+        String  chatType,
         Long    userId,
         Integer messageId,
         String  messageText,
@@ -14,6 +15,7 @@ public record UpdateContext(
     public static UpdateContext fromIncomingUpdate(IncomingUpdate update) {
         return new UpdateContext(
                 update.getChatId(),
+                update.getChatType(),
                 update.getUserId(),
                 null,
                 update.getText(),

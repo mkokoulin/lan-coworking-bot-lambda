@@ -1,14 +1,19 @@
 package com.lan.app.engine;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.session.Session;
+
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 @ApplicationScoped
 public class CommandRouter {
 
+    private static final Logger logger = LoggerFactory.getLogger(CommandRouter.class);
     private final FlowRegistry registry;
 
     @Inject
@@ -18,6 +23,13 @@ public class CommandRouter {
 
     public StepResult route(UpdateContext ctx, Session session) {
         String command = normalizeCommand(ctx.command());
+
+        logger.info(
+            "Routing command: '{}', session: {}, chatId: {}", 
+            command != null ? command : "<none>",
+            session,
+            session.getChatId()
+        );
 
         if (command != null) {
             FlowEntry entry = registry.getCommand(command).orElse(null);
