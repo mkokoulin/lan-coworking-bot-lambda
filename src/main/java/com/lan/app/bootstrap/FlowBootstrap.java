@@ -8,6 +8,7 @@ import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
+import com.lan.app.flows.myevents.MyEventsFlowRegistrar;
 import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
 import io.quarkus.runtime.Startup;
@@ -29,6 +30,7 @@ public class FlowBootstrap {
     private final DonationFlowRegistrar donationFlowRegistrar;
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
+    private final MyEventsFlowRegistrar myEventsFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
 
     @Inject
@@ -42,6 +44,7 @@ public class FlowBootstrap {
         DonationFlowRegistrar donationFlowRegistrar,
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
+        MyEventsFlowRegistrar myEventsFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
@@ -53,6 +56,7 @@ public class FlowBootstrap {
         this.donationFlowRegistrar = donationFlowRegistrar;
         this.registrationFlowRegistrar = registrationFlowRegistrar;
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
+        this.myEventsFlowRegistrar = myEventsFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
     }
 
@@ -66,6 +70,7 @@ public class FlowBootstrap {
         donationFlowRegistrar.register();
         registrationFlowRegistrar.register();
         eventConfirmFlowRegistrar.register();
+        myEventsFlowRegistrar.register();
         helpFlowRegistrar.register();
     }
 }
