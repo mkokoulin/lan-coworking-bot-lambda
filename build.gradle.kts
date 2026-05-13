@@ -25,8 +25,6 @@ dependencies {
     implementation("io.quarkus:quarkus-smallrye-openapi")
     implementation("io.quarkus:quarkus-hibernate-validator")
     implementation("io.quarkus:quarkus-logging-json")
-    implementation("io.quarkus:quarkus-amazon-lambda-http")
-
     implementation("io.quarkiverse.openapi.generator:quarkus-openapi-generator:2.14.0-lts")
 
     implementation("io.quarkus:quarkus-rest-client")

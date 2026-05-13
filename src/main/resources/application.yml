@@ -1,6 +1,6 @@
 quarkus:
   http:
-    port: 3000
+    port: 8088
   rest-client:
     telegram-api:
       url: https://api.telegram.org
@@ -26,7 +26,7 @@ quarkus:
     baserow_api_json:
       auth:
         bearerAuth:
-          bearer-token: ${BASEROW_TOKEN}
+          bearer-token: ${BASEROW_TOKEN:}
   log:
     console:
       json: false
@@ -37,21 +37,15 @@ telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
   admin-chat-id: ${TELEGRAM_ADMIN_CHAT_ID}
   api-base-url: https://api.telegram.org
-  webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:}
 
 app:
-  mode: ${APP_MODE:polling}
-
-"%prod":
-  app:
-    mode: webhook
+  site-url: ${SITE_URL:}
+  backend-url: ${BACKEND_URL:}
 
 "%dev":
   quarkus:
     devservices:
       enabled: false
-  telegram:
-    webhook-secret: ${TELEGRAM_WEBHOOK_SECRET:dummy-secret}
 
   baserow:
     token: ${BASEROW_TOKEN:}

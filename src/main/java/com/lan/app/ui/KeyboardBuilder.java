@@ -19,4 +19,8 @@ public class KeyboardBuilder {
                 "callback_data", "/" + command
         );
     }
+
+    public static Map<String, String> urlBtn(String text, String url) {
+        return Map.of("text", text, "url", url);
+    }
 }

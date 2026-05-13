@@ -8,22 +8,22 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-
-import org.jboss.logging.Logger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 @ApplicationScoped
 public class PollingService {
 
     private static final Logger log = Logger.getLogger(PollingService.class);
-
-    // @ConfigProperty(name = "telegram.mode", defaultValue = "polling")
-    @ConfigProperty(name = "app.mode", defaultValue = "polling")
-    String mode;
+    private static final Path OFFSET_FILE = Path.of("data/polling-offset.txt");
 
     @ConfigProperty(name = "telegram.bot-token")
     String botToken;
@@ -32,29 +32,22 @@ public class PollingService {
     String apiBaseUrl;
 
     private final UpdateHandler updateHandler;
-
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Inject
-    public PollingService(
-        UpdateHandler updateHandler
-    ) {
+    public PollingService(UpdateHandler updateHandler) {
         this.updateHandler = updateHandler;
     }
 
     void onStart(@Observes StartupEvent event) {
-        if (!"polling".equals(mode)) {
-            System.out.println("⏭️ Polling disabled, running in webhook mode");
-            return;
-        }
-
-        System.out.println("🚀 Starting polling mode...");
+        log.info("🚀 Starting polling...");
         Thread.ofVirtual().start(this::poll);
     }
 
     private void poll() {
-        long offset = 0;
+        long offset = readOffset();
+        log.infof("Polling starting with offset=%d", offset);
 
         while (true) {
             try {
@@ -76,24 +69,48 @@ public class PollingService {
                 if (results != null && results.isArray()) {
                     for (var node : results) {
                         TelegramUpdate update = objectMapper.treeToValue(node, TelegramUpdate.class);
-                        updateHandler.handle(update);
+                        try {
+                            updateHandler.handle(update);
+                        } catch (Exception e) {
+                            log.errorf(e, "Failed to handle update %d", update.update_id);
+                        }
                         offset = update.update_id + 1;
+                        saveOffset(offset);
                     }
                 }
 
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
-                System.out.println("Polling interrupted");
+                log.info("Polling interrupted");
                 break;
             } catch (Exception e) {
                 log.error("Polling error", e);
                 try {
-                    Thread.sleep(3000); // пауза перед повтором при ошибке
+                    Thread.sleep(3000);
                 } catch (InterruptedException ie) {
                     Thread.currentThread().interrupt();
                     break;
                 }
             }
+        }
+    }
+
+    private long readOffset() {
+        try {
+            if (Files.exists(OFFSET_FILE)) {
+                return Long.parseLong(Files.readString(OFFSET_FILE).trim());
+            }
+        } catch (Exception ignored) {}
+        return 0;
+    }
+
+    private void saveOffset(long offset) {
+        try {
+            Files.createDirectories(OFFSET_FILE.getParent());
+            Files.writeString(OFFSET_FILE, String.valueOf(offset),
+                    StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+        } catch (IOException e) {
+            log.warnf("Failed to persist polling offset: %s", e.getMessage());
         }
     }
 }

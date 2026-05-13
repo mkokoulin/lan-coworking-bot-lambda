@@ -3,6 +3,8 @@ package com.lan.app.bootstrap;
 import com.lan.app.flows.about.AboutFlowRegistrar;
 import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
+import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
+import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
@@ -26,6 +28,8 @@ public class FlowBootstrap {
     private final LanguageFlowRegistrar languageFlowRegistrar;
     private final DonationFlowRegistrar donationFlowRegistrar;
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
+    private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
+    private final HelpFlowRegistrar helpFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -36,7 +40,9 @@ public class FlowBootstrap {
         AboutFlowRegistrar aboutFlowRegistrar,
         LanguageFlowRegistrar languageFlowRegistrar,
         DonationFlowRegistrar donationFlowRegistrar,
-        RegistrationFlowRegistrar registrationFlowRegistrar
+        RegistrationFlowRegistrar registrationFlowRegistrar,
+        EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
+        HelpFlowRegistrar helpFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -46,6 +52,8 @@ public class FlowBootstrap {
         this.languageFlowRegistrar = languageFlowRegistrar;
         this.donationFlowRegistrar = donationFlowRegistrar;
         this.registrationFlowRegistrar = registrationFlowRegistrar;
+        this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
+        this.helpFlowRegistrar = helpFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -57,5 +65,7 @@ public class FlowBootstrap {
         languageFlowRegistrar.register();
         donationFlowRegistrar.register();
         registrationFlowRegistrar.register();
+        eventConfirmFlowRegistrar.register();
+        helpFlowRegistrar.register();
     }
 }

@@ -7,5 +7,4 @@ public interface TelegramConfig {
     String botToken();
     String apiBaseUrl();
     Long adminChatId();
-    String webhookSecret();
 }
