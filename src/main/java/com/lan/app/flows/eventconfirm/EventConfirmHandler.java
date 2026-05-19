@@ -57,7 +57,7 @@ public class EventConfirmHandler implements StepHandler {
         String lang = session.getLang();
 
         if (regId != null) {
-            notifyBackend(regId);
+            notifyBackend(regId, session.getChatId());
         }
 
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_message"), null);
@@ -80,18 +80,23 @@ public class EventConfirmHandler implements StepHandler {
         return StepResult.finish();
     }
 
-    private void notifyBackend(String regId) {
+    private void notifyBackend(String regId, Long chatId) {
         String url = resolveBackendUrl(regId);
         if (url == null) return;
+        if (chatId != null) {
+            url = url + "?chatId=" + chatId;
+        }
         try {
+            final String finalUrl = url;
             HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
+                    .uri(URI.create(finalUrl))
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .build();
-            httpClient.sendAsync(req, HttpResponse.BodyHandlers.discarding())
+            httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                     .thenAccept(res -> {
                         if (res.statusCode() != 200) {
-                            log.warnf("Backend confirm returned %d for reg %s", res.statusCode(), regId);
+                            log.warnf("Backend confirm returned %d for reg %s: %s",
+                                    res.statusCode(), regId, res.body());
                         }
                     })
                     .exceptionally(ex -> {

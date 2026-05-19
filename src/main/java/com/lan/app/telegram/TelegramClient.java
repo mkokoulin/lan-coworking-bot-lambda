@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.config.TelegramConfig;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import org.jboss.logging.Logger;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -15,6 +16,8 @@ import java.util.Map;
 
 @ApplicationScoped
 public class TelegramClient {
+
+    private static final Logger log = Logger.getLogger(TelegramClient.class);
 
     private final TelegramConfig telegramConfig;
     private final HttpClient http = HttpClient.newHttpClient();
@@ -29,12 +32,12 @@ public class TelegramClient {
 
     public void sendHtml(Long chatId, String text, Object replyMarkup) {
         try {
-            Map<String, Object> body = new HashMap<>(); // ← HashMap вместо Map.of()
+            Map<String, Object> body = new HashMap<>();
             body.put("chat_id", chatId);
             body.put("text", text);
             body.put("parse_mode", "HTML");
             if (replyMarkup != null) {
-                body.put("reply_markup", replyMarkup); // ← добавляем только если не null
+                body.put("reply_markup", replyMarkup);
             }
 
             String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendMessage";
@@ -44,8 +47,11 @@ public class TelegramClient {
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
                     .build();
 
+            log.debugf("→ POST sendMessage chatId=%d", chatId);
             var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d sendMessage chatId=%d", resp.statusCode(), chatId);
             if (resp.statusCode() >= 300) {
+                log.errorf("sendMessage failed [%d]: %s", resp.statusCode(), resp.body());
                 throw new TelegramClientException("Telegram sendMessage failed: " + resp.body());
             }
         } catch (InterruptedException e) {
@@ -86,12 +92,14 @@ public class TelegramClient {
                     .POST(java.net.http.HttpRequest.BodyPublishers.ofByteArray(baos.toByteArray()))
                     .build();
 
+            log.debugf("→ POST sendPhoto chatId=%d file=%s", chatId, fileName);
             var resp = http.send(req, java.net.http.HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d sendPhoto chatId=%d", resp.statusCode(), chatId);
             if (resp.statusCode() >= 300) {
-                System.err.println("[TelegramClient] sendPhoto failed: " + resp.body());
+                log.errorf("sendPhoto failed [%d]: %s", resp.statusCode(), resp.body());
             }
         } catch (Exception e) {
-            System.err.println("[TelegramClient] sendPhoto error: " + e.getMessage());
+            log.errorf(e, "sendPhoto error: %s", e.getMessage());
         }
     }
 
@@ -122,8 +130,11 @@ public class TelegramClient {
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
                     .build();
 
+            log.debugf("→ POST sendPhoneRequest chatId=%d", chatId);
             var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d sendPhoneRequest chatId=%d", resp.statusCode(), chatId);
             if (resp.statusCode() >= 300) {
+                log.errorf("sendPhoneRequest failed [%d]: %s", resp.statusCode(), resp.body());
                 throw new RuntimeException("sendPhoneRequest failed: " + resp.body());
             }
         } catch (Exception e) {
@@ -146,7 +157,9 @@ public class TelegramClient {
                     .header("Content-Type", "application/json")
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
                     .build();
-            http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("→ POST removeKeyboard chatId=%d", chatId);
+            var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d removeKeyboard chatId=%d", resp.statusCode(), chatId);
         } catch (Exception ignored) {}
     }
 

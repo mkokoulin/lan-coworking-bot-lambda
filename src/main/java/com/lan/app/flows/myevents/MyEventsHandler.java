@@ -77,7 +77,8 @@ public class MyEventsHandler implements StepHandler {
                     .build();
             HttpResponse<String> response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) {
-                log.warnf("my-registrations returned %d for chatId %d", response.statusCode(), chatId);
+                log.warnf("my-registrations returned %d for chatId %d: %s",
+                        response.statusCode(), chatId, response.body());
                 return null;
             }
             return mapper.readValue(response.body(), new TypeReference<>() {});

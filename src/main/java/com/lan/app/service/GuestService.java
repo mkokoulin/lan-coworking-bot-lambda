@@ -22,12 +22,13 @@ public class GuestService {
     }
 
     public CoworkingGuestResponse createGuest(String firstName, String lastName,
-                                              String telegram, String phone) {
+                                              String telegram, String phone, Long chatId) {
         var request = new CreateCoworkingGuestRequest();
         request.setFirstName(firstName);
         request.setLastName(lastName);
         request.setTelegram(telegram);
         request.setPhone(phone);
+        request.setTelegramChatId(chatId);
         return guestsApi.createCoworkingGuest(request);
     }
 }

@@ -14,6 +14,15 @@ quarkus:
       url: ${BASEROW_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingNotificationsApi":
       url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.EventGuestsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.EventRegistrationsApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.BotApi":
+      url: ${BASEROW_URL:http://localhost:8080}
+    logging:
+      scope: request-response
+      body-limit: 500
   default-locale: en
   locales:
     - en
@@ -32,6 +41,11 @@ quarkus:
       json: false
       color: true
       format: "%d{HH:mm:ss} %-5p [%c{2.}] %s%e%n"
+    category:
+      "com.lan.app.telegram":
+        level: DEBUG
+      "org.jboss.resteasy.reactive.client.logging":
+        level: DEBUG
 
 telegram:
   bot-token: ${TELEGRAM_BOT_TOKEN}
