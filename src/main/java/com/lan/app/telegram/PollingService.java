@@ -15,6 +15,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.time.Duration;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -52,10 +53,11 @@ public class PollingService {
         while (true) {
             try {
                 String url = apiBaseUrl + "/bot" + botToken
-                        + "/getUpdates?offset=" + offset + "&timeout=30";
+                        + "/getUpdates?offset=" + offset + "&timeout=20";
 
                 HttpRequest request = HttpRequest.newBuilder()
                         .uri(URI.create(url))
+                        .timeout(Duration.ofSeconds(40))
                         .GET()
                         .build();
 

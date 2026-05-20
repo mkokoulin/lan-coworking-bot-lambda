@@ -1,11 +1,8 @@
 package com.lan.app.flows.registration;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
-import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 
@@ -16,32 +13,30 @@ import jakarta.inject.Inject;
 public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
-    private final I18n i18n;
-    
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
 
     @Inject
-    public RegistrationWaitAdditionalPhoneHandler(
-        TelegramClient telegramClient,
-        I18n i18n
-    ) {
+    public RegistrationWaitAdditionalPhoneHandler(TelegramClient telegramClient) {
         this.telegramClient = telegramClient;
-        this.i18n = i18n;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
-        // String lang = session.getLang();
-
         String rawPhone = ctx.messageText();
+        String input = rawPhone != null ? rawPhone.trim() : "";
 
-        if ("/skip".equals(rawPhone != null ? rawPhone.trim() : "")) {
+        if ("/skip".equals(input)) {
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
         }
 
-        telegramClient.sendHtml(session.getChatId(), "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n" + //
-                        "Например: +374 XX XXX XXX", null);
+        String normalized = PhoneValidator.normalize(input.replaceAll("\\s+", ""));
+        if (normalized != null) {
+            RegistrationSession.setPhone(session, normalized);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        }
+
+        telegramClient.sendHtml(session.getChatId(),
+                "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n"
+                + "Например: +374 XX XXX XXX\n\nНет армянского номера? Просто нажми /skip 👌", null);
 
         return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
     }
