@@ -21,14 +21,20 @@ public class GuestService {
         return guestsApi.getCoworkingGuestById(id);
     }
 
-    public CoworkingGuestResponse createGuest(String firstName, String lastName,
-                                              String telegram, String phone, Long chatId) {
+    public CoworkingGuestResponse createGuest(
+        String firstName, String lastName,
+        String telegram,
+        String phone,
+        Long chatId
+    ) {
         var request = new CreateCoworkingGuestRequest();
+        
         request.setFirstName(firstName);
         request.setLastName(lastName);
         request.setTelegram(telegram);
         request.setPhone(phone);
-        request.setTelegramChatId(chatId);
+        request.setTelegramChatId(chatId != null ? String.valueOf(chatId) : null);
+        
         return guestsApi.createCoworkingGuest(request);
     }
 }

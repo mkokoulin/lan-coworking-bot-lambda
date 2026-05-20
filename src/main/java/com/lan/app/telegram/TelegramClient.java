@@ -1,7 +1,9 @@
 package com.lan.app.telegram;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.config.TelegramConfig;
+import com.lan.app.telegram.dto.TelegramUpdate;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -10,6 +12,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +31,35 @@ public class TelegramClient {
         TelegramConfig telegramConfig
     ) {
         this.telegramConfig = telegramConfig;
+    }
+
+    public List<TelegramUpdate> getUpdates(long offset, int timeout) {
+        try {
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken()
+                    + "/getUpdates?offset=" + offset + "&timeout=" + timeout + "&limit=100";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .timeout(java.time.Duration.ofSeconds(timeout + 5))
+                    .GET()
+                    .build();
+            var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() >= 300) {
+                log.errorf("getUpdates failed [%d]: %s", resp.statusCode(), resp.body());
+                return Collections.emptyList();
+            }
+            var root = mapper.readTree(resp.body());
+            if (!root.path("ok").asBoolean()) {
+                log.errorf("getUpdates not ok: %s", resp.body());
+                return Collections.emptyList();
+            }
+            return mapper.convertValue(root.get("result"), new TypeReference<List<TelegramUpdate>>() {});
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return Collections.emptyList();
+        } catch (Exception e) {
+            log.errorf(e, "getUpdates error: %s", e.getMessage());
+            return Collections.emptyList();
+        }
     }
 
     public void sendHtml(Long chatId, String text, Object replyMarkup) {

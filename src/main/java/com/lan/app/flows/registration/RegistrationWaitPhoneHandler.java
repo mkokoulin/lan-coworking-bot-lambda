@@ -14,11 +14,13 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final RegistrationSummaryHandler summaryHandler;
 
     @Inject
-    public RegistrationWaitPhoneHandler(TelegramClient telegramClient, I18n i18n) {
+    public RegistrationWaitPhoneHandler(TelegramClient telegramClient, I18n i18n, RegistrationSummaryHandler summaryHandler) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.summaryHandler = summaryHandler;
     }
 
     @Override
@@ -37,29 +39,13 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
         String normalized = PhoneValidator.normalize(rawPhone.trim());
         if (normalized == null) {
-            StringBuilder stringBuilder = new StringBuilder();
-            stringBuilder.append("Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n");
-            stringBuilder.append("Например: +374 XX XXX XXX\n\n");
-            stringBuilder.append("Нет армянского номера? Не страшно, просто нажми /skip 👌");
-            telegramClient.sendHtml(
-                session.getChatId(),
-                stringBuilder.toString(), null);
-            
-            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);   
+            RegistrationSession.setAdditionalPhone(session, rawPhone.trim());
+            telegramClient.sendHtml(session.getChatId(),
+                i18n.t(lang, "reg_need_armenian_phone"), null);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
         }
 
         RegistrationSession.setPhone(session, normalized);
-
-        // // String lastFour = PhoneValidator.lastFour(normalized);
-        // telegramClient.sendHtml(session.getChatId(),
-        //         i18n.t(lang, "reg_verify_phone").formatted(
-        //                 normalized.substring(0, normalized.length() - 4) + "****"
-        //         ), null);
-
-        // return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
-
-        // return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
-
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        return summaryHandler.handle(ctx, session);
     }
 }

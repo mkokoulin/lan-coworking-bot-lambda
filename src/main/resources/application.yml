@@ -5,21 +5,23 @@ quarkus:
     telegram-api:
       url: https://api.telegram.org
     "com.lan.app.client.baserow.api.CoworkingGuestsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingTariffsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingMeetingRoomBookingsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingActiveTariffsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingNotificationsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.EventGuestsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.EventRegistrationsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.BotApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.FestivalsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     logging:
       scope: request-response
       body-limit: 500
@@ -35,7 +37,7 @@ quarkus:
     baserow_api_json:
       auth:
         bearerAuth:
-          bearer-token: ${BASEROW_TOKEN:}
+          bearer-token: ${API_TOKEN:}
   log:
     console:
       json: false
@@ -48,13 +50,13 @@ quarkus:
         level: DEBUG
 
 telegram:
-  bot-token: ${TELEGRAM_BOT_TOKEN}
-  admin-chat-id: ${TELEGRAM_ADMIN_CHAT_ID}
+  bot-token: ${TG_BOT_TOKEN}
+  admin-chat-id: ${TG_ADMIN_CHAT_ID}
   api-base-url: https://api.telegram.org
 
 app:
-  site-url: ${SITE_URL:}
-  backend-url: ${BACKEND_URL:}
+  site-url: ${APP_SITE_URL:}
+  backend-url: ${APP_BACKEND_URL:}
 
 "%dev":
   quarkus:
@@ -62,4 +64,4 @@ app:
       enabled: false
 
   baserow:
-    token: ${BASEROW_TOKEN:}
+    token: ${API_TOKEN:}

@@ -43,6 +43,10 @@ public class RegistrationSummaryHandler implements StepHandler {
         String firstName = RegistrationSession.getFirstName(session);
         String lastName  = RegistrationSession.getLastName(session);
         String phone     = RegistrationSession.getPhone(session);
+        if (phone == null || phone.isBlank()) {
+            phone = RegistrationSession.getAdditionalPhone(session);
+        }
+        if (phone == null) phone = "";
 
         String username = RegistrationSession.getUsername(session);
         if ((username == null || username.isBlank()) && ctx.username() != null) {

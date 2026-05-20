@@ -1,7 +1,5 @@
 package com.lan.app.flows.registration;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
@@ -17,33 +15,36 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
-    
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    private final RegistrationSummaryHandler summaryHandler;
 
     @Inject
-    public RegistrationWaitAdditionalPhoneHandler(
-        TelegramClient telegramClient,
-        I18n i18n
-    ) {
+    public RegistrationWaitAdditionalPhoneHandler(TelegramClient telegramClient, I18n i18n, RegistrationSummaryHandler summaryHandler) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.summaryHandler = summaryHandler;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
-        // String lang = session.getLang();
-
+        String lang = session.getLang();
         String rawPhone = ctx.messageText();
 
-        if ("/skip".equals(rawPhone.trim())) {
-            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        if (rawPhone == null || rawPhone.isBlank()) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), null);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
         }
 
-        telegramClient.sendHtml(session.getChatId(), "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n" + //
-                        "Например: +374 XX XXX XXX", null);
+        if ("/skip".equals(rawPhone.trim())) {
+            return summaryHandler.handle(ctx, session);
+        }
 
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
+        String normalized = PhoneValidator.normalize(rawPhone.trim());
+        if (normalized == null) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_invalid"), null);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
+        }
+
+        RegistrationSession.setPhone(session, normalized);
+        return summaryHandler.handle(ctx, session);
     }
 }
-

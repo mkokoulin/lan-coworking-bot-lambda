@@ -11,10 +11,11 @@ final class RegistrationSession {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    static String getFirstName(Session s) { return get(s, RegistrationFlowDef.KEY_FIRST_NAME); }
-    static String getLastName(Session s)  { return get(s, RegistrationFlowDef.KEY_LAST_NAME); }
-    static String getPhone(Session s)     { return get(s, RegistrationFlowDef.KEY_PHONE); }
-    static String getUsername(Session s)  { return get(s, RegistrationFlowDef.KEY_USERNAME); }
+    static String getFirstName(Session s)       { return get(s, RegistrationFlowDef.KEY_FIRST_NAME); }
+    static String getLastName(Session s)        { return get(s, RegistrationFlowDef.KEY_LAST_NAME); }
+    static String getPhone(Session s)           { return get(s, RegistrationFlowDef.KEY_PHONE); }
+    static String getAdditionalPhone(Session s) { return get(s, RegistrationFlowDef.KEY_ADDITIONAL_PHONE); }
+    static String getUsername(Session s)        { return get(s, RegistrationFlowDef.KEY_USERNAME); }
     static boolean isRegistered(Session s){ return "true".equals(get(s, RegistrationFlowDef.KEY_REGISTERED)); }
 
     static void setFirstName(Session s, String v) { put(s, RegistrationFlowDef.KEY_FIRST_NAME, v); }
