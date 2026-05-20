@@ -36,14 +36,14 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
 
         String rawPhone = ctx.messageText();
 
-        if ("/skip".equals(rawPhone.trim())) {
+        if ("/skip".equals(rawPhone != null ? rawPhone.trim() : "")) {
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
         }
 
         telegramClient.sendHtml(session.getChatId(), "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n" + //
                         "Например: +374 XX XXX XXX", null);
 
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
+        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
     }
 }
 
