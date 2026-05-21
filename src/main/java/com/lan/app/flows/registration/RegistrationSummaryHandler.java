@@ -58,20 +58,39 @@ public class RegistrationSummaryHandler implements StepHandler {
         String lastNameForApi = (lastName != null && !lastName.isBlank()) ? lastName : "-";
         String telegramForApi = !telegramHandle.isBlank() ? telegramHandle : "tg_" + session.getUserId();
 
+        boolean created = false;
         try {
-            var created = guestService.createGuest(firstName, lastNameForApi, telegramForApi, phone, session.getChatId());
-            if (created != null && created.getId() != null) {
-                RegistrationSession.setGuestId(session, created.getId().toString());
+            var createdGuest = guestService.createGuest(firstName, lastNameForApi, telegramForApi, phone, session.getChatId());
+            if (createdGuest != null && createdGuest.getId() != null) {
+                RegistrationSession.setGuestId(session, createdGuest.getId().toString());
             }
+            created = true;
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 409) {
-                LOG.infof("Coworking guest already exists: %s %s / %s", firstName, lastName, phone);
+                LOG.infof("Coworking guest already exists: %s %s / %s — linking chatId", firstName, lastName, phone);
+                var linked = guestService.linkChat(phone, session.getChatId());
+                if (linked.isPresent()) {
+                    if (linked.get().getId() != null) {
+                        RegistrationSession.setGuestId(session, linked.get().getId().toString());
+                    }
+                    created = true;
+                } else {
+                    LOG.warnf("linkChat failed for phone=%s chatId=%d", phone, session.getChatId());
+                }
             } else {
                 LOG.errorf(e, "Failed to create coworking guest: %s %s / %s, status=%d", firstName, lastName, phone, status);
             }
         } catch (Exception e) {
             LOG.errorf(e, "Unexpected error creating coworking guest: %s %s / %s", firstName, lastName, phone);
+        }
+
+        if (!created) {
+            telegramClient.sendHtml(session.getChatId(),
+                i18n.t(lang, "reg_error"), null);
+            session.setFlow("");
+            session.setStep("");
+            return StepResult.finish();
         }
 
         RegistrationSession.markRegistered(session);
