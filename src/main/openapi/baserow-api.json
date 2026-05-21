@@ -2758,7 +2758,7 @@
         ]
       }
     },
-    "/v1/reviews": {
+    "/coworking/v1/reviews": {
       "post": {
         "summary": "Submit a review",
         "operationId": "createReview",
