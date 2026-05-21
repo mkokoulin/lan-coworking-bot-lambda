@@ -6,8 +6,11 @@ import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.util.List;
 
 @ApplicationScoped
 public class AboutHandler implements StepHandler {
@@ -25,7 +28,10 @@ public class AboutHandler implements StepHandler {
         telegramClient.sendPhoto(session.getChatId(), PHOTO_PATH, "");
 
         // 2) Текст с описанием и правилами
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "about_text"), null);
+        var kb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "about_btn_home"), "/start"))
+        ));
+        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "about_text"), kb);
 
         return StepResult.stay(AboutFlowDef.FLOW, AboutFlowDef.STEP_SEND);
     }

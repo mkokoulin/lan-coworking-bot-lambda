@@ -7,11 +7,14 @@ import com.lan.app.i18n.I18n;
 import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
+
+import java.util.List;
 
 @ApplicationScoped
 public class RegistrationSummaryHandler implements StepHandler {
@@ -105,8 +108,11 @@ public class RegistrationSummaryHandler implements StepHandler {
                 + "✈️ " + contactLine;
         telegramClient.sendHtml(adminChatId, adminMsg, null);
 
+        var successKb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "/start"))
+        ));
         telegramClient.sendHtml(session.getChatId(),
-                i18n.t(lang, "reg_success").formatted(firstName), null);
+                i18n.t(lang, "reg_success").formatted(firstName), successKb);
 
         RegistrationSession.clearTemp(session);
         session.setFlow("");

@@ -6,8 +6,11 @@ import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.util.List;
 
 @ApplicationScoped
 public class RegistrationWaitPhoneHandler implements StepHandler {
@@ -40,8 +43,11 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
         String normalized = PhoneValidator.normalize(rawPhone.trim());
         if (normalized == null) {
             RegistrationSession.setAdditionalPhone(session, rawPhone.trim());
+            var skipKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "reg_btn_skip"), "reg_skip"))
+            ));
             telegramClient.sendHtml(session.getChatId(),
-                i18n.t(lang, "reg_need_armenian_phone"), null);
+                i18n.t(lang, "reg_need_armenian_phone"), skipKb);
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
         }
 

@@ -27,15 +27,16 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
+
+        if (ctx.hasCallback() && "reg_skip".equals(ctx.callbackData())) {
+            return summaryHandler.handle(ctx, session);
+        }
+
         String rawPhone = ctx.messageText();
 
         if (rawPhone == null || rawPhone.isBlank()) {
             telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), null);
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
-        }
-
-        if ("/skip".equals(rawPhone.trim())) {
-            return summaryHandler.handle(ctx, session);
         }
 
         String normalized = PhoneValidator.normalize(rawPhone.trim());
