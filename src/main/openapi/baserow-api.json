@@ -961,6 +961,20 @@
         "format": "uuid",
         "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
       },
+      "LinkCoworkingGuestChatByIdRequest": {
+        "type": "object",
+        "required": [
+          "chatId"
+        ],
+        "description": "Links a Telegram chat ID to a coworking guest by their UUID.",
+        "properties": {
+          "chatId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Telegram chat ID to link to the guest."
+          }
+        }
+      },
       "LinkCoworkingGuestChatRequest": {
         "type": "object",
         "required": [
@@ -1259,6 +1273,67 @@
         ]
       }
     },
+    "/coworking/v1/guests/{externalId}/link-chat": {
+      "patch": {
+        "summary": "Link a Telegram chat ID to a guest by UUID",
+        "description": "Sets the given Telegram chat ID on the coworking guest identified by external UUID.",
+        "operationId": "linkCoworkingGuestChatById",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCoworkingGuestChatByIdRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat ID linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/coworking/v1/guests/link-chat": {
       "post": {
         "summary": "Link a Telegram chat ID to a guest by phone",
@@ -1288,11 +1363,21 @@
               }
             }
           },
-          "400": { "description": "Validation failed" },
-          "401": { "description": "User is not authenticated" },
-          "403": { "description": "User does not have permission" },
-          "404": { "description": "Guest with the given phone not found" },
-          "500": { "description": "Internal server error" }
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest with the given phone not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
         },
         "security": [
           {
@@ -1340,6 +1425,53 @@
           },
           "404": {
             "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create a new coworking guest",
+        "description": "Creates a new coworking guest record.",
+        "operationId": "createCoworkingGuest",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoworkingGuestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guest created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
           },
           "500": {
             "description": "Internal server error"

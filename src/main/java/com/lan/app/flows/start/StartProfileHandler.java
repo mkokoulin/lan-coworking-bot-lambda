@@ -110,7 +110,7 @@ public class StartProfileHandler implements StepHandler {
             String tariffName = t.getTariffId() != null
                 ? tariffService.getTariffName(t.getTariffId()).orElse("—")
                 : "—";
-            Instant dateEnd = t.getDateEnd();
+            Instant dateEnd = t.getDateEnd() != null ? t.getDateEnd().toInstant() : null;
             long daysLeft = dateEnd != null
                 ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
                 : 0;

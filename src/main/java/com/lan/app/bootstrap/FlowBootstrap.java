@@ -2,6 +2,7 @@ package com.lan.app.bootstrap;
 
 import com.lan.app.flows.about.AboutFlowRegistrar;
 import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
+import com.lan.app.flows.cwlink.CwLinkFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
@@ -32,6 +33,7 @@ public class FlowBootstrap {
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
     private final MyEventsFlowRegistrar myEventsFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
+    private final CwLinkFlowRegistrar cwLinkFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -45,7 +47,8 @@ public class FlowBootstrap {
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
         MyEventsFlowRegistrar myEventsFlowRegistrar,
-        HelpFlowRegistrar helpFlowRegistrar
+        HelpFlowRegistrar helpFlowRegistrar,
+        CwLinkFlowRegistrar cwLinkFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -58,6 +61,7 @@ public class FlowBootstrap {
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
         this.myEventsFlowRegistrar = myEventsFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
+        this.cwLinkFlowRegistrar = cwLinkFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -72,5 +76,6 @@ public class FlowBootstrap {
         eventConfirmFlowRegistrar.register();
         myEventsFlowRegistrar.register();
         helpFlowRegistrar.register();
+        cwLinkFlowRegistrar.register();
     }
 }

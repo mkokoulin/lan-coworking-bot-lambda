@@ -3,6 +3,7 @@ package com.lan.app.service;
 import com.lan.app.client.baserow.api.CoworkingGuestsApi;
 import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.CreateCoworkingGuestRequest;
+import com.lan.app.client.baserow.model.LinkCoworkingGuestChatByIdRequest;
 import com.lan.app.client.baserow.model.LinkCoworkingGuestChatRequest;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -38,6 +39,21 @@ public class GuestService {
             return Optional.empty();
         } catch (Exception e) {
             LOG.warnf(e, "Unexpected error finding guest by chatId=%d", chatId);
+            return Optional.empty();
+        }
+    }
+
+    public Optional<CoworkingGuestResponse> linkChatById(UUID guestId, Long chatId) {
+        try {
+            var req = new LinkCoworkingGuestChatByIdRequest();
+            req.setChatId(chatId);
+            return Optional.ofNullable(guestsApi.linkCoworkingGuestChatById(guestId, req));
+        } catch (WebApplicationException e) {
+            if (e.getResponse().getStatus() == 404) return Optional.empty();
+            LOG.warnf("linkChatById failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
+            return Optional.empty();
+        } catch (Exception e) {
+            LOG.warnf(e, "Unexpected error in linkChatById guestId=%s", guestId);
             return Optional.empty();
         }
     }

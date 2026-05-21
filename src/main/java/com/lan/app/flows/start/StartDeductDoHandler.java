@@ -60,7 +60,7 @@ public class StartDeductDoHandler implements StepHandler {
 
         var updated = result.get();
         int daysUsed = updated.getDaysUsed() != null ? updated.getDaysUsed() : 0;
-        Instant dateEnd = updated.getDateEnd();
+        Instant dateEnd = updated.getDateEnd() != null ? updated.getDateEnd().toInstant() : null;
         long daysLeft = dateEnd != null
             ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
             : 0;
