@@ -18,7 +18,11 @@ public final class RegistrationFlowDef {
     static final String KEY_PHONE = "reg.phone";
     static final String KEY_ADDITIONAL_PHONE = "reg.additional_phone";
     static final String KEY_USERNAME = "reg.username";
-    static final String KEY_REGISTERED = "reg.done";
+    static final String KEY_REGISTERED        = "reg.done";
+    static final String KEY_GUEST_ID          = "reg.guestId";
+    static final String KEY_MANUAL_LOGOUT     = "reg.manual_logout";
+    public static final String KEY_DEDUCT_TARIFF_ID   = "tariff.deductId";
+    public static final String KEY_DEDUCT_TARIFF_NAME = "tariff.deductName";
 
     private RegistrationFlowDef() {
     }

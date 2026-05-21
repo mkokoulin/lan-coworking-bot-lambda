@@ -59,7 +59,10 @@ public class RegistrationSummaryHandler implements StepHandler {
         String telegramForApi = !telegramHandle.isBlank() ? telegramHandle : "tg_" + session.getUserId();
 
         try {
-            guestService.createGuest(firstName, lastNameForApi, telegramForApi, phone, session.getChatId());
+            var created = guestService.createGuest(firstName, lastNameForApi, telegramForApi, phone, session.getChatId());
+            if (created != null && created.getId() != null) {
+                RegistrationSession.setGuestId(session, created.getId().toString());
+            }
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 409) {
