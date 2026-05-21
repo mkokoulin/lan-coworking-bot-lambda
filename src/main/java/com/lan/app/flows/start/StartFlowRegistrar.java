@@ -16,6 +16,7 @@ public class StartFlowRegistrar {
     private final StartLoginPhoneHandler startLoginPhoneHandler;
     private final StartDeductConfirmHandler startDeductConfirmHandler;
     private final StartDeductDoHandler startDeductDoHandler;
+    private final StartTariffListHandler startTariffListHandler;
 
     @Inject
     public StartFlowRegistrar(
@@ -26,7 +27,8 @@ public class StartFlowRegistrar {
         StartLoginHandler startLoginHandler,
         StartLoginPhoneHandler startLoginPhoneHandler,
         StartDeductConfirmHandler startDeductConfirmHandler,
-        StartDeductDoHandler startDeductDoHandler
+        StartDeductDoHandler startDeductDoHandler,
+        StartTariffListHandler startTariffListHandler
     ) {
         this.registry = registry;
         this.startShowHandler = startShowHandler;
@@ -36,6 +38,7 @@ public class StartFlowRegistrar {
         this.startLoginPhoneHandler = startLoginPhoneHandler;
         this.startDeductConfirmHandler = startDeductConfirmHandler;
         this.startDeductDoHandler = startDeductDoHandler;
+        this.startTariffListHandler = startTariffListHandler;
     }
 
     public void register() {
@@ -46,11 +49,13 @@ public class StartFlowRegistrar {
         registry.registerStep(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE, startLoginPhoneHandler);
         registry.registerStep(StartFlowDef.FLOW, StartFlowDef.STEP_DEDUCT_CONFIRM, startDeductConfirmHandler);
         registry.registerStep(StartFlowDef.FLOW, StartFlowDef.STEP_DEDUCT_DO, startDeductDoHandler);
+        registry.registerStep(StartFlowDef.FLOW, StartFlowDef.STEP_TARIFF_LIST, startTariffListHandler);
         registry.registerCommand("start", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW));
         registry.registerCommand("profile", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_PROFILE));
         registry.registerCommand("logout", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_LOGOUT));
         registry.registerCommand("login", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN));
         registry.registerCommand("deduct_confirm", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_DEDUCT_CONFIRM));
         registry.registerCommand("deduct_do", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_DEDUCT_DO));
+        registry.registerCommand("tariff_list", new FlowEntry(StartFlowDef.FLOW, StartFlowDef.STEP_TARIFF_LIST));
     }
 }

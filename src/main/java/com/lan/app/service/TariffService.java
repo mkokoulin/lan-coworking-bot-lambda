@@ -4,6 +4,7 @@ import com.lan.app.client.baserow.api.CoworkingGuestTariffsApi;
 import com.lan.app.client.baserow.api.CoworkingTariffsApi;
 import com.lan.app.client.baserow.model.CoworkingGuestTariffResponse;
 import com.lan.app.client.baserow.model.CoworkingTariffResponse;
+import com.lan.app.client.baserow.model.CreateCoworkingGuestTariffRequest;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
@@ -46,6 +47,31 @@ public class TariffService {
             return Optional.empty();
         } catch (Exception e) {
             LOG.warnf(e, "Failed to fetch tariff %s", tariffId);
+            return Optional.empty();
+        }
+    }
+
+    public List<CoworkingTariffResponse> listAllTariffs() {
+        try {
+            return tariffsApi.listCoworkingTariffs();
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to fetch tariff list");
+            return Collections.emptyList();
+        }
+    }
+
+    public Optional<CoworkingGuestTariffResponse> requestGuestTariff(UUID guestId, UUID tariffId) {
+        try {
+            var req = new CreateCoworkingGuestTariffRequest()
+                .guestId(guestId)
+                .tariffId(tariffId);
+            return Optional.of(guestTariffsApi.createGuestTariff(req));
+        } catch (WebApplicationException e) {
+            LOG.warnf("requestGuestTariff failed for guest=%s tariff=%s: HTTP %d",
+                guestId, tariffId, e.getResponse().getStatus());
+            return Optional.empty();
+        } catch (Exception e) {
+            LOG.warnf(e, "requestGuestTariff unexpected error for guest=%s tariff=%s", guestId, tariffId);
             return Optional.empty();
         }
     }

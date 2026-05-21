@@ -33,6 +33,10 @@ public final class RegistrationSession {
     public static void setDeductTariffId(Session s, String id){ put(s, RegistrationFlowDef.KEY_DEDUCT_TARIFF_ID, id); }
     public static String getDeductTariffName(Session s)       { return get(s, RegistrationFlowDef.KEY_DEDUCT_TARIFF_NAME); }
     public static void setDeductTariffName(Session s, String n){ put(s, RegistrationFlowDef.KEY_DEDUCT_TARIFF_NAME, n); }
+    public static String getTariffReqId(Session s)            { return get(s, RegistrationFlowDef.KEY_TARIFF_REQ_ID); }
+    public static void setTariffReqId(Session s, String id)   { put(s, RegistrationFlowDef.KEY_TARIFF_REQ_ID, id); }
+    public static String getTariffReqName(Session s)          { return get(s, RegistrationFlowDef.KEY_TARIFF_REQ_NAME); }
+    public static void setTariffReqName(Session s, String n)  { put(s, RegistrationFlowDef.KEY_TARIFF_REQ_NAME, n); }
 
     public static void clearAuth(Session s) {
         Map<String, String> data = load(s);

@@ -10,6 +10,8 @@ public final class StartFlowDef {
     public static final String STEP_LOGIN_PHONE    = "start:login_phone";
     public static final String STEP_DEDUCT_CONFIRM = "start:deduct_confirm";
     public static final String STEP_DEDUCT_DO      = "start:deduct_do";
+    public static final String STEP_TARIFF_LIST    = "start:tariff_list";
+    public static final String STEP_TARIFF_SELECT  = "start:tariff_select";
     public static final String STEP_DONE           = "start:done";
 
     private StartFlowDef() {}

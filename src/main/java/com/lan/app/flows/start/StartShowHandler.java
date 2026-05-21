@@ -40,16 +40,9 @@ public class StartShowHandler implements StepHandler {
 
         AuthState state = resolveState(session);
 
-        String lastRow = switch (state) {
-            case REGISTERED  -> i18n.t(lang, "start_btn_profile");
-            case LOGGED_OUT  -> i18n.t(lang, "start_btn_login");
-            default          -> i18n.t(lang, "start_btn_register");
-        };
-        String lastCmd = switch (state) {
-            case REGISTERED  -> "profile";
-            case LOGGED_OUT  -> "login";
-            default          -> "registration";
-        };
+        if (state != AuthState.REGISTERED) {
+            return showGuestMenu(session, lang, state);
+        }
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
@@ -73,16 +66,31 @@ public class StartShowHandler implements StepHandler {
                 KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_donation"), "donation")
             ),
             KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(lastRow, lastCmd)
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_profile"), "profile")
             )
         ));
 
-        telegramClient.sendHtml(
-            session.getChatId(),
-            i18n.t(lang, "start_message"),
-            kb
-        );
+        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "start_message"), kb);
+        return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW);
+    }
 
+    private StepResult showGuestMenu(Session session, String lang, AuthState state) {
+        String authCmd  = state == AuthState.LOGGED_OUT ? "login"        : "registration";
+        String authLabel = state == AuthState.LOGGED_OUT
+            ? i18n.t(lang, "start_btn_login")
+            : i18n.t(lang, "start_btn_register");
+
+        var kb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_wifi"), "wifi")
+            ),
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_language"), "language"),
+                KeyboardBuilder.cbCmd(authLabel, authCmd)
+            )
+        ));
+
+        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "start_message_guest"), kb);
         return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW);
     }
 

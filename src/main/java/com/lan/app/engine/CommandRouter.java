@@ -6,21 +6,45 @@ import org.slf4j.LoggerFactory;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
+import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
+import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
+import com.lan.app.telegram.TelegramClient;
+import com.lan.app.i18n.I18n;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.util.Set;
 
 @ApplicationScoped
 public class CommandRouter {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandRouter.class);
+
+    /** Commands accessible without authentication */
+    private static final Set<String> GUEST_COMMANDS = Set.of(
+        "start", "wifi", "password", "language", "lang",
+        "registration", "register", "reg", "login", "help"
+    );
+
     private final FlowRegistry registry;
+    private final GuestService guestService;
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
 
     @Inject
-    public CommandRouter(FlowRegistry registry) {
+    public CommandRouter(
+        FlowRegistry registry,
+        GuestService guestService,
+        TelegramClient telegramClient,
+        I18n i18n
+    ) {
         this.registry = registry;
+        this.guestService = guestService;
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
     }
 
     public StepResult route(UpdateContext ctx, Session session) {
@@ -55,6 +79,14 @@ public class CommandRouter {
             session.setStep(StartFlowDef.STEP_DONE);
         }
 
+        // Block access to restricted flows for unauthenticated users
+        if (command != null && !GUEST_COMMANDS.contains(command) && !isAuthenticated(session)) {
+            String lang = session.getLang();
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "auth_required"), null);
+            session.setFlow(StartFlowDef.FLOW);
+            session.setStep(StartFlowDef.STEP_SHOW);
+        }
+
         StepHandler handler = registry.getStep(session.getFlow(), session.getStep()).orElse(null);
         if (handler == null) {
             session.setFlow(StartFlowDef.FLOW);
@@ -66,6 +98,20 @@ public class CommandRouter {
         }
 
         return handler.handle(ctx, session);
+    }
+
+    private boolean isAuthenticated(Session session) {
+        if (RegistrationSession.isRegistered(session)) return true;
+        if (RegistrationSession.isManualLogout(session)) return false;
+        var guest = guestService.findByChatId(session.getChatId());
+        if (guest.isPresent()) {
+            RegistrationSession.markRegistered(session);
+            if (guest.get().getId() != null) {
+                RegistrationSession.setGuestId(session, guest.get().getId().toString());
+            }
+            return true;
+        }
+        return false;
     }
 
     private String normalizeCommand(String command) {

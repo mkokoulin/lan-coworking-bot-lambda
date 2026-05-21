@@ -1067,6 +1067,26 @@
           }
         }
       },
+      "CreateCoworkingGuestTariffRequest": {
+        "type": "object",
+        "required": [
+          "guestId",
+          "tariffId"
+        ],
+        "description": "Request to create a pending guest tariff",
+        "properties": {
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "External UUID of the coworking guest"
+          },
+          "tariffId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "External UUID of the tariff to request"
+          }
+        }
+      },
       "CoworkingGuestTariffResponse": {
         "type": "object",
         "required": [
@@ -2461,6 +2481,53 @@
       }
     },
     "/coworking/v1/guest-tariffs": {
+      "post": {
+        "summary": "Create a pending guest tariff request",
+        "description": "Creates a guest_tariff record with status 'pending'. The admin must activate it manually.",
+        "operationId": "createGuestTariff",
+        "tags": [
+          "Coworking Guest Tariffs"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoworkingGuestTariffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guest tariff created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestTariffResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
       "get": {
         "summary": "List guest tariffs filtered by guestId",
         "description": "Returns the list of active tariffs for the given guest UUID.",

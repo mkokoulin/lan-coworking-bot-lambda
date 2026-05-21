@@ -23,6 +23,8 @@ public final class RegistrationFlowDef {
     static final String KEY_MANUAL_LOGOUT     = "reg.manual_logout";
     public static final String KEY_DEDUCT_TARIFF_ID   = "tariff.deductId";
     public static final String KEY_DEDUCT_TARIFF_NAME = "tariff.deductName";
+    public static final String KEY_TARIFF_REQ_ID      = "tariff.reqId";
+    public static final String KEY_TARIFF_REQ_NAME    = "tariff.reqName";
 
     private RegistrationFlowDef() {
     }

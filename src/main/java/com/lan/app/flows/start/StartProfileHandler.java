@@ -85,6 +85,10 @@ public class StartProfileHandler implements StepHandler {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_deduct"), "deduct_confirm")
             ));
+        } else {
+            rows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "tariff_list")
+            ));
         }
         rows.add(KeyboardBuilder.row(
             KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"),
