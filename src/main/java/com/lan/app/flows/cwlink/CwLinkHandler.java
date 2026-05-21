@@ -34,9 +34,10 @@ public class CwLinkHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String args = ctx.commandArgs();
         String lang = "ru";
+        String source = "login"; // "signup" or "login"
         UUID guestId = null;
 
-        // Format: cwlink_{uuid}_{lang} or cwlink_{uuid}
+        // Format: cwlink_{uuid}_{lang}_{source} or cwlink_{uuid}_{lang} or cwlink_{uuid}
         if (args != null && args.startsWith("cwlink_")) {
             String payload = args.substring("cwlink_".length());
             String[] parts = payload.split("_", 2);
@@ -44,7 +45,11 @@ public class CwLinkHandler implements StepHandler {
                 guestId = UUID.fromString(parts[0]);
             } catch (IllegalArgumentException ignored) {}
             if (parts.length > 1 && !parts[1].isBlank()) {
-                lang = parts[1];
+                String[] langAndSource = parts[1].split("_", 2);
+                lang = langAndSource[0];
+                if (langAndSource.length > 1 && !langAndSource[1].isBlank()) {
+                    source = langAndSource[1];
+                }
             }
         }
         session.setLang(lang);
@@ -77,8 +82,9 @@ public class CwLinkHandler implements StepHandler {
             )
         ));
 
+        String msgKey = "signup".equals(source) ? "cwlink_success_signup" : "cwlink_success_login";
         telegramClient.sendHtml(session.getChatId(),
-            i18n.t(lang, "cwlink_success").formatted(g.getFirstName()), kb);
+            i18n.t(lang, msgKey).formatted(g.getFirstName()), kb);
 
         session.setFlow(StartFlowDef.FLOW);
         session.setStep(StartFlowDef.STEP_SHOW);
