@@ -1,6 +1,7 @@
 package com.lan.app.flows.start;
 
 import com.lan.app.client.baserow.model.CoworkingGuestTariffResponse;
+import com.lan.app.client.baserow.model.CoworkingTariffResponse;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
@@ -67,16 +68,21 @@ public class StartProfileHandler implements StepHandler {
 
         String tariffSection = buildTariffSection(lang, tariffs);
 
-        // Сохраняем первый активный тариф в сессию для кнопки списания
         boolean canDeduct = false;
         if (!tariffs.isEmpty()) {
             var first = tariffs.getFirst();
             RegistrationSession.setDeductTariffId(session, first.getId().toString());
             if (first.getTariffId() != null) {
-                String tName = tariffService.getTariffName(first.getTariffId()).orElse("—");
+                var tariff = tariffService.getTariff(first.getTariffId());
+                String tName = tariff.map(t -> t.getName() != null ? t.getName() : "—").orElse("—");
                 RegistrationSession.setDeductTariffName(session, tName);
+                boolean isShort = tariff
+                    .map(t -> t.getType() == CoworkingTariffResponse.TypeEnum.SHORT)
+                    .orElse(false);
+                canDeduct = !isShort;
+            } else {
+                canDeduct = true;
             }
-            canDeduct = true;
         }
 
         String text = i18n.t(lang, "profile_info").formatted(name, telegram, phone)
