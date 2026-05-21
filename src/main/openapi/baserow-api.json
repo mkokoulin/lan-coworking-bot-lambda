@@ -351,7 +351,10 @@
           },
           "type": {
             "type": "string",
-            "enum": ["long", "short"],
+            "enum": [
+              "long",
+              "short"
+            ],
             "examples": [
               "long"
             ],
@@ -361,7 +364,11 @@
       },
       "CoworkingNewsResponse": {
         "type": "object",
-        "required": ["id", "title", "publishedAt"],
+        "required": [
+          "id",
+          "titleEn",
+          "titleRu"
+        ],
         "description": "A published coworking news item",
         "properties": {
           "id": {
@@ -369,20 +376,25 @@
             "type": "string",
             "description": "Unique identifier of the news item"
           },
-          "title": {
+          "titleEn": {
             "type": "string",
-            "examples": ["Открыт новый зал!"],
-            "description": "News headline"
+            "description": "News headline in English"
           },
-          "body": {
+          "titleRu": {
             "type": "string",
-            "examples": ["С радостью сообщаем..."],
-            "description": "Full news text"
+            "description": "News headline in Russian"
           },
-          "publishedAt": {
-            "$ref": "#/components/schemas/Instant",
+          "bodyEn": {
             "type": "string",
-            "description": "Publication date and time (ISO-8601, UTC)"
+            "description": "News body text in English"
+          },
+          "bodyRu": {
+            "type": "string",
+            "description": "News body text in Russian"
+          },
+          "link": {
+            "type": "string",
+            "description": "Optional external link"
           }
         }
       },

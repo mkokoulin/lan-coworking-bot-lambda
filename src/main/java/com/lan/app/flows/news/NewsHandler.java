@@ -14,11 +14,7 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Collections;
 import java.util.List;
-import java.util.Locale;
 
 @ApplicationScoped
 public class NewsHandler implements StepHandler {
@@ -81,10 +77,6 @@ public class NewsHandler implements StepHandler {
 
     private String buildMessage(String lang, List<CoworkingNewsResponse> news) {
         boolean isRu = "ru".equals(lang);
-        Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
-        DateTimeFormatter fmt = DateTimeFormatter
-            .ofPattern(isRu ? "d MMMM yyyy" : "MMMM d, yyyy", locale)
-            .withZone(ZoneId.of("Asia/Yerevan"));
 
         var sb = new StringBuilder();
         sb.append(i18n.t(lang, "news_title")).append("\n\n");
@@ -92,23 +84,22 @@ public class NewsHandler implements StepHandler {
         int limit = Math.min(news.size(), MAX_ITEMS);
         for (int i = 0; i < limit; i++) {
             CoworkingNewsResponse item = news.get(i);
-            String title = escapeHtml(item.getTitle() != null ? item.getTitle() : "—");
-            String date = item.getPublishedAt() != null
-                ? fmt.format(item.getPublishedAt().toInstant())
-                : "";
+            String rawTitle = isRu ? item.getTitleRu() : item.getTitleEn();
+            String title = escapeHtml(rawTitle != null ? rawTitle : "—");
 
-            sb.append("<b>").append(title).append("</b>");
-            if (!date.isEmpty()) {
-                sb.append("  <i>").append(date).append("</i>");
-            }
-            sb.append("\n");
+            sb.append("<b>").append(title).append("</b>\n");
 
-            if (item.getBody() != null && !item.getBody().isBlank()) {
-                String body = escapeHtml(item.getBody().trim());
+            String rawBody = isRu ? item.getBodyRu() : item.getBodyEn();
+            if (rawBody != null && !rawBody.isBlank()) {
+                String body = escapeHtml(rawBody.trim());
                 if (body.length() > MAX_BODY_CHARS) {
                     body = body.substring(0, MAX_BODY_CHARS) + "…";
                 }
                 sb.append(body).append("\n");
+            }
+
+            if (item.getLink() != null && !item.getLink().isBlank()) {
+                sb.append(escapeHtml(item.getLink())).append("\n");
             }
 
             if (i < limit - 1) {
