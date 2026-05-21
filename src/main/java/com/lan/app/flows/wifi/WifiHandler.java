@@ -3,7 +3,9 @@ package com.lan.app.flows.wifi;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.i18n.I18n;
+import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -18,6 +20,7 @@ public class WifiHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final GuestService guestService;
     private final String guestPassword;
     private final String residentPassword;
 
@@ -25,11 +28,13 @@ public class WifiHandler implements StepHandler {
     public WifiHandler(
         TelegramClient telegramClient,
         I18n i18n,
+        GuestService guestService,
         @ConfigProperty(name = "app.wifi.guest-password", defaultValue = "—") String guestPassword,
         @ConfigProperty(name = "app.wifi.resident-password", defaultValue = "") String residentPassword
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.guestService = guestService;
         this.guestPassword = guestPassword;
         this.residentPassword = residentPassword;
     }
@@ -38,7 +43,8 @@ public class WifiHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        boolean hasResident = residentPassword != null && !residentPassword.isBlank();
+        boolean authenticated = isAuthenticated(session);
+        boolean hasResident = authenticated && residentPassword != null && !residentPassword.isBlank();
         String text = hasResident
             ? i18n.t(lang, "wifi_message_full").formatted(guestPassword, residentPassword)
             : i18n.t(lang, "wifi_message_guest").formatted(guestPassword);
@@ -52,5 +58,19 @@ public class WifiHandler implements StepHandler {
         telegramClient.sendHtml(session.getChatId(), text, kb);
 
         return StepResult.stay(WifiFlowDef.FLOW, WifiFlowDef.STEP_SHOW);
+    }
+
+    private boolean isAuthenticated(Session session) {
+        if (RegistrationSession.isRegistered(session)) return true;
+        if (RegistrationSession.isManualLogout(session)) return false;
+        var guest = guestService.findByChatId(session.getChatId());
+        if (guest.isPresent()) {
+            RegistrationSession.markRegistered(session);
+            if (guest.get().getId() != null) {
+                RegistrationSession.setGuestId(session, guest.get().getId().toString());
+            }
+            return true;
+        }
+        return false;
     }
 }

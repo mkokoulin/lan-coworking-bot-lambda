@@ -68,6 +68,9 @@ public class StartShowHandler implements StepHandler {
             KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_profile"), "profile"),
                 KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_review"), "review")
+            ),
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_news"), "news")
             )
         ));
 

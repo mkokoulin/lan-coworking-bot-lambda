@@ -41,7 +41,7 @@ public class ReviewTextHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        boolean skip = ctx.hasCallback() && "review_skip".equals(ctx.callbackData());
+        boolean skip = ctx.hasCallback() && "review_skip".equals(ctx.callbackPayload());
         String text = skip ? null : ctx.messageText();
 
         if (!skip && (text == null || text.isBlank())) {

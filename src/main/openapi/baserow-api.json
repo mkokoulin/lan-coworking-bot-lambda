@@ -348,6 +348,41 @@
               true
             ],
             "description": "Whether luggage storage is available with this tariff"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["long", "short"],
+            "examples": [
+              "long"
+            ],
+            "description": "Tariff type: long for monthly/day-based plans with day deduction support, short for single-day passes"
+          }
+        }
+      },
+      "CoworkingNewsResponse": {
+        "type": "object",
+        "required": ["id", "title", "publishedAt"],
+        "description": "A published coworking news item",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "Unique identifier of the news item"
+          },
+          "title": {
+            "type": "string",
+            "examples": ["Открыт новый зал!"],
+            "description": "News headline"
+          },
+          "body": {
+            "type": "string",
+            "examples": ["С радостью сообщаем..."],
+            "description": "Full news text"
+          },
+          "publishedAt": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "description": "Publication date and time (ISO-8601, UTC)"
           }
         }
       },
@@ -2660,6 +2695,45 @@
           },
           "404": {
             "description": "Guest tariff not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/news": {
+      "get": {
+        "summary": "List coworking news",
+        "description": "Returns a list of published coworking news items, ordered by publication date descending.",
+        "operationId": "listCoworkingNews",
+        "tags": [
+          "Coworking News"
+        ],
+        "responses": {
+          "200": {
+            "description": "News list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingNewsResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
           },
           "500": {
             "description": "Internal server error"

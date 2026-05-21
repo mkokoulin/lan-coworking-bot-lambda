@@ -28,8 +28,8 @@ public class ReviewRatingHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        if (ctx.hasCallback() && ctx.callbackData() != null && ctx.callbackData().startsWith("rate_")) {
-            String ratingStr = ctx.callbackData().substring(5);
+        if (ctx.hasCallback() && ctx.callbackPayload() != null && ctx.callbackPayload().startsWith("rate_")) {
+            String ratingStr = ctx.callbackPayload().substring(5);
             ReviewSession.setRating(session, ratingStr);
 
             var kb = KeyboardBuilder.inline(List.of(

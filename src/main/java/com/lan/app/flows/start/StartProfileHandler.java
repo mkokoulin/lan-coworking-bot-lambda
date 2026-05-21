@@ -68,24 +68,26 @@ public class StartProfileHandler implements StepHandler {
         String tariffSection = buildTariffSection(lang, tariffs);
 
         // Сохраняем первый активный тариф в сессию для кнопки списания
+        boolean canDeduct = false;
         if (!tariffs.isEmpty()) {
             var first = tariffs.getFirst();
             RegistrationSession.setDeductTariffId(session, first.getId().toString());
-            String tName = first.getTariffId() != null
-                ? tariffService.getTariffName(first.getTariffId()).orElse("—")
-                : "—";
-            RegistrationSession.setDeductTariffName(session, tName);
+            if (first.getTariffId() != null) {
+                String tName = tariffService.getTariffName(first.getTariffId()).orElse("—");
+                RegistrationSession.setDeductTariffName(session, tName);
+            }
+            canDeduct = true;
         }
 
         String text = i18n.t(lang, "profile_info").formatted(name, telegram, phone)
             + tariffSection;
 
         var rows = new java.util.ArrayList<List<java.util.Map<String, String>>>();
-        if (!tariffs.isEmpty()) {
+        if (canDeduct) {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_deduct"), "deduct_confirm")
             ));
-        } else {
+        } else if (tariffs.isEmpty()) {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "tariff_list")
             ));

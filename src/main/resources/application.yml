@@ -24,6 +24,8 @@ quarkus:
       url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingGuestTariffsApi":
       url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingNewsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.ReviewsApi":
       url: ${APP_BACKEND_URL:http://localhost:8080}
     logging:

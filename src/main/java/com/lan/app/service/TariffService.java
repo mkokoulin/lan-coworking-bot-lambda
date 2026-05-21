@@ -38,10 +38,9 @@ public class TariffService {
         }
     }
 
-    public Optional<String> getTariffName(UUID tariffId) {
+    public Optional<CoworkingTariffResponse> getTariff(UUID tariffId) {
         try {
-            CoworkingTariffResponse tariff = tariffsApi.getCoworkingTariffById(tariffId);
-            return Optional.ofNullable(tariff.getName());
+            return Optional.of(tariffsApi.getCoworkingTariffById(tariffId));
         } catch (WebApplicationException e) {
             LOG.warnf("Tariff not found: %s, HTTP %d", tariffId, e.getResponse().getStatus());
             return Optional.empty();
@@ -49,6 +48,10 @@ public class TariffService {
             LOG.warnf(e, "Failed to fetch tariff %s", tariffId);
             return Optional.empty();
         }
+    }
+
+    public Optional<String> getTariffName(UUID tariffId) {
+        return getTariff(tariffId).map(CoworkingTariffResponse::getName);
     }
 
     public List<CoworkingTariffResponse> listAllTariffs() {
