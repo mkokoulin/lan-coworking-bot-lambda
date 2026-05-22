@@ -12,6 +12,7 @@ public class IncomingUpdate {
     private String firstName;
     private String username;
     private String sharedPhone;
+    private String fileId;
 
     public enum UpdateType {
         MESSAGE,
@@ -50,4 +51,7 @@ public class IncomingUpdate {
 
     public String getSharedPhone()                 { return sharedPhone; }
     public void setSharedPhone(String sharedPhone) { this.sharedPhone = sharedPhone; }
+
+    public String getFileId()                      { return fileId; }
+    public void setFileId(String fileId)           { this.fileId = fileId; }
 }

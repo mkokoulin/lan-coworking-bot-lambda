@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
+import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.service.GuestService;
@@ -71,6 +72,15 @@ public class CommandRouter {
                     session.setFlow(entry.flow());
                     session.setStep(entry.step());
                 }
+            }
+        }
+
+        // Route pay_approve_/pay_reject_ callbacks to admin payment handler
+        if (ctx.hasCallback()) {
+            String cb = ctx.callbackData();
+            if (cb != null && (cb.startsWith("pay_approve_") || cb.startsWith("pay_reject_"))) {
+                session.setFlow(EventPaymentFlowDef.FLOW);
+                session.setStep(EventPaymentFlowDef.STEP_ADMIN);
             }
         }
 

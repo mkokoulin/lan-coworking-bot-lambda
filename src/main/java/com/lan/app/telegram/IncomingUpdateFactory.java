@@ -46,6 +46,11 @@ public class IncomingUpdateFactory {
         if (message.contact() != null && message.contact().phone_number() != null) {
             target.setSharedPhone(message.contact().phone_number().trim());
         }
+
+        if (message.photo() != null && !message.photo().isEmpty()) {
+            var largest = message.photo().get(message.photo().size() - 1);
+            target.setFileId(largest.fileId());
+        }
     }
 
     private void fillFromCallback(IncomingUpdate target, TelegramCallbackQuery callback) {

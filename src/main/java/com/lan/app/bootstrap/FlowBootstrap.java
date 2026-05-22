@@ -8,6 +8,7 @@ import com.lan.app.flows.cwlink.CwLinkFlowRegistrar;
 import com.lan.app.flows.wifi.WifiFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
+import com.lan.app.flows.eventpayment.EventPaymentFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
@@ -40,6 +41,7 @@ public class FlowBootstrap {
     private final WifiFlowRegistrar wifiFlowRegistrar;
     private final ReviewFlowRegistrar reviewFlowRegistrar;
     private final NewsFlowRegistrar newsFlowRegistrar;
+    private final EventPaymentFlowRegistrar eventPaymentFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -57,7 +59,8 @@ public class FlowBootstrap {
         CwLinkFlowRegistrar cwLinkFlowRegistrar,
         WifiFlowRegistrar wifiFlowRegistrar,
         ReviewFlowRegistrar reviewFlowRegistrar,
-        NewsFlowRegistrar newsFlowRegistrar
+        NewsFlowRegistrar newsFlowRegistrar,
+        EventPaymentFlowRegistrar eventPaymentFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -74,6 +77,7 @@ public class FlowBootstrap {
         this.wifiFlowRegistrar = wifiFlowRegistrar;
         this.reviewFlowRegistrar = reviewFlowRegistrar;
         this.newsFlowRegistrar = newsFlowRegistrar;
+        this.eventPaymentFlowRegistrar = eventPaymentFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -92,5 +96,6 @@ public class FlowBootstrap {
         wifiFlowRegistrar.register();
         reviewFlowRegistrar.register();
         newsFlowRegistrar.register();
+        eventPaymentFlowRegistrar.register();
     }
 }

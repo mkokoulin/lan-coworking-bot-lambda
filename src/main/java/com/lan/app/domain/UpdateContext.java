@@ -9,7 +9,8 @@ public record UpdateContext(
         String  callbackData,
         boolean callback,
         String  username,
-        String  sharedPhone
+        String  sharedPhone,
+        String  fileId
 ) {
 
     public static UpdateContext fromIncomingUpdate(IncomingUpdate update) {
@@ -22,7 +23,8 @@ public record UpdateContext(
                 update.getCallbackData(),
                 update.getCallbackData() != null && !update.getCallbackData().isBlank(),
                 update.getUsername(),
-                update.getSharedPhone()
+                update.getSharedPhone(),
+                update.getFileId()
         );
     }
 
@@ -38,6 +40,10 @@ public record UpdateContext(
 
     public boolean hasSharedPhone() {
         return sharedPhone != null && !sharedPhone.isBlank();
+    }
+
+    public boolean hasPhoto() {
+        return fileId != null && !fileId.isBlank();
     }
 
     public boolean isCommand() {

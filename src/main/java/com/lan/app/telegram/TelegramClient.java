@@ -94,6 +94,40 @@ public class TelegramClient {
         }
     }
 
+    public void sendPhotoByFileId(Long chatId, String fileId, String caption, Object replyMarkup) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("chat_id", chatId);
+            body.put("photo", fileId);
+            if (caption != null && !caption.isBlank()) {
+                body.put("caption", caption);
+                body.put("parse_mode", "HTML");
+            }
+            if (replyMarkup != null) {
+                body.put("reply_markup", replyMarkup);
+            }
+
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendPhoto";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+
+            log.debugf("→ POST sendPhotoByFileId chatId=%d", chatId);
+            var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d sendPhotoByFileId chatId=%d", resp.statusCode(), chatId);
+            if (resp.statusCode() >= 300) {
+                log.errorf("sendPhotoByFileId failed [%d]: %s", resp.statusCode(), resp.body());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.errorf(e, "sendPhotoByFileId interrupted");
+        } catch (Exception e) {
+            log.errorf(e, "sendPhotoByFileId error: %s", e.getMessage());
+        }
+    }
+
      public void sendPhoto(Long chatId, String photoPath, String caption) {
         try {
             java.nio.file.Path path = java.nio.file.Path.of(photoPath);

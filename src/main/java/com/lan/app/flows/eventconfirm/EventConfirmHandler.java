@@ -3,6 +3,9 @@ package com.lan.app.flows.eventconfirm;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
+import com.lan.app.flows.eventpayment.EventPaymentSession;
+import com.lan.app.flows.eventpayment.EventPaymentStartHandler;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -25,6 +28,7 @@ public class EventConfirmHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final EventPaymentStartHandler eventPaymentStartHandler;
     private final HttpClient httpClient = HttpClient.newHttpClient();
 
     @ConfigProperty(name = "app.site-url", defaultValue = "")
@@ -34,9 +38,10 @@ public class EventConfirmHandler implements StepHandler {
     String backendUrl;
 
     @Inject
-    public EventConfirmHandler(TelegramClient telegramClient, I18n i18n) {
+    public EventConfirmHandler(TelegramClient telegramClient, I18n i18n, EventPaymentStartHandler eventPaymentStartHandler) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.eventPaymentStartHandler = eventPaymentStartHandler;
     }
 
     @Override
@@ -44,13 +49,21 @@ public class EventConfirmHandler implements StepHandler {
         String args = ctx.commandArgs();
         String regId = null;
 
+        String priceStr = null;
+
         if (args != null && args.startsWith("reg_")) {
-            // Format: reg_<uuid>_<lang>  or  reg_<uuid>
+            // Format: reg_<uuid>_<lang>  or  reg_<uuid>_<lang>_pay_<price>
             String payload = args.substring("reg_".length());
             String[] parts = payload.split("_", 2);
             regId = parts[0];
             if (parts.length > 1 && !parts[1].isBlank()) {
-                session.setLang(parts[1]);
+                String rest = parts[1];
+                // rest might be "ru" or "ru_pay_5000"
+                String[] langParts = rest.split("_pay_", 2);
+                session.setLang(langParts[0]);
+                if (langParts.length > 1) {
+                    priceStr = langParts[1];
+                }
             }
         }
 
@@ -58,6 +71,15 @@ public class EventConfirmHandler implements StepHandler {
 
         if (regId != null) {
             notifyBackend(regId, session.getChatId());
+        }
+
+        // If prepayment is required, transition to payment flow immediately
+        if (priceStr != null && regId != null) {
+            EventPaymentSession.setRegId(session, regId);
+            EventPaymentSession.setPrice(session, priceStr);
+            session.setFlow(EventPaymentFlowDef.FLOW);
+            session.setStep(EventPaymentFlowDef.STEP_START);
+            return eventPaymentStartHandler.handle(ctx, session);
         }
 
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_message"), null);

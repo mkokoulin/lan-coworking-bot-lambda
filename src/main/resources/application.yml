@@ -67,6 +67,9 @@ app:
     guest-password: ${WIFI_GUEST_PASSWORD:—}
     resident-password: ${WIFI_RESIDENT_PASSWORD:}
 
+payment:
+  card-number: ${PAYMENT_CARD_NUMBER:—}
+
 "%dev":
   quarkus:
     devservices:
