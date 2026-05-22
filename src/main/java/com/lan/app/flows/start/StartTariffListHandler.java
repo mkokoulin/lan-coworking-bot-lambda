@@ -23,7 +23,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class StartTariffListHandler implements StepHandler {
 
-    private static final String SELECT_PREFIX = "select_tariff:";
+    private static final String SELECT_PREFIX = "/select_tariff:";
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
