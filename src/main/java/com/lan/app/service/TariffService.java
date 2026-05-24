@@ -1,6 +1,7 @@
 package com.lan.app.service;
 
 import com.lan.app.client.baserow.api.CoworkingGuestTariffsApi;
+import com.lan.app.client.baserow.api.CoworkingGuestsApi;
 import com.lan.app.client.baserow.api.CoworkingTariffsApi;
 import com.lan.app.client.baserow.model.CoworkingGuestTariffResponse;
 import com.lan.app.client.baserow.model.CoworkingTariffResponse;
@@ -27,6 +28,10 @@ public class TariffService {
 
     @Inject
     @RestClient
+    CoworkingGuestsApi guestsApi;
+
+    @Inject
+    @RestClient
     CoworkingTariffsApi tariffsApi;
 
     public List<CoworkingGuestTariffResponse> getGuestTariffs(UUID guestId) {
@@ -34,6 +39,15 @@ public class TariffService {
             return guestTariffsApi.listGuestTariffs(guestId);
         } catch (Exception e) {
             LOG.warnf(e, "Failed to fetch guest tariffs for guestId=%s", guestId);
+            return Collections.emptyList();
+        }
+    }
+
+    public List<CoworkingGuestTariffResponse> getGuestTariffHistory(UUID guestId) {
+        try {
+            return guestsApi.getGuestTariffHistory(guestId);
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to fetch tariff history for guestId=%s", guestId);
             return Collections.emptyList();
         }
     }

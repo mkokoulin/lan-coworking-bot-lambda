@@ -5,6 +5,7 @@ import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.CreateCoworkingGuestRequest;
 import com.lan.app.client.baserow.model.LinkCoworkingGuestChatByIdRequest;
 import com.lan.app.client.baserow.model.LinkCoworkingGuestChatRequest;
+import com.lan.app.client.baserow.model.UnlinkCoworkingGuestChatRequest;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -71,6 +72,16 @@ public class GuestService {
         } catch (Exception e) {
             LOG.warnf(e, "Unexpected error in linkChat phone=%s", phone);
             return Optional.empty();
+        }
+    }
+
+    public void unlinkChat(Long chatId) {
+        try {
+            var req = new UnlinkCoworkingGuestChatRequest();
+            req.setChatId(chatId);
+            guestsApi.unlinkCoworkingGuestChat(req);
+        } catch (Exception e) {
+            LOG.warnf(e, "Unexpected error in unlinkChat chatId=%d", chatId);
         }
     }
 

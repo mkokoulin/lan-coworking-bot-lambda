@@ -62,15 +62,23 @@ public class StartProfileHandler implements StepHandler {
             : "—";
         String phone = (g.getPhone() != null && !g.getPhone().isBlank()) ? g.getPhone() : "—";
 
-        List<CoworkingGuestTariffResponse> tariffs = g.getId() != null
-            ? tariffService.getGuestTariffs(g.getId())
+        List<CoworkingGuestTariffResponse> allTariffs = g.getId() != null
+            ? tariffService.getGuestTariffHistory(g.getId())
             : List.of();
 
-        String tariffSection = buildTariffSection(lang, tariffs);
+        Instant now = Instant.now();
+        List<CoworkingGuestTariffResponse> activeTariffs = allTariffs.stream()
+            .filter(t -> t.getDateEnd() != null && t.getDateEnd().toInstant().isAfter(now))
+            .toList();
+        List<CoworkingGuestTariffResponse> expiredTariffs = allTariffs.stream()
+            .filter(t -> t.getDateEnd() == null || !t.getDateEnd().toInstant().isAfter(now))
+            .toList();
+
+        String tariffSection = buildTariffSection(lang, activeTariffs, expiredTariffs);
 
         boolean canDeduct = false;
-        if (!tariffs.isEmpty()) {
-            var first = tariffs.getFirst();
+        if (!activeTariffs.isEmpty()) {
+            var first = activeTariffs.getFirst();
             RegistrationSession.setDeductTariffId(session, first.getId().toString());
             if (first.getTariffId() != null) {
                 var tariff = tariffService.getTariff(first.getTariffId());
@@ -93,11 +101,14 @@ public class StartProfileHandler implements StepHandler {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_deduct"), "deduct_confirm")
             ));
-        } else if (tariffs.isEmpty()) {
+        } else if (activeTariffs.isEmpty()) {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "tariff_list")
             ));
         }
+        rows.add(KeyboardBuilder.row(
+            KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_events"), "myevents")
+        ));
         rows.add(KeyboardBuilder.row(
             KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"),
             KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_logout"), "logout")
@@ -112,27 +123,46 @@ public class StartProfileHandler implements StepHandler {
     private static final DateTimeFormatter DATE_FMT =
         DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.of("Asia/Yerevan"));
 
-    private String buildTariffSection(String lang, List<CoworkingGuestTariffResponse> tariffs) {
-        if (tariffs.isEmpty()) {
-            return "\n\n" + i18n.t(lang, "profile_no_tariff");
-        }
-
+    private String buildTariffSection(
+        String lang,
+        List<CoworkingGuestTariffResponse> activeTariffs,
+        List<CoworkingGuestTariffResponse> expiredTariffs
+    ) {
         var sb = new StringBuilder();
-        for (CoworkingGuestTariffResponse t : tariffs) {
-            String tariffName = t.getTariffId() != null
-                ? tariffService.getTariffName(t.getTariffId()).orElse("—")
-                : "—";
-            Instant dateEnd = t.getDateEnd() != null ? t.getDateEnd().toInstant() : null;
-            long daysLeft = dateEnd != null
-                ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
-                : 0;
-            int daysUsed = t.getDaysUsed() != null ? t.getDaysUsed() : 0;
-            String dateEndStr = dateEnd != null ? DATE_FMT.format(dateEnd) : "—";
 
-            sb.append("\n\n").append(
-                i18n.t(lang, "profile_tariff_section").formatted(tariffName, dateEndStr, daysLeft, daysUsed)
-            );
+        if (activeTariffs.isEmpty()) {
+            sb.append("\n\n").append(i18n.t(lang, "profile_no_tariff"));
+        } else {
+            for (CoworkingGuestTariffResponse t : activeTariffs) {
+                String tariffName = t.getTariffId() != null
+                    ? tariffService.getTariffName(t.getTariffId()).orElse("—")
+                    : "—";
+                Instant dateEnd = t.getDateEnd() != null ? t.getDateEnd().toInstant() : null;
+                long daysLeft = dateEnd != null
+                    ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
+                    : 0;
+                int daysUsed = t.getDaysUsed() != null ? t.getDaysUsed() : 0;
+                String dateEndStr = dateEnd != null ? DATE_FMT.format(dateEnd) : "—";
+                sb.append("\n\n").append(
+                    i18n.t(lang, "profile_tariff_section").formatted(tariffName, dateEndStr, daysLeft, daysUsed)
+                );
+            }
         }
+
+        if (!expiredTariffs.isEmpty()) {
+            sb.append(i18n.t(lang, "profile_tariff_history_header"));
+            for (CoworkingGuestTariffResponse t : expiredTariffs) {
+                String tariffName = t.getTariffId() != null
+                    ? tariffService.getTariffName(t.getTariffId()).orElse("—")
+                    : "—";
+                String dateStartStr = t.getDateStart() != null ? DATE_FMT.format(t.getDateStart().toInstant()) : "—";
+                String dateEndStr = t.getDateEnd() != null ? DATE_FMT.format(t.getDateEnd().toInstant()) : "—";
+                sb.append("\n").append(
+                    i18n.t(lang, "profile_tariff_expired_item").formatted(tariffName, dateStartStr, dateEndStr)
+                );
+            }
+        }
+
         return sb.toString();
     }
 }

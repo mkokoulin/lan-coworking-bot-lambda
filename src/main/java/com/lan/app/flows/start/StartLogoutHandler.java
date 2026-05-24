@@ -5,6 +5,7 @@ import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.i18n.I18n;
+import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -18,17 +19,20 @@ public class StartLogoutHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final GuestService guestService;
 
     @Inject
-    public StartLogoutHandler(TelegramClient telegramClient, I18n i18n) {
+    public StartLogoutHandler(TelegramClient telegramClient, I18n i18n, GuestService guestService) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.guestService = guestService;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
+        guestService.unlinkChat(session.getChatId());
         RegistrationSession.clearAuth(session);
         RegistrationSession.setManualLogout(session);
 
