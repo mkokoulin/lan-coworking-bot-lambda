@@ -169,6 +169,42 @@ public class TelegramClient {
         }
     }
 
+    public void answerCallbackQuery(String callbackQueryId) {
+        if (callbackQueryId == null) return;
+        try {
+            var body = Map.of("callback_query_id", callbackQueryId);
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/answerCallbackQuery";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+            http.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception ignored) {}
+    }
+
+    public void editMessageRemoveKeyboard(Long chatId, Integer messageId) {
+        if (chatId == null || messageId == null) return;
+        try {
+            var body = Map.of(
+                "chat_id",      chatId,
+                "message_id",   messageId,
+                "reply_markup", Map.of("inline_keyboard", List.of())
+            );
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/editMessageReplyMarkup";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+            http.send(req, HttpResponse.BodyHandlers.ofString());
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (Exception ignored) {}
+    }
+
     public void sendPhoneRequest(Long chatId, String text, String buttonLabel) {
         try {
             var keyboard = Map.of(

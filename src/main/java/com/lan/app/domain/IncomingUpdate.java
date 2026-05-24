@@ -1,18 +1,20 @@
 package com.lan.app.domain;
 
 public class IncomingUpdate {
-    private Long   updateId;
-    private Long   userId;
-    private Long   chatId;
-    private String chatType;
-    private String text;
-    private String callbackData;
+    private Long    updateId;
+    private Long    userId;
+    private Long    chatId;
+    private String  chatType;
+    private String  text;
+    private String  callbackData;
+    private String  callbackQueryId;
+    private Integer callbackMessageId;
     private UpdateType type;
-    private String userLanguageCode;
-    private String firstName;
-    private String username;
-    private String sharedPhone;
-    private String fileId;
+    private String  userLanguageCode;
+    private String  firstName;
+    private String  username;
+    private String  sharedPhone;
+    private String  fileId;
 
     public enum UpdateType {
         MESSAGE,
@@ -52,6 +54,12 @@ public class IncomingUpdate {
     public String getSharedPhone()                 { return sharedPhone; }
     public void setSharedPhone(String sharedPhone) { this.sharedPhone = sharedPhone; }
 
-    public String getFileId()                      { return fileId; }
-    public void setFileId(String fileId)           { this.fileId = fileId; }
+    public String getFileId()                        { return fileId; }
+    public void setFileId(String fileId)             { this.fileId = fileId; }
+
+    public String getCallbackQueryId()               { return callbackQueryId; }
+    public void setCallbackQueryId(String v)         { this.callbackQueryId = v; }
+
+    public Integer getCallbackMessageId()            { return callbackMessageId; }
+    public void setCallbackMessageId(Integer v)      { this.callbackMessageId = v; }
 }

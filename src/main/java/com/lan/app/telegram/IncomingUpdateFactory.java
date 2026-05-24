@@ -60,9 +60,15 @@ public class IncomingUpdateFactory {
             target.setFirstName(callback.from.first_name);
             target.setUsername(callback.from.username);
         }
-        if (callback.message != null && callback.message.chat() != null) {
-            target.setChatId(callback.message.chat().id);
+        if (callback.message != null) {
+            if (callback.message.chat() != null) {
+                target.setChatId(callback.message.chat().id);
+            }
+            if (callback.message.message_id() != null) {
+                target.setCallbackMessageId(callback.message.message_id().intValue());
+            }
         }
         target.setCallbackData(callback.data == null ? "" : callback.data.trim());
+        target.setCallbackQueryId(callback.id);
     }
 }

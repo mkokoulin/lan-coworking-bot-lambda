@@ -2955,6 +2955,50 @@
           }
         ]
       }
+    },
+    "/coworking/v1/guests/{externalId}/link-reject": {
+      "post": {
+        "summary": "Reject the Telegram link session for a guest",
+        "description": "Marks the current link session as REJECTED. Called by the Telegram bot when the guest denies the login request.",
+        "operationId": "rejectCoworkingGuestLink",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session rejected"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
     }
   }
 }

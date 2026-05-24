@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
+import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
@@ -34,18 +35,21 @@ public class CommandRouter {
     private final GuestService guestService;
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final CwLoginConfirmHandler cwLoginConfirmHandler;
 
     @Inject
     public CommandRouter(
         FlowRegistry registry,
         GuestService guestService,
         TelegramClient telegramClient,
-        I18n i18n
+        I18n i18n,
+        CwLoginConfirmHandler cwLoginConfirmHandler
     ) {
         this.registry = registry;
         this.guestService = guestService;
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.cwLoginConfirmHandler = cwLoginConfirmHandler;
     }
 
     public StepResult route(UpdateContext ctx, Session session) {
@@ -76,11 +80,14 @@ public class CommandRouter {
         }
 
         // Route pay_approve_/pay_reject_ callbacks to admin payment handler
+        // Route cw_confirm_/cw_reject_ callbacks directly — bypass flow system
         if (ctx.hasCallback()) {
             String cb = ctx.callbackData();
             if (cb != null && (cb.startsWith("pay_approve_") || cb.startsWith("pay_reject_"))) {
                 session.setFlow(EventPaymentFlowDef.FLOW);
                 session.setStep(EventPaymentFlowDef.STEP_ADMIN);
+            } else if (cb != null && (cb.startsWith("cw_confirm_") || cb.startsWith("cw_reject_"))) {
+                return cwLoginConfirmHandler.handle(ctx, session);
             }
         }
 

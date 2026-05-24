@@ -85,6 +85,16 @@ public class GuestService {
         }
     }
 
+    public void rejectLink(UUID guestId) {
+        try {
+            guestsApi.rejectCoworkingGuestLink(guestId);
+        } catch (WebApplicationException e) {
+            LOG.warnf("rejectLink failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
+        } catch (Exception e) {
+            LOG.warnf(e, "Unexpected error in rejectLink guestId=%s", guestId);
+        }
+    }
+
     public void unlinkChat(Long chatId) {
         try {
             var req = new UnlinkCoworkingGuestChatRequest();
