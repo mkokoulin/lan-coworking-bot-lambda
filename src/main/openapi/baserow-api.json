@@ -562,7 +562,7 @@
               }
             ],
             "additionalProperties": {},
-            "description": "Optional map with additional context about the error. Structure depends on the error code \u2014 for validation errors it may contain field-level violations, for not-found errors it may contain the requested identifier, and so on."
+            "description": "Optional map with additional context about the error. Structure depends on the error code — for validation errors it may contain field-level violations, for not-found errors it may contain the requested identifier, and so on."
           }
         }
       },
@@ -1086,7 +1086,7 @@
             "examples": [
               "ivan_petrov"
             ],
-            "description": "Guest's Telegram username (without the @ prefix). Optional \u2014 if omitted, the current value is preserved."
+            "description": "Guest's Telegram username (without the @ prefix). Optional — if omitted, the current value is preserved."
           }
         }
       },
@@ -2452,7 +2452,7 @@
     "/secured/public": {
       "get": {
         "summary": "Public diagnostic endpoint",
-        "description": "Returns a static 'public ok' response. Accessible to anyone \u2014 no authentication required. Useful for verifying that the service is reachable.",
+        "description": "Returns a static 'public ok' response. Accessible to anyone — no authentication required. Useful for verifying that the service is reachable.",
         "operationId": "securedPublicEndpoint",
         "tags": [
           "Secured"
@@ -2900,6 +2900,50 @@
           },
           "403": {
             "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/link-confirm": {
+      "post": {
+        "summary": "Confirm the Telegram link session for a guest",
+        "description": "Marks the current link session as CONFIRMED. Called by the Telegram bot after the guest opens the deep link and is verified.",
+        "operationId": "confirmCoworkingGuestLink",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session confirmed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
           },
           "500": {
             "description": "Internal server error"

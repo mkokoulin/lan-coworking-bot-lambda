@@ -69,6 +69,8 @@ public class CwLinkHandler implements StepHandler {
             return StepResult.finish();
         }
 
+        guestService.confirmLink(guestId);
+
         var g = guest.get();
         RegistrationSession.clearLogout(session);
         RegistrationSession.markRegistered(session);
