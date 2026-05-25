@@ -118,7 +118,10 @@ public class GuestService {
             if (Boolean.TRUE.equals(resp.getConflict())) return LinkStatus.CONFLICT;
             return LinkStatus.PENDING;
         } catch (WebApplicationException e) {
-            LOG.warnf("getLinkStatus failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
+            int status = e.getResponse().getStatus();
+            if (status != 404) {
+                LOG.warnf("getLinkStatus failed guestId=%s: HTTP %d", guestId, status);
+            }
             return null;
         } catch (Exception e) {
             LOG.warnf(e, "Unexpected error in getLinkStatus guestId=%s", guestId);

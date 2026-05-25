@@ -81,6 +81,7 @@ public class CwLinkHandler implements StepHandler {
         if (g.getId() != null) {
             RegistrationSession.setGuestId(session, g.getId().toString());
         }
+        guestService.confirmLink(guestId);
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
