@@ -44,18 +44,30 @@ public class GuestService {
         }
     }
 
-    public Optional<CoworkingGuestResponse> linkChatById(UUID guestId, Long chatId) {
+    public enum LinkChatResult { LINKED, NOT_FOUND, CHAT_ID_CONFLICT, ERROR }
+
+    public record LinkChatOutcome(LinkChatResult result, CoworkingGuestResponse guest) {
+        static LinkChatOutcome linked(CoworkingGuestResponse g) { return new LinkChatOutcome(LinkChatResult.LINKED, g); }
+        static LinkChatOutcome notFound() { return new LinkChatOutcome(LinkChatResult.NOT_FOUND, null); }
+        static LinkChatOutcome conflict() { return new LinkChatOutcome(LinkChatResult.CHAT_ID_CONFLICT, null); }
+        static LinkChatOutcome error() { return new LinkChatOutcome(LinkChatResult.ERROR, null); }
+    }
+
+    public LinkChatOutcome linkChatById(UUID guestId, Long chatId) {
         try {
             var req = new LinkCoworkingGuestChatByIdRequest();
             req.setChatId(chatId);
-            return Optional.ofNullable(guestsApi.linkCoworkingGuestChatById(guestId, req));
+            var guest = guestsApi.linkCoworkingGuestChatById(guestId, req);
+            return LinkChatOutcome.linked(guest);
         } catch (WebApplicationException e) {
-            if (e.getResponse().getStatus() == 404) return Optional.empty();
-            LOG.warnf("linkChatById failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
-            return Optional.empty();
+            int status = e.getResponse().getStatus();
+            if (status == 404) return LinkChatOutcome.notFound();
+            if (status == 409) return LinkChatOutcome.conflict();
+            LOG.warnf("linkChatById failed guestId=%s: HTTP %d", guestId, status);
+            return LinkChatOutcome.error();
         } catch (Exception e) {
             LOG.warnf(e, "Unexpected error in linkChatById guestId=%s", guestId);
-            return Optional.empty();
+            return LinkChatOutcome.error();
         }
     }
 

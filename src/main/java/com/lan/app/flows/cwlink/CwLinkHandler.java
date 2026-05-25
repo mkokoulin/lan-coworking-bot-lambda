@@ -61,17 +61,21 @@ public class CwLinkHandler implements StepHandler {
             return StepResult.finish();
         }
 
-        var guest = guestService.linkChatById(guestId, session.getChatId());
-        if (guest.isEmpty()) {
+        var outcome = guestService.linkChatById(guestId, session.getChatId());
+        if (outcome.result() == GuestService.LinkChatResult.CHAT_ID_CONFLICT) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cwlink_chat_id_conflict"), null);
+            session.setFlow(StartFlowDef.FLOW);
+            session.setStep(StartFlowDef.STEP_SHOW);
+            return StepResult.finish();
+        }
+        if (outcome.result() != GuestService.LinkChatResult.LINKED) {
             telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cwlink_not_found"), null);
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_SHOW);
             return StepResult.finish();
         }
 
-        guestService.confirmLink(guestId);
-
-        var g = guest.get();
+        var g = outcome.guest();
         RegistrationSession.clearLogout(session);
         RegistrationSession.markRegistered(session);
         if (g.getId() != null) {
