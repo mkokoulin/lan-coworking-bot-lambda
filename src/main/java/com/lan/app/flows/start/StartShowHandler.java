@@ -14,6 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -123,10 +124,11 @@ public class StartShowHandler implements StepHandler {
 
     private StepResult sendLoginConfirmation(Session session, String lang) {
         String guestIdStr = RegistrationSession.getGuestId(session);
+        // Use raw callback_data (without "/") so CommandRouter routes these to CwLoginConfirmHandler
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "cw_login_confirm_yes"), "cw_confirm_" + guestIdStr),
-                KeyboardBuilder.cbCmd(i18n.t(lang, "cw_login_confirm_no"), "cw_reject_" + guestIdStr)
+                Map.of("text", i18n.t(lang, "cw_login_confirm_yes"), "callback_data", "cw_confirm_" + guestIdStr),
+                Map.of("text", i18n.t(lang, "cw_login_confirm_no"),  "callback_data", "cw_reject_" + guestIdStr)
             )
         ));
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cw_login_confirm_text"), kb);
