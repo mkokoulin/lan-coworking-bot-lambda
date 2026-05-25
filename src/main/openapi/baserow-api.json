@@ -1233,6 +1233,23 @@
             "description": "Telegram chat ID to unlink"
           }
         }
+      },
+      "LinkStatusResponse": {
+        "type": "object",
+        "properties": {
+          "linked": {
+            "type": "boolean",
+            "description": "True when the Telegram account has been successfully linked for this session"
+          },
+          "rejected": {
+            "type": "boolean",
+            "description": "True when the link was rejected"
+          },
+          "conflict": {
+            "type": "boolean",
+            "description": "True when the Telegram chat ID is already registered to another account"
+          }
+        }
       }
     },
     "securitySchemes": {
@@ -2979,6 +2996,57 @@
         "responses": {
           "204": {
             "description": "Session rejected"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/link-status": {
+      "get": {
+        "summary": "Get the Telegram link session status for a guest",
+        "description": "Returns whether the current link session is confirmed, rejected, or still pending.",
+        "operationId": "getCoworkingGuestLinkStatus",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link status returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkStatusResponse"
+                }
+              }
+            }
           },
           "401": {
             "description": "User is not authenticated"

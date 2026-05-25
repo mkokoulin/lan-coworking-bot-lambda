@@ -6,6 +6,7 @@ import com.lan.app.engine.StepResult;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.i18n.I18n;
 import com.lan.app.service.GuestService;
+import org.jboss.logging.Logger;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -13,9 +14,12 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.List;
+import java.util.UUID;
 
 @ApplicationScoped
 public class StartShowHandler implements StepHandler {
+
+    private static final Logger LOG = Logger.getLogger(StartShowHandler.class);
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
@@ -42,6 +46,10 @@ public class StartShowHandler implements StepHandler {
 
         if (state != AuthState.REGISTERED) {
             return showGuestMenu(session, lang, state);
+        }
+
+        if (hasPendingLinkSession(session)) {
+            return sendLoginConfirmation(session, lang);
         }
 
         var kb = KeyboardBuilder.inline(List.of(
@@ -95,6 +103,33 @@ public class StartShowHandler implements StepHandler {
         ));
 
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "start_message_guest"), kb);
+        return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW);
+    }
+
+    private boolean hasPendingLinkSession(Session session) {
+        String guestIdStr = RegistrationSession.getGuestId(session);
+        if (guestIdStr == null) return false;
+        try {
+            UUID guestId = UUID.fromString(guestIdStr);
+            GuestService.LinkStatus status = guestService.getLinkStatus(guestId);
+            return status == GuestService.LinkStatus.PENDING;
+        } catch (IllegalArgumentException e) {
+            return false;
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to check link status for guestId=%s", guestIdStr);
+            return false;
+        }
+    }
+
+    private StepResult sendLoginConfirmation(Session session, String lang) {
+        String guestIdStr = RegistrationSession.getGuestId(session);
+        var kb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "cw_login_confirm_yes"), "cw_confirm_" + guestIdStr),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "cw_login_confirm_no"), "cw_reject_" + guestIdStr)
+            )
+        ));
+        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cw_login_confirm_text"), kb);
         return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW);
     }
 

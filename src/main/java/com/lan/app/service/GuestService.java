@@ -5,6 +5,7 @@ import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.CreateCoworkingGuestRequest;
 import com.lan.app.client.baserow.model.LinkCoworkingGuestChatByIdRequest;
 import com.lan.app.client.baserow.model.LinkCoworkingGuestChatRequest;
+import com.lan.app.client.baserow.model.LinkStatusResponse;
 import com.lan.app.client.baserow.model.UnlinkCoworkingGuestChatRequest;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -104,6 +105,24 @@ public class GuestService {
             LOG.warnf("rejectLink failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
         } catch (Exception e) {
             LOG.warnf(e, "Unexpected error in rejectLink guestId=%s", guestId);
+        }
+    }
+
+    public enum LinkStatus { PENDING, CONFIRMED, REJECTED, CONFLICT }
+
+    public LinkStatus getLinkStatus(UUID guestId) {
+        try {
+            LinkStatusResponse resp = guestsApi.getCoworkingGuestLinkStatus(guestId);
+            if (Boolean.TRUE.equals(resp.getLinked())) return LinkStatus.CONFIRMED;
+            if (Boolean.TRUE.equals(resp.getRejected())) return LinkStatus.REJECTED;
+            if (Boolean.TRUE.equals(resp.getConflict())) return LinkStatus.CONFLICT;
+            return LinkStatus.PENDING;
+        } catch (WebApplicationException e) {
+            LOG.warnf("getLinkStatus failed guestId=%s: HTTP %d", guestId, e.getResponse().getStatus());
+            return null;
+        } catch (Exception e) {
+            LOG.warnf(e, "Unexpected error in getLinkStatus guestId=%s", guestId);
+            return null;
         }
     }
 
