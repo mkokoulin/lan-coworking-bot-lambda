@@ -76,7 +76,7 @@ public class StartTariffListHandler implements StepHandler {
             ));
         }
         rows.add(KeyboardBuilder.row(
-            KeyboardBuilder.cbCmd(i18n.t(lang, "tariff_btn_back"), "profile")
+            KeyboardBuilder.cbCmd(i18n.t(lang, "tariff_btn_back"), "/profile")
         ));
 
         telegramClient.sendHtml(

@@ -103,7 +103,7 @@ public class StartProfileHandler implements StepHandler {
             ));
         } else if (activeTariffs.isEmpty()) {
             rows.add(KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "tariff_list")
+                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "/tariff_list")
             ));
         }
         rows.add(KeyboardBuilder.row(
