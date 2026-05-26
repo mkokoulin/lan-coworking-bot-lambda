@@ -79,6 +79,21 @@ public class CommandRouter {
             }
         }
 
+        // If no slash-command was resolved, try plain callback data as a registered command.
+        // This handles legacy inline buttons that omit the leading "/" (e.g. "tariff_list",
+        // "profile", "deduct_confirm") and makes all navigation buttons forward-compatible.
+        if (command == null && ctx.hasCallback()) {
+            String cb = ctx.callbackData();
+            if (!isBlank(cb)) {
+                FlowEntry cbEntry = registry.getCommand(cb).orElse(null);
+                if (cbEntry != null) {
+                    command = cb;
+                    session.setFlow(cbEntry.flow());
+                    session.setStep(cbEntry.step());
+                }
+            }
+        }
+
         // Route pay_approve_/pay_reject_ callbacks to admin payment handler
         // Route cw_confirm_/cw_reject_ callbacks directly — bypass flow system
         if (ctx.hasCallback()) {

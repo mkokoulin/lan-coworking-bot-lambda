@@ -62,10 +62,13 @@ public class StartTariffListHandler implements StepHandler {
         List<CoworkingTariffResponse> tariffs = tariffService.listAllTariffs();
 
         if (tariffs.isEmpty()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_list_empty"), null);
-            session.setFlow(StartFlowDef.FLOW);
-            session.setStep(StartFlowDef.STEP_PROFILE);
-            return StepResult.finish();
+            var kb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "tariff_btn_back"), "/profile")
+                )
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_list_empty"), kb);
+            return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_TARIFF_LIST);
         }
 
         var rows = new ArrayList<List<Map<String, String>>>();
