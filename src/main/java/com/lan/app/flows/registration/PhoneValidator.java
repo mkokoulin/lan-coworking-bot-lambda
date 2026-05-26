@@ -2,7 +2,7 @@ package com.lan.app.flows.registration;
 
 import java.util.regex.Pattern;
 
-final class PhoneValidator {
+public final class PhoneValidator {
 
     private static final Pattern AM_PATTERN = Pattern.compile(
             "^\\+?374(10|11|33|41|43|44|49|55|77|91|93|94|95|96|98|99)\\d{6}$"

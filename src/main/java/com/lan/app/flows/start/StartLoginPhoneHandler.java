@@ -3,6 +3,7 @@ package com.lan.app.flows.start;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.registration.PhoneValidator;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.i18n.I18n;
 import com.lan.app.service.GuestService;
@@ -38,7 +39,13 @@ public class StartLoginPhoneHandler implements StepHandler {
             return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE);
         }
 
-        var guest = guestService.linkChat(rawPhone.trim(), session.getChatId());
+        String normalized = PhoneValidator.normalize(rawPhone.trim());
+        if (normalized == null) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_phone_invalid"), null);
+            return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE);
+        }
+
+        var guest = guestService.linkChat(normalized, session.getChatId());
         if (guest.isEmpty()) {
             var kb = KeyboardBuilder.inline(List.of(
                 KeyboardBuilder.row(
