@@ -10,10 +10,13 @@ public final class PhoneValidator {
 
     static String normalize(String input) {
         if (input == null) return null;
-        String digits = input.replaceAll("[\\s\\-()]", "");
+        String trimmed = input.trim();
+        boolean hasPlus = trimmed.startsWith("+");
+        String digits = trimmed.replaceAll("[^\\d]", "");
+        if (hasPlus) digits = "+" + digits;
 
         if (digits.startsWith("+374")) {
-            
+            // already canonical prefix
         } else if (digits.startsWith("374")) {
             digits = "+" + digits;
         } else if (digits.startsWith("0") && digits.length() == 9) {
