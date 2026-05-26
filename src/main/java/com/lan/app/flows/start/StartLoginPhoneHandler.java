@@ -40,7 +40,13 @@ public class StartLoginPhoneHandler implements StepHandler {
 
         var guest = guestService.linkChat(rawPhone.trim(), session.getChatId());
         if (guest.isEmpty()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_not_found"), null);
+            var kb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_register"), "registration"),
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
+                )
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_not_found"), kb);
             return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE);
         }
 
