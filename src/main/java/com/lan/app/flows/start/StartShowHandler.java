@@ -88,20 +88,26 @@ public class StartShowHandler implements StepHandler {
     }
 
     private StepResult showGuestMenu(Session session, String lang, AuthState state) {
-        String authCmd  = state == AuthState.LOGGED_OUT ? "login"        : "registration";
-        String authLabel = state == AuthState.LOGGED_OUT
-            ? i18n.t(lang, "start_btn_login")
-            : i18n.t(lang, "start_btn_register");
-
-        var kb = KeyboardBuilder.inline(List.of(
-            KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_wifi"), "wifi")
-            ),
-            KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_language"), "language"),
-                KeyboardBuilder.cbCmd(authLabel, authCmd)
-            )
+        List<List<Map<String, String>>> rows = new java.util.ArrayList<>();
+        rows.add(KeyboardBuilder.row(
+            KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_wifi"), "wifi")
         ));
+        if (state == AuthState.LOGGED_OUT) {
+            rows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_language"), "language"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_login"), "login")
+            ));
+        } else {
+            rows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_login"), "login"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_register"), "registration")
+            ));
+            rows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_language"), "language")
+            ));
+        }
+
+        var kb = KeyboardBuilder.inline(rows);
 
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "start_message_guest"), kb);
         return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_SHOW);

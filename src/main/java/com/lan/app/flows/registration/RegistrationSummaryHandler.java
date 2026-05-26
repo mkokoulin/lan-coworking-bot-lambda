@@ -71,16 +71,15 @@ public class RegistrationSummaryHandler implements StepHandler {
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 409) {
-                LOG.infof("Coworking guest already exists: %s %s / %s — linking chatId", firstName, lastName, phone);
-                var linked = guestService.linkChat(phone, session.getChatId());
-                if (linked.isPresent()) {
-                    if (linked.get().getId() != null) {
-                        RegistrationSession.setGuestId(session, linked.get().getId().toString());
-                    }
-                    created = true;
-                } else {
-                    LOG.warnf("linkChat failed for phone=%s chatId=%d", phone, session.getChatId());
-                }
+                LOG.infof("Registration rejected — phone already exists: %s %s / %s", firstName, lastName, phone);
+                var kb = KeyboardBuilder.inline(List.of(
+                    KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_login"), "login"))
+                ));
+                telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_already_registered"), kb);
+                RegistrationSession.clearTemp(session);
+                session.setFlow("");
+                session.setStep("");
+                return StepResult.finish();
             } else {
                 LOG.errorf(e, "Failed to create coworking guest: %s %s / %s, status=%d", firstName, lastName, phone, status);
             }
