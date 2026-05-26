@@ -8,7 +8,7 @@ public final class PhoneValidator {
             "^\\+?374(10|11|33|41|43|44|49|55|77|91|93|94|95|96|98|99)\\d{6}$"
     );
 
-    static String normalize(String input) {
+    public static String normalize(String input) {
         if (input == null) return null;
         String trimmed = input.trim();
         boolean hasPlus = trimmed.startsWith("+");
