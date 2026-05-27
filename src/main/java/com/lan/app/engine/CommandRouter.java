@@ -8,6 +8,7 @@ import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
+import com.lan.app.flows.eventslist.EventsListFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.service.GuestService;
@@ -96,6 +97,7 @@ public class CommandRouter {
 
         // Route pay_approve_/pay_reject_ callbacks to admin payment handler
         // Route cw_confirm_/cw_reject_ callbacks directly — bypass flow system
+        // Route evt_reg_/evt_/evf_ callbacks to the events-list flow
         if (ctx.hasCallback()) {
             String cb = ctx.callbackData();
             if (cb != null && (cb.startsWith("pay_approve_") || cb.startsWith("pay_reject_"))) {
@@ -103,6 +105,15 @@ public class CommandRouter {
                 session.setStep(EventPaymentFlowDef.STEP_ADMIN);
             } else if (cb != null && (cb.startsWith("cw_confirm_") || cb.startsWith("cw_reject_"))) {
                 return cwLoginConfirmHandler.handle(ctx, session);
+            } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVT_REG_PREFIX)) {
+                session.setFlow(EventsListFlowDef.FLOW);
+                session.setStep(EventsListFlowDef.STEP_REGISTER);
+            } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVT_PREFIX)) {
+                session.setFlow(EventsListFlowDef.FLOW);
+                session.setStep(EventsListFlowDef.STEP_DETAIL);
+            } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVF_PREFIX)) {
+                session.setFlow(EventsListFlowDef.FLOW);
+                session.setStep(EventsListFlowDef.STEP_FESTIVAL);
             }
         }
 

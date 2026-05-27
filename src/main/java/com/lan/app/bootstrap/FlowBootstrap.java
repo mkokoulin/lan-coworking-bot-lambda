@@ -9,6 +9,7 @@ import com.lan.app.flows.wifi.WifiFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
 import com.lan.app.flows.eventpayment.EventPaymentFlowRegistrar;
+import com.lan.app.flows.eventslist.EventsListFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
@@ -36,6 +37,7 @@ public class FlowBootstrap {
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
     private final MyEventsFlowRegistrar myEventsFlowRegistrar;
+    private final EventsListFlowRegistrar eventsListFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
     private final CwLinkFlowRegistrar cwLinkFlowRegistrar;
     private final WifiFlowRegistrar wifiFlowRegistrar;
@@ -55,6 +57,7 @@ public class FlowBootstrap {
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
         MyEventsFlowRegistrar myEventsFlowRegistrar,
+        EventsListFlowRegistrar eventsListFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar,
         CwLinkFlowRegistrar cwLinkFlowRegistrar,
         WifiFlowRegistrar wifiFlowRegistrar,
@@ -72,6 +75,7 @@ public class FlowBootstrap {
         this.registrationFlowRegistrar = registrationFlowRegistrar;
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
         this.myEventsFlowRegistrar = myEventsFlowRegistrar;
+        this.eventsListFlowRegistrar = eventsListFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
         this.cwLinkFlowRegistrar = cwLinkFlowRegistrar;
         this.wifiFlowRegistrar = wifiFlowRegistrar;
@@ -90,7 +94,9 @@ public class FlowBootstrap {
         donationFlowRegistrar.register();
         registrationFlowRegistrar.register();
         eventConfirmFlowRegistrar.register();
+        // myevents must be registered BEFORE eventslist so that eventslist can override "events" command
         myEventsFlowRegistrar.register();
+        eventsListFlowRegistrar.register();
         helpFlowRegistrar.register();
         cwLinkFlowRegistrar.register();
         wifiFlowRegistrar.register();

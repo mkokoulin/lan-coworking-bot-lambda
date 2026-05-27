@@ -22,6 +22,6 @@ public class MyEventsFlowRegistrar {
 
         FlowEntry entry = new FlowEntry(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_SHOW);
         registry.registerCommand("myevents", entry);
-        registry.registerCommand("events", entry);
+        // "events" is now handled by EventsListFlowRegistrar (browse + register flow)
     }
 }
