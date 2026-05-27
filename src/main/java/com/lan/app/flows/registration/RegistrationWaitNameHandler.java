@@ -6,8 +6,11 @@ import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.util.List;
 
 @ApplicationScoped
 public class RegistrationWaitNameHandler implements StepHandler {
@@ -34,7 +37,7 @@ public class RegistrationWaitNameHandler implements StepHandler {
 
         String text = ctx.messageText() == null ? "" : ctx.messageText().trim();
         if (text.isBlank()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_name_empty"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_name_empty"), cancelKb(lang));
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_NAME);
         }
 
@@ -43,7 +46,7 @@ public class RegistrationWaitNameHandler implements StepHandler {
         String lastName  = parts.length > 1 ? parts[1] : "";
 
         if (firstName.length() < 2) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_name_too_short"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_name_too_short"), cancelKb(lang));
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_NAME);
         }
 
@@ -66,5 +69,11 @@ public class RegistrationWaitNameHandler implements StepHandler {
         }
 
         return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE);
+    }
+
+    private Object cancelKb(String lang) {
+        return KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+        ));
     }
 }

@@ -35,13 +35,13 @@ public class StartLoginPhoneHandler implements StepHandler {
 
         String rawPhone = ctx.sharedPhone() != null ? ctx.sharedPhone() : ctx.messageText();
         if (rawPhone == null || rawPhone.isBlank()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_phone_empty"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_phone_empty"), cancelKb(lang));
             return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE);
         }
 
         String normalized = PhoneValidator.normalize(rawPhone.trim());
         if (normalized == null) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_phone_invalid"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "login_phone_invalid"), cancelKb(lang));
             return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_LOGIN_PHONE);
         }
 
@@ -66,7 +66,8 @@ public class StartLoginPhoneHandler implements StepHandler {
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "login_btn_profile"), "profile")
+                KeyboardBuilder.cbCmd(i18n.t(lang, "login_btn_profile"), "profile"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
             )
         ));
 
@@ -76,5 +77,11 @@ public class StartLoginPhoneHandler implements StepHandler {
         session.setFlow(StartFlowDef.FLOW);
         session.setStep(StartFlowDef.STEP_SHOW);
         return StepResult.finish();
+    }
+
+    private Object cancelKb(String lang) {
+        return KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+        ));
     }
 }

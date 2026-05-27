@@ -42,7 +42,10 @@ public class StartDeductDoHandler implements StepHandler {
 
         String tariffIdStr = RegistrationSession.getDeductTariffId(session);
         if (tariffIdStr == null) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "deduct_no_tariff"), null);
+            var noTariffKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "deduct_no_tariff"), noTariffKb);
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_SHOW);
             return StepResult.finish();
@@ -52,7 +55,10 @@ public class StartDeductDoHandler implements StepHandler {
         var result = tariffService.deductDay(tariffId);
 
         if (result.isEmpty()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "deduct_error"), null);
+            var errorKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_profile"), "profile"))
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "deduct_error"), errorKb);
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);
             return StepResult.finish();

@@ -40,8 +40,11 @@ public class RegistrationStartHandler implements StepHandler {
             return StepResult.finish();
         }
 
-        telegramClient.sendHtml(session.getChatId(),
-                i18n.t(session.getLang(), "reg_welcome"), null);
+        String lang = session.getLang();
+        var cancelKb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+        ));
+        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_welcome"), cancelKb);
 
         return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_NAME);
     }

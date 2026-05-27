@@ -88,8 +88,10 @@ public class RegistrationSummaryHandler implements StepHandler {
         }
 
         if (!created) {
-            telegramClient.sendHtml(session.getChatId(),
-                i18n.t(lang, "reg_error"), null);
+            var errorKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_error"), errorKb);
             session.setFlow("");
             session.setStep("");
             return StepResult.finish();

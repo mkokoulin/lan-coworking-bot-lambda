@@ -36,7 +36,10 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
 
         String rawPhone = ctx.sharedPhone() != null ? ctx.sharedPhone() : ctx.messageText();
         if (rawPhone == null || rawPhone.isBlank()) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), null);
+            var cancelKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start"))
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), cancelKb);
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_PHONE);
         }
 
@@ -44,7 +47,10 @@ public class RegistrationWaitPhoneHandler implements StepHandler {
         if (normalized == null) {
             RegistrationSession.setAdditionalPhone(session, rawPhone.trim());
             var skipKb = KeyboardBuilder.inline(List.of(
-                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "reg_btn_skip"), "reg_skip"))
+                KeyboardBuilder.row(
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "reg_btn_skip"), "reg_skip"),
+                    KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
+                )
             ));
             telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "reg_need_armenian_phone"), skipKb);

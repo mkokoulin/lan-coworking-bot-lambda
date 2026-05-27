@@ -100,7 +100,7 @@ public class StartTariffListHandler implements StepHandler {
         try {
             tariffId = UUID.fromString(tariffIdStr);
         } catch (IllegalArgumentException e) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), profileKb(lang));
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);
             return StepResult.finish();
@@ -111,7 +111,7 @@ public class StartTariffListHandler implements StepHandler {
         String guestIdStr = RegistrationSession.getGuestId(session);
         if (guestIdStr == null) {
             LOG.warnf("guestId not found in session for chatId=%d, tariffId=%s", session.getChatId(), tariffId);
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), profileKb(lang));
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);
             return StepResult.finish();
@@ -123,7 +123,7 @@ public class StartTariffListHandler implements StepHandler {
 
         if (result.isEmpty()) {
             LOG.warnf("tariff request failed for guestId=%s tariffId=%s", guestId, tariffId);
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), null);
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), profileKb(lang));
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);
             return StepResult.finish();
@@ -131,15 +131,30 @@ public class StartTariffListHandler implements StepHandler {
 
         notifyAdmin(session, tariffName, lang);
 
+        var successKb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_profile"), "profile"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
+            )
+        ));
         telegramClient.sendHtml(
             session.getChatId(),
             i18n.t(lang, "tariff_request_success").formatted(tariffName),
-            null
+            successKb
         );
 
         session.setFlow(StartFlowDef.FLOW);
         session.setStep(StartFlowDef.STEP_PROFILE);
         return StepResult.finish();
+    }
+
+    private Object profileKb(String lang) {
+        return KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_profile"), "profile"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
+            )
+        ));
     }
 
     private void notifyAdmin(Session session, String tariffName, String lang) {
