@@ -15,6 +15,8 @@ import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
+import org.jboss.logging.Logger;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,7 @@ import java.util.UUID;
 @ApplicationScoped
 public class StartTariffListHandler implements StepHandler {
 
+    private static final Logger LOG = Logger.getLogger(StartTariffListHandler.class);
     private static final String SELECT_PREFIX = "/select_tariff:";
 
     private final TelegramClient telegramClient;
@@ -107,6 +110,7 @@ public class StartTariffListHandler implements StepHandler {
 
         String guestIdStr = RegistrationSession.getGuestId(session);
         if (guestIdStr == null) {
+            LOG.warnf("guestId not found in session for chatId=%d, tariffId=%s", session.getChatId(), tariffId);
             telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), null);
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);
@@ -114,9 +118,11 @@ public class StartTariffListHandler implements StepHandler {
         }
 
         UUID guestId = UUID.fromString(guestIdStr);
+        LOG.infof("Requesting tariff guestId=%s tariffId=%s", guestId, tariffId);
         var result = tariffService.requestGuestTariff(guestId, tariffId);
 
         if (result.isEmpty()) {
+            LOG.warnf("tariff request failed for guestId=%s tariffId=%s", guestId, tariffId);
             telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "tariff_request_error"), null);
             session.setFlow(StartFlowDef.FLOW);
             session.setStep(StartFlowDef.STEP_PROFILE);

@@ -133,7 +133,18 @@ public class CommandRouter {
     }
 
     private boolean isAuthenticated(Session session) {
-        if (RegistrationSession.isRegistered(session)) return true;
+        if (RegistrationSession.isRegistered(session)) {
+            // Ensure guestId is always present — may be missing in older sessions
+            if (RegistrationSession.getGuestId(session) == null) {
+                var guest = guestService.findByChatId(session.getChatId());
+                guest.ifPresent(g -> {
+                    if (g.getId() != null) {
+                        RegistrationSession.setGuestId(session, g.getId().toString());
+                    }
+                });
+            }
+            return true;
+        }
         if (RegistrationSession.isManualLogout(session)) return false;
         var guest = guestService.findByChatId(session.getChatId());
         if (guest.isPresent()) {

@@ -14,9 +14,10 @@ public class KeyboardBuilder {
     }
 
     public static Map<String, String> cbCmd(String text, String command) {
+        String normalized = command.startsWith("/") ? command : "/" + command;
         return Map.of(
                 "text", text,
-                "callback_data", "/" + command
+                "callback_data", normalized
         );
     }
 
