@@ -1140,11 +1140,10 @@
           "id",
           "tariffId",
           "guestId",
-          "dateStart",
-          "dateEnd",
-          "daysUsed"
+          "daysUsed",
+          "status"
         ],
-        "description": "Active tariff assigned to a coworking guest",
+        "description": "Tariff assigned to a coworking guest",
         "properties": {
           "id": {
             "$ref": "#/components/schemas/UUID",
@@ -1161,20 +1160,15 @@
             "type": "string",
             "description": "Identifier of the guest"
           },
-          "dateStart": {
-            "$ref": "#/components/schemas/Instant",
-            "type": "string",
-            "description": "Tariff start date (ISO-8601, UTC)"
-          },
-          "dateEnd": {
-            "$ref": "#/components/schemas/Instant",
-            "type": "string",
-            "description": "Tariff end date (ISO-8601, UTC)"
-          },
           "daysUsed": {
             "type": "integer",
             "format": "int32",
             "description": "Number of days already used"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "ACTIVE", "EXPIRED", "CANCELLED", "SUSPENDED"],
+            "description": "Current status of the guest tariff"
           }
         }
       },

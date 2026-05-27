@@ -15,14 +15,8 @@ import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class StartProfileHandler implements StepHandler {
@@ -65,28 +59,31 @@ public class StartProfileHandler implements StepHandler {
             : "—";
         String phone = (g.getPhone() != null && !g.getPhone().isBlank()) ? g.getPhone() : "—";
 
-        // Active tariffs — use the dedicated endpoint that applies backend-side activation logic
-        // (covers edge cases: null dateEnd, pending status, etc.)
-        List<CoworkingGuestTariffResponse> activeTariffs = g.getId() != null
+        // Load all tariffs for this guest; split client-side by status
+        List<CoworkingGuestTariffResponse> allTariffs = g.getId() != null
             ? tariffService.getGuestTariffs(g.getId())
             : List.of();
 
-        // Full history for the "expired tariffs" section — exclude whatever is already active
-        List<CoworkingGuestTariffResponse> allTariffs = g.getId() != null
-            ? tariffService.getGuestTariffHistory(g.getId())
-            : List.of();
-        Set<UUID> activeTariffIds = activeTariffs.stream()
-            .map(CoworkingGuestTariffResponse::getId)
-            .collect(Collectors.toSet());
-        List<CoworkingGuestTariffResponse> expiredTariffs = allTariffs.stream()
-            .filter(t -> !activeTariffIds.contains(t.getId()))
+        List<CoworkingGuestTariffResponse> activeTariffs = allTariffs.stream()
+            .filter(t -> t.getStatus() == CoworkingGuestTariffResponse.StatusEnum.ACTIVE)
+            .toList();
+        List<CoworkingGuestTariffResponse> pendingTariffs = allTariffs.stream()
+            .filter(t -> t.getStatus() == CoworkingGuestTariffResponse.StatusEnum.PENDING)
+            .toList();
+        List<CoworkingGuestTariffResponse> historyTariffs = allTariffs.stream()
+            .filter(t -> {
+                var s = t.getStatus();
+                return s == CoworkingGuestTariffResponse.StatusEnum.EXPIRED
+                    || s == CoworkingGuestTariffResponse.StatusEnum.CANCELLED
+                    || s == CoworkingGuestTariffResponse.StatusEnum.SUSPENDED;
+            })
             .toList();
 
-        String tariffSection = buildTariffSection(lang, activeTariffs, expiredTariffs);
+        String tariffSection = buildTariffSection(lang, activeTariffs, pendingTariffs, historyTariffs);
 
         boolean canDeduct = false;
         if (!activeTariffs.isEmpty()) {
-            // Find the first active LONG tariff for deduction.
+            // Find the first ACTIVE LONG tariff for deduction.
             // A user may have both SHORT (day-pass) and LONG (monthly) tariffs active;
             // SHORT tariffs don't support day deduction, so we must skip them.
             for (var candidate : activeTariffs) {
@@ -119,7 +116,7 @@ public class StartProfileHandler implements StepHandler {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_deduct"), "deduct_confirm")
             ));
-        } else if (activeTariffs.isEmpty()) {
+        } else if (activeTariffs.isEmpty() && pendingTariffs.isEmpty()) {
             rows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_tariff"), "/tariff_list")
             ));
@@ -138,45 +135,61 @@ public class StartProfileHandler implements StepHandler {
         return StepResult.stay(StartFlowDef.FLOW, StartFlowDef.STEP_PROFILE);
     }
 
-    private static final DateTimeFormatter DATE_FMT =
-        DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.of("Asia/Yerevan"));
+    private String statusLabel(String lang, CoworkingGuestTariffResponse.StatusEnum status) {
+        if (status == null) return "—";
+        return switch (status) {
+            case ACTIVE    -> i18n.t(lang, "tariff_status_active");
+            case PENDING   -> i18n.t(lang, "tariff_status_pending");
+            case EXPIRED   -> i18n.t(lang, "tariff_status_expired");
+            case CANCELLED -> i18n.t(lang, "tariff_status_cancelled");
+            case SUSPENDED -> i18n.t(lang, "tariff_status_suspended");
+        };
+    }
 
     private String buildTariffSection(
         String lang,
         List<CoworkingGuestTariffResponse> activeTariffs,
-        List<CoworkingGuestTariffResponse> expiredTariffs
+        List<CoworkingGuestTariffResponse> pendingTariffs,
+        List<CoworkingGuestTariffResponse> historyTariffs
     ) {
         var sb = new StringBuilder();
 
-        if (activeTariffs.isEmpty()) {
+        if (activeTariffs.isEmpty() && pendingTariffs.isEmpty()) {
             sb.append("\n\n").append(i18n.t(lang, "profile_no_tariff"));
-        } else {
-            for (CoworkingGuestTariffResponse t : activeTariffs) {
-                String tariffName = t.getTariffId() != null
-                    ? tariffService.getTariffName(t.getTariffId()).orElse("—")
-                    : "—";
-                Instant dateEnd = t.getDateEnd() != null ? t.getDateEnd().toInstant() : null;
-                long daysLeft = dateEnd != null
-                    ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
-                    : 0;
-                int daysUsed = t.getDaysUsed() != null ? t.getDaysUsed() : 0;
-                String dateEndStr = dateEnd != null ? DATE_FMT.format(dateEnd) : "—";
-                sb.append("\n\n").append(
-                    i18n.t(lang, "profile_tariff_section").formatted(tariffName, dateEndStr, daysLeft, daysUsed)
-                );
-            }
         }
 
-        if (!expiredTariffs.isEmpty()) {
+        // Active tariffs
+        for (CoworkingGuestTariffResponse t : activeTariffs) {
+            String tariffName = t.getTariffId() != null
+                ? tariffService.getTariffName(t.getTariffId()).orElse("—")
+                : "—";
+            int daysUsed = t.getDaysUsed() != null ? t.getDaysUsed() : 0;
+            sb.append("\n\n").append(
+                i18n.t(lang, "profile_tariff_section")
+                    .formatted(tariffName, statusLabel(lang, t.getStatus()), daysUsed)
+            );
+        }
+
+        // Pending tariffs (awaiting activation by admin)
+        for (CoworkingGuestTariffResponse t : pendingTariffs) {
+            String tariffName = t.getTariffId() != null
+                ? tariffService.getTariffName(t.getTariffId()).orElse("—")
+                : "—";
+            sb.append("\n\n").append(
+                i18n.t(lang, "profile_tariff_pending_section").formatted(tariffName)
+            );
+        }
+
+        // History: expired / cancelled / suspended
+        if (!historyTariffs.isEmpty()) {
             sb.append(i18n.t(lang, "profile_tariff_history_header"));
-            for (CoworkingGuestTariffResponse t : expiredTariffs) {
+            for (CoworkingGuestTariffResponse t : historyTariffs) {
                 String tariffName = t.getTariffId() != null
                     ? tariffService.getTariffName(t.getTariffId()).orElse("—")
                     : "—";
-                String dateStartStr = t.getDateStart() != null ? DATE_FMT.format(t.getDateStart().toInstant()) : "—";
-                String dateEndStr = t.getDateEnd() != null ? DATE_FMT.format(t.getDateEnd().toInstant()) : "—";
                 sb.append("\n").append(
-                    i18n.t(lang, "profile_tariff_expired_item").formatted(tariffName, dateStartStr, dateEndStr)
+                    i18n.t(lang, "profile_tariff_expired_item")
+                        .formatted(tariffName, statusLabel(lang, t.getStatus()))
                 );
             }
         }

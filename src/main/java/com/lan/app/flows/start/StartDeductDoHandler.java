@@ -12,18 +12,11 @@ import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
 public class StartDeductDoHandler implements StepHandler {
-
-    private static final DateTimeFormatter DATE_FMT =
-        DateTimeFormatter.ofPattern("dd.MM.yyyy").withZone(ZoneId.of("Asia/Yerevan"));
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
@@ -66,11 +59,6 @@ public class StartDeductDoHandler implements StepHandler {
 
         var updated = result.get();
         int daysUsed = updated.getDaysUsed() != null ? updated.getDaysUsed() : 0;
-        Instant dateEnd = updated.getDateEnd() != null ? updated.getDateEnd().toInstant() : null;
-        long daysLeft = dateEnd != null
-            ? Math.max(0, ChronoUnit.DAYS.between(Instant.now(), dateEnd))
-            : 0;
-        String dateEndStr = dateEnd != null ? DATE_FMT.format(dateEnd) : "—";
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
@@ -79,7 +67,7 @@ public class StartDeductDoHandler implements StepHandler {
         ));
 
         telegramClient.sendHtml(session.getChatId(),
-            i18n.t(lang, "deduct_success").formatted(daysUsed, daysLeft, dateEndStr), kb);
+            i18n.t(lang, "deduct_success").formatted(daysUsed), kb);
 
         session.setFlow(StartFlowDef.FLOW);
         session.setStep(StartFlowDef.STEP_PROFILE);
