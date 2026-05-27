@@ -78,18 +78,28 @@ public class StartProfileHandler implements StepHandler {
 
         boolean canDeduct = false;
         if (!activeTariffs.isEmpty()) {
-            var first = activeTariffs.getFirst();
-            RegistrationSession.setDeductTariffId(session, first.getId().toString());
-            if (first.getTariffId() != null) {
-                var tariff = tariffService.getTariff(first.getTariffId());
-                String tName = tariff.map(t -> t.getName() != null ? t.getName() : "—").orElse("—");
-                RegistrationSession.setDeductTariffName(session, tName);
+            // Find the first active LONG tariff for deduction.
+            // A user may have both SHORT (day-pass) and LONG (monthly) tariffs active;
+            // SHORT tariffs don't support day deduction, so we must skip them.
+            for (var candidate : activeTariffs) {
+                if (candidate.getTariffId() == null) {
+                    // No tariff definition — treat as deductible (safe default)
+                    RegistrationSession.setDeductTariffId(session, candidate.getId().toString());
+                    RegistrationSession.setDeductTariffName(session, "—");
+                    canDeduct = true;
+                    break;
+                }
+                var tariff = tariffService.getTariff(candidate.getTariffId());
                 boolean isShort = tariff
                     .map(t -> t.getType() == CoworkingTariffResponse.TypeEnum.SHORT)
                     .orElse(false);
-                canDeduct = !isShort;
-            } else {
-                canDeduct = true;
+                if (!isShort) {
+                    String tName = tariff.map(t -> t.getName() != null ? t.getName() : "—").orElse("—");
+                    RegistrationSession.setDeductTariffId(session, candidate.getId().toString());
+                    RegistrationSession.setDeductTariffName(session, tName);
+                    canDeduct = true;
+                    break;
+                }
             }
         }
 
