@@ -21,6 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class EventsListHandler implements StepHandler {
@@ -60,12 +63,26 @@ public class EventsListHandler implements StepHandler {
             return StepResult.finish();
         }
 
+        // Clear festival navigation context — user is back at the main list
+        EventsListSession.clearParentFestivalId(session);
+
         List<EventResponse> safeEvents = events != null ? events : List.of();
         List<FestivalResponse> safeFestivals = festivals != null
             ? festivals.stream().filter(f -> Boolean.TRUE.equals(f.getIsVisible())).toList()
             : List.of();
 
-        if (safeEvents.isEmpty() && safeFestivals.isEmpty()) {
+        // Collect all event IDs that belong to any festival so they can be hidden from the plain list
+        Set<UUID> festivalEventIds = safeFestivals.stream()
+            .filter(f -> f.getEventsIds() != null)
+            .flatMap(f -> f.getEventsIds().stream())
+            .collect(Collectors.toSet());
+
+        // Standalone events only — festival sub-events are shown inside their festival pages
+        List<EventResponse> standAloneEvents = safeEvents.stream()
+            .filter(e -> e.getId() == null || !festivalEventIds.contains(e.getId()))
+            .toList();
+
+        if (standAloneEvents.isEmpty() && safeFestivals.isEmpty()) {
             telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "events_list_title") + "\n\n" + i18n.t(lang, "events_list_empty"),
                 homeButton(lang));
@@ -80,10 +97,10 @@ public class EventsListHandler implements StepHandler {
             .limit(MAX_FESTIVALS)
             .forEach(f -> rows.add(KeyboardBuilder.row(rawBtn("🎪 " + shortLabel(f.getName()), "evf_" + f.getId()))));
 
-        // Events
-        int eventLimit = Math.min(safeEvents.size(), MAX_EVENTS);
+        // Standalone events
+        int eventLimit = Math.min(standAloneEvents.size(), MAX_EVENTS);
         for (int i = 0; i < eventLimit; i++) {
-            EventResponse e = safeEvents.get(i);
+            EventResponse e = standAloneEvents.get(i);
             rows.add(KeyboardBuilder.row(rawBtn(formatEventLabel(lang, e), "evt_" + e.getId())));
         }
 

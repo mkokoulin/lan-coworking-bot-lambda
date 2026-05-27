@@ -83,6 +83,9 @@ public class FestivalDetailHandler implements StepHandler {
 
         String text = buildFestivalText(lang, festival);
 
+        // Store festival context so EventDetailHandler can render the correct "Back" button
+        EventsListSession.setParentFestivalId(session, festivalId.toString());
+
         var rows = new ArrayList<List<Map<String, String>>>();
 
         // Sub-events

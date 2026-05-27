@@ -104,11 +104,22 @@ public class EventDetailHandler implements StepHandler {
             ));
         }
 
-        // Navigation
-        rows.add(KeyboardBuilder.row(
-            KeyboardBuilder.cbCmd(i18n.t(lang, "events_detail_back_btn"), "events"),
-            KeyboardBuilder.cbCmd(i18n.t(lang, "events_list_btn_home"), "/start")
-        ));
+        // Navigation — "Back" goes to the parent festival page if opened from one
+        String parentFestivalId = EventsListSession.getParentFestivalId(session);
+        if (parentFestivalId != null && !parentFestivalId.isBlank()) {
+            rows.add(KeyboardBuilder.row(
+                EventsListHandler.rawBtn(
+                    i18n.t(lang, "events_detail_back_festival_btn"),
+                    EventsListFlowDef.CB_EVF_PREFIX + parentFestivalId
+                ),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "events_list_btn_home"), "/start")
+            ));
+        } else {
+            rows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "events_detail_back_btn"), "events"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "events_list_btn_home"), "/start")
+            ));
+        }
 
         telegramClient.sendHtml(session.getChatId(), text, KeyboardBuilder.inline(rows));
         return StepResult.stay(EventsListFlowDef.FLOW, EventsListFlowDef.STEP_DETAIL);
