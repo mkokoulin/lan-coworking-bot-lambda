@@ -20,6 +20,9 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 public class StartProfileHandler implements StepHandler {
@@ -62,16 +65,21 @@ public class StartProfileHandler implements StepHandler {
             : "—";
         String phone = (g.getPhone() != null && !g.getPhone().isBlank()) ? g.getPhone() : "—";
 
+        // Active tariffs — use the dedicated endpoint that applies backend-side activation logic
+        // (covers edge cases: null dateEnd, pending status, etc.)
+        List<CoworkingGuestTariffResponse> activeTariffs = g.getId() != null
+            ? tariffService.getGuestTariffs(g.getId())
+            : List.of();
+
+        // Full history for the "expired tariffs" section — exclude whatever is already active
         List<CoworkingGuestTariffResponse> allTariffs = g.getId() != null
             ? tariffService.getGuestTariffHistory(g.getId())
             : List.of();
-
-        Instant now = Instant.now();
-        List<CoworkingGuestTariffResponse> activeTariffs = allTariffs.stream()
-            .filter(t -> t.getDateEnd() != null && t.getDateEnd().toInstant().isAfter(now))
-            .toList();
+        Set<UUID> activeTariffIds = activeTariffs.stream()
+            .map(CoworkingGuestTariffResponse::getId)
+            .collect(Collectors.toSet());
         List<CoworkingGuestTariffResponse> expiredTariffs = allTariffs.stream()
-            .filter(t -> t.getDateEnd() == null || !t.getDateEnd().toInstant().isAfter(now))
+            .filter(t -> !activeTariffIds.contains(t.getId()))
             .toList();
 
         String tariffSection = buildTariffSection(lang, activeTariffs, expiredTariffs);
