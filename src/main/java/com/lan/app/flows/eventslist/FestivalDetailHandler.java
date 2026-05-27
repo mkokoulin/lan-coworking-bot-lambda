@@ -18,6 +18,7 @@ import org.jboss.logging.Logger;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -88,19 +89,19 @@ public class FestivalDetailHandler implements StepHandler {
 
         var rows = new ArrayList<List<Map<String, String>>>();
 
-        // Sub-events
+        // Sub-events: fetch all events in one call, then pick those belonging to this festival.
+        // Individual eventsV1ExternalIdGet calls are avoided because they may return 404 for
+        // events that are only accessible via the bulk list endpoint.
         if (festival.getEventsIds() != null && !festival.getEventsIds().isEmpty()) {
+            Map<UUID, EventResponse> eventMap = fetchEventMap();
             for (UUID eventId : festival.getEventsIds()) {
-                try {
-                    EventResponse event = eventApi.eventsV1ExternalIdGet(eventId);
-                    if (event != null && event.getName() != null) {
-                        String label = formatEventLabel(lang, event);
-                        rows.add(KeyboardBuilder.row(
-                            EventsListHandler.rawBtn(label, EventsListFlowDef.CB_EVT_PREFIX + eventId)
-                        ));
-                    }
-                } catch (Exception e) {
-                    LOG.warnf(e, "Failed to fetch sub-event %s of festival %s", eventId, festivalId);
+                EventResponse event = eventMap.get(eventId);
+                if (event != null && event.getName() != null) {
+                    rows.add(KeyboardBuilder.row(
+                        EventsListHandler.rawBtn(formatEventLabel(lang, event), EventsListFlowDef.CB_EVT_PREFIX + eventId)
+                    ));
+                } else {
+                    LOG.warnf("Festival %s references eventId %s but it was not found in the event list", festivalId, eventId);
                 }
             }
         }
@@ -116,6 +117,24 @@ public class FestivalDetailHandler implements StepHandler {
     }
 
     // ---- private helpers ----
+
+    /**
+     * Fetches all events and returns them indexed by their UUID.
+     * One bulk call is much more reliable than N individual calls.
+     */
+    private Map<UUID, EventResponse> fetchEventMap() {
+        try {
+            List<EventResponse> all = eventApi.eventsV1Get();
+            Map<UUID, EventResponse> map = new HashMap<>();
+            if (all != null) {
+                all.forEach(e -> { if (e.getId() != null) map.put(e.getId(), e); });
+            }
+            return map;
+        } catch (Exception e) {
+            LOG.warnf(e, "Failed to fetch events list");
+            return Map.of();
+        }
+    }
 
     private String buildFestivalText(String lang, FestivalResponse f) {
         boolean isRu = "ru".equals(lang);
