@@ -1,7 +1,7 @@
 package com.lan.app.flows.myevents;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lan.app.client.baserow.api.BotApi;
+import com.lan.app.client.baserow.model.BotRegistrationDto;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
@@ -11,13 +11,9 @@ import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -29,31 +25,20 @@ public class MyEventsHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
-    private final ObjectMapper mapper;
-    private final HttpClient httpClient = HttpClient.newHttpClient();
-
-    @ConfigProperty(name = "app.backend-url", defaultValue = "")
-    String backendUrl;
+    private final BotApi botApi;
 
     @Inject
-    public MyEventsHandler(TelegramClient telegramClient, I18n i18n, ObjectMapper mapper) {
+    public MyEventsHandler(TelegramClient telegramClient, I18n i18n, @RestClient BotApi botApi) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
-        this.mapper = mapper;
+        this.botApi = botApi;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        if (backendUrl.isBlank()) {
-            telegramClient.sendHtml(session.getChatId(),
-                    i18n.t(lang, "myevents_unavailable"),
-                    homeButton(lang));
-            return StepResult.finish();
-        }
-
-        List<MyRegistrationDto> registrations = fetchRegistrations(session.getChatId());
+        List<BotRegistrationDto> registrations = fetchRegistrations(session.getChatId());
 
         String message;
         if (registrations == null) {
@@ -68,27 +53,16 @@ public class MyEventsHandler implements StepHandler {
         return StepResult.finish();
     }
 
-    private List<MyRegistrationDto> fetchRegistrations(Long chatId) {
+    private List<BotRegistrationDto> fetchRegistrations(Long chatId) {
         try {
-            String url = backendUrl + "/bot/my-registrations?chatId=" + chatId;
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(url))
-                    .GET()
-                    .build();
-            HttpResponse<String> response = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() != 200) {
-                log.warnf("my-registrations returned %d for chatId %d: %s",
-                        response.statusCode(), chatId, response.body());
-                return null;
-            }
-            return mapper.readValue(response.body(), new TypeReference<>() {});
+            return botApi.botMyRegistrations(chatId);
         } catch (Exception e) {
             log.warnf("Failed to fetch registrations for chatId %d: %s", chatId, e.getMessage());
             return null;
         }
     }
 
-    private String buildMessage(String lang, List<MyRegistrationDto> registrations) {
+    private String buildMessage(String lang, List<BotRegistrationDto> registrations) {
         boolean isRu = "ru".equals(lang);
         Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
@@ -98,10 +72,10 @@ public class MyEventsHandler implements StepHandler {
         sb.append(i18n.t(lang, "myevents_title")).append("\n\n");
 
         for (int i = 0; i < registrations.size(); i++) {
-            MyRegistrationDto r = registrations.get(i);
-            sb.append(i + 1).append(". <b>").append(escapeHtml(r.eventName)).append("</b>\n");
-            if (r.dateStart != null) {
-                sb.append("   📆 ").append(r.dateStart.format(fmt)).append("\n");
+            BotRegistrationDto r = registrations.get(i);
+            sb.append(i + 1).append(". <b>").append(escapeHtml(r.getEventName())).append("</b>\n");
+            if (r.getDateStart() != null) {
+                sb.append("   📆 ").append(r.getDateStart().format(fmt)).append("\n");
             }
             sb.append("\n");
         }
