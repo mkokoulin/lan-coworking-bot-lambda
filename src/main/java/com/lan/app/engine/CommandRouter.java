@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lan.app.domain.UpdateContext;
+import com.lan.app.flows.cwbooking.CwBookingFlowDef;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
@@ -68,6 +69,9 @@ public class CommandRouter {
             if ("start".equals(command) && args != null && args.startsWith("reg_")) {
                 session.setFlow(EventConfirmFlowDef.FLOW);
                 session.setStep(EventConfirmFlowDef.STEP_CONFIRM);
+            } else if ("start".equals(command) && args != null && args.startsWith("cwbooking_")) {
+                session.setFlow(CwBookingFlowDef.FLOW);
+                session.setStep(CwBookingFlowDef.STEP_CONFIRM);
             } else if ("start".equals(command) && args != null && args.startsWith("cwlink_")) {
                 session.setFlow(CwLinkFlowDef.FLOW);
                 session.setStep(CwLinkFlowDef.STEP_LINK);
