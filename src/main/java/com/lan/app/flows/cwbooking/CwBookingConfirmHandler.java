@@ -1,5 +1,7 @@
 package com.lan.app.flows.cwbooking;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.config.TelegramConfig;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
@@ -26,10 +28,19 @@ public class CwBookingConfirmHandler implements StepHandler {
 
     private static final Logger log = Logger.getLogger(CwBookingConfirmHandler.class);
 
+    private static final Map<String, String> TARIFF_LABELS = Map.of(
+        "1h",    "1 час — 1 300 ֏",
+        "4h",    "4 часа — 3 000 ֏",
+        "day",   "1 день — 5 000 ֏",
+        "week",  "7 дней — 25 000 ֏",
+        "month", "30 дней — 75 000 ֏"
+    );
+
     private final TelegramClient telegramClient;
     private final TelegramConfig telegramConfig;
     private final I18n i18n;
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @ConfigProperty(name = "app.site-url", defaultValue = "")
     String siteUrl;
@@ -52,13 +63,11 @@ public class CwBookingConfirmHandler implements StepHandler {
 
         String lang = session.getLang();
 
-        if (bookingId != null) {
-            confirmOnSite(bookingId);
-        }
+        JsonNode bookingData = confirmOnSite(bookingId);
 
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cwbooking_confirm_message"), null);
 
-        notifyAdmin(bookingId, session.getChatId());
+        notifyAdmin(bookingId, ctx.username(), session.getChatId(), bookingData);
 
         var kbRows = new ArrayList<List<Map<String, String>>>();
         kbRows.add(KeyboardBuilder.row(
@@ -70,40 +79,70 @@ public class CwBookingConfirmHandler implements StepHandler {
         return StepResult.finish();
     }
 
-    private void confirmOnSite(String bookingId) {
-        if (siteUrl.isBlank()) return;
+    private JsonNode confirmOnSite(String bookingId) {
+        if (bookingId == null || siteUrl.isBlank()) return null;
         String url = siteUrl + "/api/coworking/booking/" + bookingId + "/confirm";
         try {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .build();
-            httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(res -> {
-                        if (res.statusCode() != 200) {
-                            log.warnf("Booking confirm returned %d for %s: %s",
-                                    res.statusCode(), bookingId, res.body());
-                        }
-                    })
-                    .exceptionally(ex -> {
-                        log.warnf("Failed to confirm booking %s: %s", bookingId, ex.getMessage());
-                        return null;
-                    });
+            HttpResponse<String> resp = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (resp.statusCode() == 200) {
+                return mapper.readTree(resp.body());
+            }
+            log.warnf("Booking confirm returned %d for %s: %s", resp.statusCode(), bookingId, resp.body());
         } catch (Exception e) {
-            log.warnf("Failed to build confirm request for booking %s: %s", bookingId, e.getMessage());
+            log.warnf("Failed to confirm booking %s: %s", bookingId, e.getMessage());
         }
+        return null;
     }
 
-    private void notifyAdmin(String bookingId, Long chatId) {
+    private void notifyAdmin(String bookingId, String tgUsername, Long chatId, JsonNode data) {
         Long adminId = telegramConfig.adminChatId();
         if (adminId == null) return;
+
+        StringBuilder sb = new StringBuilder("✅ <b>Бронирование коворкинга подтверждено</b>\n\n");
+
+        if (data != null) {
+            String firstName = textOrDash(data, "firstName");
+            String phone     = textOrDash(data, "phone");
+            String telegram  = data.path("telegram").asText("").trim();
+            String tariffId  = data.path("tariffId").asText("").trim();
+            String date      = textOrDash(data, "bookingDate");
+            String start     = textOrDash(data, "startTime");
+            String end       = textOrDash(data, "endTime");
+
+            String tariffLabel = TARIFF_LABELS.getOrDefault(tariffId, tariffId);
+
+            sb.append("👤 ").append(firstName).append("\n");
+            sb.append("📞 ").append(phone).append("\n");
+            if (!telegram.isEmpty()) {
+                sb.append("✈️ ").append(telegram).append("\n");
+            } else if (tgUsername != null && !tgUsername.isBlank()) {
+                sb.append("✈️ @").append(tgUsername).append("\n");
+            }
+            sb.append("🗂 Тариф: ").append(tariffLabel).append("\n");
+            sb.append("📅 ").append(date).append(" ").append(start).append("–").append(end);
+        } else {
+            if (tgUsername != null && !tgUsername.isBlank()) {
+                sb.append("✈️ @").append(tgUsername).append("\n");
+            }
+            sb.append("💬 chat_id: ").append(chatId);
+            if (bookingId != null) {
+                sb.append("\n🆔 ").append(bookingId);
+            }
+        }
+
         try {
-            String text = "✅ <b>Бронирование коворкинга подтверждено</b>\n\n"
-                    + "👤 chat_id: " + chatId + "\n"
-                    + "🆔 Заявка: " + (bookingId != null ? bookingId : "—");
-            telegramClient.sendHtml(adminId, text, null);
+            telegramClient.sendHtml(adminId, sb.toString(), null);
         } catch (Exception e) {
             log.warnf("Failed to notify admin about booking %s: %s", bookingId, e.getMessage());
         }
+    }
+
+    private String textOrDash(JsonNode node, String field) {
+        String val = node.path(field).asText("").trim();
+        return val.isEmpty() ? "—" : val;
     }
 }
