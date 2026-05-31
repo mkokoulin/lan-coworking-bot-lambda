@@ -11,7 +11,8 @@ public record UpdateContext(
         boolean callback,
         String  username,
         String  sharedPhone,
-        String  fileId
+        String  fileId,
+        String  fileName
 ) {
 
     public static UpdateContext fromIncomingUpdate(IncomingUpdate update) {
@@ -26,7 +27,8 @@ public record UpdateContext(
                 update.getCallbackData() != null && !update.getCallbackData().isBlank(),
                 update.getUsername(),
                 update.getSharedPhone(),
-                update.getFileId()
+                update.getFileId(),
+                update.getFileName()
         );
     }
 

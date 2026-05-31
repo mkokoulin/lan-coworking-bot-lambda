@@ -50,6 +50,11 @@ public class IncomingUpdateFactory {
         if (message.photo() != null && !message.photo().isEmpty()) {
             var largest = message.photo().get(message.photo().size() - 1);
             target.setFileId(largest.fileId());
+        } else if (message.document() != null && message.document().fileId() != null) {
+            target.setFileId(message.document().fileId());
+            if (message.document().fileName() != null) {
+                target.setFileName(message.document().fileName());
+            }
         }
     }
 

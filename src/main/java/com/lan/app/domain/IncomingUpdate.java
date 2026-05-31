@@ -15,6 +15,7 @@ public class IncomingUpdate {
     private String  username;
     private String  sharedPhone;
     private String  fileId;
+    private String  fileName;
 
     public enum UpdateType {
         MESSAGE,
@@ -56,6 +57,9 @@ public class IncomingUpdate {
 
     public String getFileId()                        { return fileId; }
     public void setFileId(String fileId)             { this.fileId = fileId; }
+
+    public String getFileName()                      { return fileName; }
+    public void setFileName(String fileName)         { this.fileName = fileName; }
 
     public String getCallbackQueryId()               { return callbackQueryId; }
     public void setCallbackQueryId(String v)         { this.callbackQueryId = v; }

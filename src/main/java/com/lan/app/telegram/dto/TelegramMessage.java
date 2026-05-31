@@ -11,6 +11,7 @@ public record TelegramMessage(
     TelegramChat chat,
     String text,
     TelegramContact contact,
-    List<TelegramPhotoSize> photo
+    List<TelegramPhotoSize> photo,
+    TelegramDocument document
 ) {
 }

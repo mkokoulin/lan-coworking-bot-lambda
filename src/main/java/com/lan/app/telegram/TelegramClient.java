@@ -169,6 +169,35 @@ public class TelegramClient {
         }
     }
 
+    public void sendDocumentByFileId(Long chatId, String fileId, String caption) {
+        try {
+            Map<String, Object> body = new HashMap<>();
+            body.put("chat_id", chatId);
+            body.put("document", fileId);
+            if (caption != null && !caption.isBlank()) {
+                body.put("caption", caption);
+                body.put("parse_mode", "HTML");
+            }
+            String url = telegramConfig.apiBaseUrl() + "/bot" + telegramConfig.botToken() + "/sendDocument";
+            var req = HttpRequest.newBuilder()
+                    .uri(URI.create(url))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
+                    .build();
+            log.debugf("→ POST sendDocumentByFileId chatId=%d", chatId);
+            var resp = http.send(req, HttpResponse.BodyHandlers.ofString());
+            log.debugf("← %d sendDocumentByFileId chatId=%d", resp.statusCode(), chatId);
+            if (resp.statusCode() >= 300) {
+                log.errorf("sendDocumentByFileId failed [%d]: %s", resp.statusCode(), resp.body());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.errorf(e, "sendDocumentByFileId interrupted");
+        } catch (Exception e) {
+            log.errorf(e, "sendDocumentByFileId error: %s", e.getMessage());
+        }
+    }
+
     public void answerCallbackQuery(String callbackQueryId) {
         if (callbackQueryId == null) return;
         try {

@@ -1,11 +1,13 @@
 package com.lan.app.flows.coworking;
 
+import com.lan.app.client.baserow.model.CoworkingTariffResponse;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.FlowEntry;
 import com.lan.app.engine.FlowRegistry;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
+import com.lan.app.service.TariffService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -20,16 +22,19 @@ public class CoworkingHomeHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final FlowRegistry registry;
+    private final TariffService tariffService;
 
     @Inject
     public CoworkingHomeHandler(
         TelegramClient telegramClient,
         I18n i18n,
-        FlowRegistry registry
+        FlowRegistry registry,
+        TariffService tariffService
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
         this.registry = registry;
+        this.tariffService = tariffService;
     }
 
     @Override
@@ -37,7 +42,7 @@ public class CoworkingHomeHandler implements StepHandler {
         String lang = session.getLang();
 
         if (ctx.hasCallback() && ctx.callbackData().startsWith("/")) {
-            String command = ctx.callbackData().substring(1); // "booking", "meetingroom", ...
+            String command = ctx.callbackData().substring(1);
             FlowEntry entry = registry.getCommand(command).orElse(null);
             if (entry != null) {
                 session.setFlow(entry.flow());
@@ -46,8 +51,10 @@ public class CoworkingHomeHandler implements StepHandler {
             }
         }
 
+        String pricesSection = buildPricesSection(lang);
+
         String text = i18n.t(lang, "coworking_intro") + "\n\n"
-                + i18n.t(lang, "coworking_prices") + "\n\n"
+                + pricesSection + "\n\n"
                 + i18n.t(lang, "coworking_meeting") + "\n\n"
                 + i18n.t(lang, "coworking_options");
 
@@ -71,5 +78,25 @@ public class CoworkingHomeHandler implements StepHandler {
         telegramClient.sendHtml(session.getChatId(), text, kb);
 
         return StepResult.stay(CoworkingFlowDef.FLOW, CoworkingFlowDef.STEP_HOME);
+    }
+
+    private String buildPricesSection(String lang) {
+        List<CoworkingTariffResponse> tariffs = tariffService.listAllTariffs();
+        if (tariffs.isEmpty()) {
+            return i18n.t(lang, "coworking_prices");
+        }
+
+        StringBuilder sb = new StringBuilder(i18n.t(lang, "coworking_prices_header"));
+        for (CoworkingTariffResponse t : tariffs) {
+            sb.append("\n• ").append(t.getName())
+              .append(" — ").append(formatPrice(t.getPrice())).append("֏");
+        }
+        return sb.toString();
+    }
+
+    private static String formatPrice(int price) {
+        String s = String.valueOf(price);
+        if (s.length() <= 3) return s;
+        return s.substring(0, s.length() - 3) + " " + s.substring(s.length() - 3);
     }
 }

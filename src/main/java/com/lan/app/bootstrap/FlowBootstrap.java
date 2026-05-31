@@ -15,6 +15,7 @@ import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
+import com.lan.app.flows.printout.PrintFlowRegistrar;
 import com.lan.app.flows.myevents.MyEventsFlowRegistrar;
 import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
@@ -46,6 +47,7 @@ public class FlowBootstrap {
     private final NewsFlowRegistrar newsFlowRegistrar;
     private final EventPaymentFlowRegistrar eventPaymentFlowRegistrar;
     private final CwBookingFlowRegistrar cwBookingFlowRegistrar;
+    private final PrintFlowRegistrar printFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -66,7 +68,8 @@ public class FlowBootstrap {
         ReviewFlowRegistrar reviewFlowRegistrar,
         NewsFlowRegistrar newsFlowRegistrar,
         EventPaymentFlowRegistrar eventPaymentFlowRegistrar,
-        CwBookingFlowRegistrar cwBookingFlowRegistrar
+        CwBookingFlowRegistrar cwBookingFlowRegistrar,
+        PrintFlowRegistrar printFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -86,6 +89,7 @@ public class FlowBootstrap {
         this.newsFlowRegistrar = newsFlowRegistrar;
         this.eventPaymentFlowRegistrar = eventPaymentFlowRegistrar;
         this.cwBookingFlowRegistrar = cwBookingFlowRegistrar;
+        this.printFlowRegistrar = printFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -108,5 +112,6 @@ public class FlowBootstrap {
         newsFlowRegistrar.register();
         eventPaymentFlowRegistrar.register();
         cwBookingFlowRegistrar.register();
+        printFlowRegistrar.register();
     }
 }
