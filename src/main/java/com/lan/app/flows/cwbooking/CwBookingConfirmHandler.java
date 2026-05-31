@@ -65,9 +65,12 @@ public class CwBookingConfirmHandler implements StepHandler {
 
         JsonNode bookingData = confirmOnSite(bookingId);
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cwbooking_confirm_message"), null);
+        boolean alreadyConfirmed = bookingData != null && bookingData.path("alreadyConfirmed").asBoolean(false);
 
-        notifyAdmin(bookingId, ctx.username(), session.getChatId(), bookingData);
+        if (!alreadyConfirmed) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "cwbooking_confirm_message"), null);
+            notifyAdmin(bookingId, ctx.username(), session.getChatId(), bookingData);
+        }
 
         var kbRows = new ArrayList<List<Map<String, String>>>();
         kbRows.add(KeyboardBuilder.row(
