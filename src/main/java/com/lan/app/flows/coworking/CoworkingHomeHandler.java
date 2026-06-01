@@ -64,11 +64,8 @@ public class CoworkingHomeHandler implements StepHandler {
                         KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_meetingroom"), "meetingroom")
                 ),
                 KeyboardBuilder.row(
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_events"), "events")
-                ),
-                KeyboardBuilder.row(
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_about"), "about"),
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_language"), "language")
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_printout"), "printout"),
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_wifi"), "wifi")
                 ),
                 KeyboardBuilder.row(
                         KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_home"), "/start")

@@ -55,16 +55,8 @@ public class StartShowHandler implements StepHandler {
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_booking"), "booking"),
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_coworking"), "coworking")
-            ),
-            KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_meetingroom"), "meetingroom"),
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_printout"), "printout")
-            ),
-            KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_events"), "events"),
-                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_wifi"), "wifi")
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_coworking"), "coworking"),
+                KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_events"), "events")
             ),
             KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "start_btn_menu"), "menu"),
