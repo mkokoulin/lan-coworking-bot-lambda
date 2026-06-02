@@ -28,7 +28,7 @@ public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        if (ctx.hasCallback() && "reg_skip".equals(ctx.callbackData())) {
+        if (ctx.hasCallback() && "reg_skip".equals(ctx.callbackPayload())) {
             return summaryHandler.handle(ctx, session);
         }
 

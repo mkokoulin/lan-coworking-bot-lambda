@@ -30,7 +30,8 @@ public class CommandRouter {
     /** Commands accessible without authentication */
     private static final Set<String> GUEST_COMMANDS = Set.of(
         "start", "wifi", "password", "language", "lang",
-        "registration", "register", "reg", "login", "help"
+        "registration", "register", "reg", "login", "help",
+        "reg_skip"
     );
 
     private final FlowRegistry registry;
