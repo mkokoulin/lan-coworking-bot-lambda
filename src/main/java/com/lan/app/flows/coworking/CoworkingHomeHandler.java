@@ -2,8 +2,6 @@ package com.lan.app.flows.coworking;
 
 import com.lan.app.client.baserow.model.CoworkingTariffResponse;
 import com.lan.app.domain.UpdateContext;
-import com.lan.app.engine.FlowEntry;
-import com.lan.app.engine.FlowRegistry;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
@@ -21,35 +19,22 @@ public class CoworkingHomeHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
-    private final FlowRegistry registry;
     private final TariffService tariffService;
 
     @Inject
     public CoworkingHomeHandler(
         TelegramClient telegramClient,
         I18n i18n,
-        FlowRegistry registry,
         TariffService tariffService
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
-        this.registry = registry;
         this.tariffService = tariffService;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
-
-        if (ctx.hasCallback() && ctx.callbackData().startsWith("/")) {
-            String command = ctx.callbackData().substring(1);
-            FlowEntry entry = registry.getCommand(command).orElse(null);
-            if (entry != null) {
-                session.setFlow(entry.flow());
-                session.setStep(entry.step());
-                return new StepResult(entry.flow(), entry.step());
-            }
-        }
 
         String pricesSection = buildPricesSection(lang);
 
