@@ -63,6 +63,22 @@ public class CwBookingConfirmHandler implements StepHandler {
 
         String lang = session.getLang();
 
+        // Direct button click (no deep link) — show booking info with site link
+        if (bookingId == null) {
+            var kbRows = new ArrayList<List<Map<String, String>>>();
+            if (!siteUrl.isBlank()) {
+                kbRows.add(KeyboardBuilder.row(
+                    KeyboardBuilder.urlBtn(i18n.t(lang, "booking_btn_site"), siteUrl + "/coworking")
+                ));
+            }
+            kbRows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "booking_btn_home"), "/start")
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "booking_prompt"),
+                    KeyboardBuilder.inline(kbRows));
+            return StepResult.finish();
+        }
+
         JsonNode bookingData = confirmOnSite(bookingId);
 
         boolean alreadyConfirmed = bookingData != null && bookingData.path("alreadyConfirmed").asBoolean(false);

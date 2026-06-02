@@ -1,5 +1,6 @@
 package com.lan.app.flows.cwbooking;
 
+import com.lan.app.engine.FlowEntry;
 import com.lan.app.engine.FlowRegistry;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -18,5 +19,6 @@ public class CwBookingFlowRegistrar {
 
     public void register() {
         registry.registerStep(CwBookingFlowDef.FLOW, CwBookingFlowDef.STEP_CONFIRM, confirmHandler);
+        registry.registerCommand("booking", new FlowEntry(CwBookingFlowDef.FLOW, CwBookingFlowDef.STEP_CONFIRM));
     }
 }
