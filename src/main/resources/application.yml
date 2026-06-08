@@ -65,12 +65,12 @@ telegram:
 app:
   site-url: ${APP_SITE_URL:}
   backend-url: ${APP_BACKEND_URL:}
-
-notify:
-  secret: ${NOTIFY_SECRET:}
   wifi:
     guest-password: ${WIFI_GUEST_PASSWORD:—}
     resident-password: ${WIFI_RESIDENT_PASSWORD:}
+
+notify:
+  secret: ${NOTIFY_SECRET:}
 
 payment:
   card-number: ${PAYMENT_CARD_NUMBER:—}
