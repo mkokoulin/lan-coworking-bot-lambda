@@ -44,20 +44,26 @@ public class UpdateHandler {
             logger.info("Skip update: invalid mapped update");
             return;
         }
-
+    
         Session session = sessionRepository.findByUserId(update.getUserId())
                 .orElseGet(() -> newSession(update));
-
+    
+        if (!update.getChatId().equals(session.getChatId())) {
+            logger.info("Updating chatId for userId={}: {} -> {}",
+                    update.getUserId(), session.getChatId(), update.getChatId());
+            session.setChatId(update.getChatId());
+        }
+    
         if (alreadyProcessed(session, update)) {
             logger.info("Skip update: already processed updateId={}", update.getUpdateId());
             return;
         }
-
+    
         UpdateContext ctx = UpdateContext.fromIncomingUpdate(update);
-
+    
         StepResult result = commandRouter.route(ctx, session);
         applyStepResult(session, result);
-
+    
         session.setLastProcessedUpdateId(update.getUpdateId());
         sessionRepository.save(session);
     }
