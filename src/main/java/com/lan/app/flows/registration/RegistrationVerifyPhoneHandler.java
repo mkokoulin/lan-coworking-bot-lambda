@@ -17,14 +17,17 @@ public class RegistrationVerifyPhoneHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final RegistrationSummaryHandler summaryHandler; // добавить
 
     @Inject
     public RegistrationVerifyPhoneHandler(
         TelegramClient telegramClient,
-        I18n i18n
+        I18n i18n,
+        RegistrationSummaryHandler summaryHandler // добавить
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.summaryHandler = summaryHandler; // добавить
     }
 
     @Override
@@ -47,6 +50,7 @@ public class RegistrationVerifyPhoneHandler implements StepHandler {
             return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_VERIFY_PHONE);
         }
 
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        // Immediately delegate to summary — don't just set the step and wait
+        return summaryHandler.handle(ctx, session);
     }
 }
