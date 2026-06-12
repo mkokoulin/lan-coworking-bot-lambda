@@ -37,9 +37,7 @@ public class UpdateHandler {
 
     public void handle(TelegramUpdate rawUpdate) {
         IncomingUpdate update = incomingUpdateFactory.fromTelegram(rawUpdate);
-        
-        logger.info("Received update: {}", update);
-        
+    
         if (update == null || update.getUserId() == null || update.getChatId() == null) {
             logger.info("Skip update: invalid mapped update");
             return;
@@ -48,6 +46,8 @@ public class UpdateHandler {
         Session session = sessionRepository.findByUserId(update.getUserId())
                 .orElseGet(() -> newSession(update));
     
+        // Always sync chatId from the actual update — the in-memory session
+        // may have a stale chatId after restart or first admin interaction
         if (!update.getChatId().equals(session.getChatId())) {
             logger.info("Updating chatId for userId={}: {} -> {}",
                     update.getUserId(), session.getChatId(), update.getChatId());
@@ -60,7 +60,6 @@ public class UpdateHandler {
         }
     
         UpdateContext ctx = UpdateContext.fromIncomingUpdate(update);
-    
         StepResult result = commandRouter.route(ctx, session);
         applyStepResult(session, result);
     
