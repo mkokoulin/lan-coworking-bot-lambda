@@ -1,6 +1,7 @@
 package com.lan.app.bootstrap;
 
 import com.lan.app.flows.about.AboutFlowRegistrar;
+import com.lan.app.flows.menu.MenuFlowRegistrar;
 import com.lan.app.flows.cwbooking.CwBookingFlowRegistrar;
 import com.lan.app.flows.news.NewsFlowRegistrar;
 import com.lan.app.flows.review.ReviewFlowRegistrar;
@@ -48,6 +49,7 @@ public class FlowBootstrap {
     private final EventPaymentFlowRegistrar eventPaymentFlowRegistrar;
     private final CwBookingFlowRegistrar cwBookingFlowRegistrar;
     private final PrintFlowRegistrar printFlowRegistrar;
+    private final MenuFlowRegistrar menuFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -69,7 +71,8 @@ public class FlowBootstrap {
         NewsFlowRegistrar newsFlowRegistrar,
         EventPaymentFlowRegistrar eventPaymentFlowRegistrar,
         CwBookingFlowRegistrar cwBookingFlowRegistrar,
-        PrintFlowRegistrar printFlowRegistrar
+        PrintFlowRegistrar printFlowRegistrar,
+        MenuFlowRegistrar menuFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -90,6 +93,7 @@ public class FlowBootstrap {
         this.eventPaymentFlowRegistrar = eventPaymentFlowRegistrar;
         this.cwBookingFlowRegistrar = cwBookingFlowRegistrar;
         this.printFlowRegistrar = printFlowRegistrar;
+        this.menuFlowRegistrar = menuFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -113,5 +117,6 @@ public class FlowBootstrap {
         eventPaymentFlowRegistrar.register();
         cwBookingFlowRegistrar.register();
         printFlowRegistrar.register();
+        menuFlowRegistrar.register();
     }
 }
