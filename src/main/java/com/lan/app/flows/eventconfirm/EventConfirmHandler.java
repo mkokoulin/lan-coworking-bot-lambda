@@ -132,7 +132,7 @@ public class EventConfirmHandler implements StepHandler {
 
     private String resolveBackendUrl(String regId) {
         if (!backendUrl.isBlank()) {
-            return backendUrl + "/events/registrations/" + regId + "/confirm";
+            return backendUrl + "/events/v1/registrations/" + regId + "/confirm";
         }
         if (!siteUrl.isBlank()) {
             return siteUrl + "/api/registration/" + regId + "/confirm";
