@@ -17,6 +17,6 @@ public class EventNotificationDueDto {
     @JsonProperty("eventName")
     public String eventName;
 
-    @JsonProperty("chatIds")
-    public List<Long> chatIds;
+    @JsonProperty("recipients")
+    public List<NotificationRecipientDto> recipients;
 }

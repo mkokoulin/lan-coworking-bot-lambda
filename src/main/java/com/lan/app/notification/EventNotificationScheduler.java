@@ -50,24 +50,27 @@ public class EventNotificationScheduler {
         log.infof("Processing %d due event notification(s)", due.size());
 
         for (var notification : due) {
-            boolean allSent = sendToAllChats(notification);
-            markResult(notification.id, allSent);
+            List<NotificationResultDto> results = sendToRecipients(notification);
+            saveResults(notification.id, results);
         }
     }
 
-    private boolean sendToAllChats(EventNotificationDueDto notification) {
-        if (notification.chatIds == null || notification.chatIds.isEmpty()) return true;
-        boolean allSent = true;
-        for (Long chatId : notification.chatIds) {
+    private List<NotificationResultDto> sendToRecipients(EventNotificationDueDto notification) {
+        var results = new java.util.ArrayList<NotificationResultDto>();
+        if (notification.recipients == null || notification.recipients.isEmpty()) return results;
+        for (var recipient : notification.recipients) {
+            if (recipient.chatId == null) continue;
             try {
-                telegramClient.sendHtml(chatId, notification.message, null);
+                telegramClient.sendHtml(recipient.chatId, notification.message, null);
+                results.add(new NotificationResultDto(recipient.guestRowId, "SENT", null));
             } catch (Exception e) {
-                log.warnf("Failed to send notification id=%d to chatId=%d: %s",
-                    notification.id, chatId, e.getMessage());
-                allSent = false;
+                String reason = e.getMessage();
+                log.warnf("Failed to send notification id=%d to guestRowId=%d chatId=%d: %s",
+                    notification.id, recipient.guestRowId, recipient.chatId, reason);
+                results.add(new NotificationResultDto(recipient.guestRowId, "FAILED", reason));
             }
         }
-        return allSent;
+        return results;
     }
 
     private List<EventNotificationDueDto> fetchDue() throws Exception {
@@ -82,22 +85,23 @@ public class EventNotificationScheduler {
         return mapper.readValue(resp.body(), LIST_TYPE);
     }
 
-    private void markResult(int id, boolean success) {
-        String path = success ? "/mark-sent" : "/mark-failed";
+    private void saveResults(int id, List<NotificationResultDto> results) {
+        if (results.isEmpty()) return;
         try {
+            String body = mapper.writeValueAsString(results);
             var req = HttpRequest.newBuilder()
-                .uri(URI.create(backendUrl + "/events/v1/bot/event-notifications/" + id + path))
-                .POST(HttpRequest.BodyPublishers.noBody())
+                .uri(URI.create(backendUrl + "/events/v1/bot/event-notifications/" + id + "/results"))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
             http.sendAsync(req, HttpResponse.BodyHandlers.discarding())
                 .thenAccept(resp -> {
                     if (resp.statusCode() != 200) {
-                        log.warnf("mark%s id=%d returned HTTP %d",
-                            success ? "Sent" : "Failed", id, resp.statusCode());
+                        log.warnf("saveResults id=%d returned HTTP %d", id, resp.statusCode());
                     }
                 });
         } catch (Exception e) {
-            log.warnf("Failed to call %s for notification id=%d: %s", path, id, e.getMessage());
+            log.warnf("Failed to save results for notification id=%d: %s", id, e.getMessage());
         }
     }
 }
