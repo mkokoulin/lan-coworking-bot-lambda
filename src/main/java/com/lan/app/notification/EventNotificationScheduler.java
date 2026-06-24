@@ -51,23 +51,23 @@ public class EventNotificationScheduler {
 
         for (var notification : due) {
             List<NotificationResultDto> results = sendToRecipients(notification);
-            saveResults(notification.id, results);
+            saveResults(notification.id(), results);
         }
     }
 
     private List<NotificationResultDto> sendToRecipients(EventNotificationDueDto notification) {
         var results = new java.util.ArrayList<NotificationResultDto>();
-        if (notification.recipients == null || notification.recipients.isEmpty()) return results;
-        for (var recipient : notification.recipients) {
-            if (recipient.chatId == null) continue;
+        if (notification.recipients() == null || notification.recipients().isEmpty()) return results;
+        for (var recipient : notification.recipients()) {
+            if (recipient.chatId() == null) continue;
             try {
-                telegramClient.sendHtml(recipient.chatId, notification.message, null);
-                results.add(new NotificationResultDto(recipient.guestRowId, "SENT", null));
+                telegramClient.sendHtml(recipient.chatId(), notification.message(), null);
+                results.add(new NotificationResultDto(recipient.guestRowId(), "SENT", null));
             } catch (Exception e) {
                 String reason = e.getMessage();
                 log.warnf("Failed to send notification id=%d to guestRowId=%d chatId=%d: %s",
-                    notification.id, recipient.guestRowId, recipient.chatId, reason);
-                results.add(new NotificationResultDto(recipient.guestRowId, "FAILED", reason));
+                    notification.id(), recipient.guestRowId(), recipient.chatId(), reason);
+                results.add(new NotificationResultDto(recipient.guestRowId(), "FAILED", reason));
             }
         }
         return results;

@@ -30,7 +30,7 @@ dependencies {
     implementation("io.quarkus:quarkus-rest-client")
     implementation("io.quarkus:quarkus-rest-client-jackson")
 
-    implementation("org.slf4j:slf4j-api:1.7.25")
+implementation("org.slf4j:slf4j-api:1.7.25")
 
 
     testImplementation("io.quarkus:quarkus-junit5")
