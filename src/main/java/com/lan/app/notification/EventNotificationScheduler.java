@@ -3,6 +3,7 @@ package com.lan.app.notification;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import io.quarkus.scheduler.Scheduled;
 import io.quarkus.scheduler.Scheduled.ConcurrentExecution;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -15,6 +16,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.List;
+import java.util.Map;
 
 @ApplicationScoped
 public class EventNotificationScheduler {
@@ -61,7 +63,8 @@ public class EventNotificationScheduler {
         for (var recipient : notification.recipients()) {
             if (recipient.chatId() == null) continue;
             try {
-                telegramClient.sendHtml(recipient.chatId(), notification.message(), null);
+                var keyboard = attendanceKeyboard(notification.id(), recipient.guestRowId());
+                telegramClient.sendHtml(recipient.chatId(), notification.message(), keyboard);
                 results.add(new NotificationResultDto(recipient.guestRowId(), "SENT", null));
             } catch (Exception e) {
                 String reason = e.getMessage();
@@ -71,6 +74,16 @@ public class EventNotificationScheduler {
             }
         }
         return results;
+    }
+
+    private Object attendanceKeyboard(int notificationId, int guestRowId) {
+        String suffix = notificationId + "_" + guestRowId;
+        return KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(
+                Map.of("text", "✅ Всё в силе, буду!", "callback_data", "evt_att_yes_" + suffix),
+                Map.of("text", "❌ Планы изменились, не смогу", "callback_data", "evt_att_no_" + suffix)
+            )
+        ));
     }
 
     private List<EventNotificationDueDto> fetchDue() throws Exception {
