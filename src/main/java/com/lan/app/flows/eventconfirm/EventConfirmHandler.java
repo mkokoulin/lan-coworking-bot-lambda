@@ -1,5 +1,7 @@
 package com.lan.app.flows.eventconfirm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
@@ -26,6 +28,7 @@ public class EventConfirmHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @ConfigProperty(name = "app.site-url", defaultValue = "")
     String siteUrl;
@@ -56,11 +59,13 @@ public class EventConfirmHandler implements StepHandler {
 
         String lang = session.getLang();
 
-        if (regId != null) {
-            notifyBackend(regId, session.getChatId());
-        }
+        String eventName = regId != null ? notifyBackend(regId, session.getChatId()) : null;
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_message"), null);
+        String confirmMessage = (eventName != null && !eventName.isBlank())
+                ? i18n.t(lang, "event_confirm_message_named").formatted(escapeHtml(eventName))
+                : i18n.t(lang, "event_confirm_message");
+
+        telegramClient.sendHtml(session.getChatId(), confirmMessage, null);
 
         var kbBuilder = new java.util.ArrayList<List<java.util.Map<String, String>>>();
         kbBuilder.add(KeyboardBuilder.row(
@@ -80,32 +85,35 @@ public class EventConfirmHandler implements StepHandler {
         return StepResult.finish();
     }
 
-    private void notifyBackend(String regId, Long chatId) {
+    /** Confirms the registration with the backend and returns the event name, if available. */
+    private String notifyBackend(String regId, Long chatId) {
         String url = resolveBackendUrl(regId);
-        if (url == null) return;
+        if (url == null) return null;
         if (chatId != null) {
             url = url + "?chatId=" + chatId;
         }
         try {
-            final String finalUrl = url;
             HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(finalUrl))
+                    .uri(URI.create(url))
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .build();
-            httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                    .thenAccept(res -> {
-                        if (res.statusCode() != 200) {
-                            log.warnf("Backend confirm returned %d for reg %s: %s",
-                                    res.statusCode(), regId, res.body());
-                        }
-                    })
-                    .exceptionally(ex -> {
-                        log.warnf("Failed to notify backend for reg %s: %s", regId, ex.getMessage());
-                        return null;
-                    });
+            HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                log.warnf("Backend confirm returned %d for reg %s: %s", res.statusCode(), regId, res.body());
+                return null;
+            }
+            JsonNode node = mapper.readTree(res.body());
+            JsonNode eventName = node.get("event_name");
+            return eventName != null && !eventName.isNull() ? eventName.asText() : null;
         } catch (Exception e) {
-            log.warnf("Failed to build backend confirm request for reg %s: %s", regId, e.getMessage());
+            log.warnf("Failed to notify backend for reg %s: %s", regId, e.getMessage());
+            return null;
         }
+    }
+
+    private static String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private String resolveBackendUrl(String regId) {
