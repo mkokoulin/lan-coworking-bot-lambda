@@ -105,14 +105,15 @@ public class EventNotificationScheduler {
             var req = HttpRequest.newBuilder()
                 .uri(URI.create(backendUrl + "/events/v1/bot/event-notifications/" + id + "/results"))
                 .header("Content-Type", "application/json")
+                .timeout(java.time.Duration.ofSeconds(5))
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
-            http.sendAsync(req, HttpResponse.BodyHandlers.discarding())
-                .thenAccept(resp -> {
-                    if (resp.statusCode() != 200) {
-                        log.warnf("saveResults id=%d returned HTTP %d", id, resp.statusCode());
-                    }
-                });
+            // Sent synchronously — this runs inside a @Scheduled tick that may freeze
+            // (Lambda) right after returning, which silently drops fire-and-forget requests.
+            var resp = http.send(req, HttpResponse.BodyHandlers.discarding());
+            if (resp.statusCode() != 200) {
+                log.warnf("saveResults id=%d returned HTTP %d", id, resp.statusCode());
+            }
         } catch (Exception e) {
             log.warnf("Failed to save results for notification id=%d: %s", id, e.getMessage());
         }

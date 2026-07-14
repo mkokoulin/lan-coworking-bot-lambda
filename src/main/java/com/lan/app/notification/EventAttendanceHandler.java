@@ -77,22 +77,20 @@ public class EventAttendanceHandler implements StepHandler {
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(backendUrl + "/events/v1/bot/event-notifications/" + notificationId + "/action"))
                 .header("Content-Type", "application/json")
+                .timeout(java.time.Duration.ofSeconds(5))
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
-            httpClient.sendAsync(req, HttpResponse.BodyHandlers.ofString())
-                .thenAccept(res -> {
-                    if (res.statusCode() != 200) {
-                        log.warnf("recordAction notificationId=%d guestRowId=%d returned HTTP %d",
-                            notificationId, guestRowId, res.statusCode());
-                    }
-                })
-                .exceptionally(ex -> {
-                    log.warnf("Failed to record attendance action notificationId=%d guestRowId=%d: %s",
-                        notificationId, guestRowId, ex.getMessage());
-                    return null;
-                });
+            // Sent synchronously and joined before handle() returns — this runs inside a
+            // @Scheduled poll tick that may freeze (Lambda) right after returning, which
+            // silently drops any still-in-flight fire-and-forget request.
+            HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                log.warnf("recordAction notificationId=%d guestRowId=%d returned HTTP %d",
+                    notificationId, guestRowId, res.statusCode());
+            }
         } catch (Exception e) {
-            log.warnf("Failed to build attendance action request: %s", e.getMessage());
+            log.warnf("Failed to record attendance action notificationId=%d guestRowId=%d: %s",
+                notificationId, guestRowId, e.getMessage());
         }
     }
 }
