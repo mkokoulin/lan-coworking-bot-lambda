@@ -45,14 +45,16 @@ public class EventAttendanceHandler implements StepHandler {
 
         boolean confirmed = cb.startsWith(PREFIX_YES);
         String payload = confirmed ? cb.substring(PREFIX_YES.length()) : cb.substring(PREFIX_NO.length());
-        String[] parts = payload.split("_", 2);
-        if (parts.length != 2) return StepResult.finish();
+        String[] parts = payload.split("_", 3);
+        if (parts.length != 3) return StepResult.finish();
 
         int notificationId;
         int guestRowId;
+        int registrationRowId;
         try {
             notificationId = Integer.parseInt(parts[0]);
             guestRowId = Integer.parseInt(parts[1]);
+            registrationRowId = Integer.parseInt(parts[2]);
         } catch (NumberFormatException e) {
             return StepResult.finish();
         }
@@ -60,7 +62,7 @@ public class EventAttendanceHandler implements StepHandler {
         telegramClient.answerCallbackQuery(ctx.callbackQueryId());
         telegramClient.editMessageRemoveKeyboard(ctx.chatId(), ctx.messageId());
 
-        recordAction(notificationId, guestRowId, confirmed ? "CONFIRMED" : "DECLINED");
+        recordAction(notificationId, guestRowId, registrationRowId, confirmed ? "CONFIRMED" : "DECLINED");
 
         String reply = confirmed
             ? "Отлично, ждём вас! ✅"
@@ -70,10 +72,12 @@ public class EventAttendanceHandler implements StepHandler {
         return StepResult.finish();
     }
 
-    private void recordAction(int notificationId, int guestRowId, String action) {
+    private void recordAction(int notificationId, int guestRowId, int registrationRowId, String action) {
         if (backendUrl.isBlank()) return;
         try {
-            String body = "{\"guestRowId\":" + guestRowId + ",\"action\":\"" + action + "\"}";
+            String body = "{\"guestRowId\":" + guestRowId
+                + ",\"registrationRowId\":" + registrationRowId
+                + ",\"action\":\"" + action + "\"}";
             HttpRequest req = HttpRequest.newBuilder()
                 .uri(URI.create(backendUrl + "/events/v1/bot/event-notifications/" + notificationId + "/action"))
                 .header("Content-Type", "application/json")

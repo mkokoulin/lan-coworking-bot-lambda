@@ -63,21 +63,21 @@ public class EventNotificationScheduler {
         for (var recipient : notification.recipients()) {
             if (recipient.chatId() == null) continue;
             try {
-                var keyboard = attendanceKeyboard(notification.id(), recipient.guestRowId());
+                var keyboard = attendanceKeyboard(notification.id(), recipient.guestRowId(), recipient.registrationRowId());
                 telegramClient.sendHtml(recipient.chatId(), notification.message(), keyboard);
-                results.add(new NotificationResultDto(recipient.guestRowId(), "SENT", null));
+                results.add(new NotificationResultDto(recipient.guestRowId(), recipient.registrationRowId(), "SENT", null));
             } catch (Exception e) {
                 String reason = e.getMessage();
                 log.warnf("Failed to send notification id=%d to guestRowId=%d chatId=%d: %s",
                     notification.id(), recipient.guestRowId(), recipient.chatId(), reason);
-                results.add(new NotificationResultDto(recipient.guestRowId(), "FAILED", reason));
+                results.add(new NotificationResultDto(recipient.guestRowId(), recipient.registrationRowId(), "FAILED", reason));
             }
         }
         return results;
     }
 
-    private Object attendanceKeyboard(int notificationId, int guestRowId) {
-        String suffix = notificationId + "_" + guestRowId;
+    private Object attendanceKeyboard(int notificationId, int guestRowId, int registrationRowId) {
+        String suffix = notificationId + "_" + guestRowId + "_" + registrationRowId;
         return KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
                 Map.of("text", "✅ Всё в силе, буду!", "callback_data", "evt_att_yes_" + suffix),

@@ -6,5 +6,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record NotificationRecipientDto(
     @JsonProperty("chatId") Long chatId,
-    @JsonProperty("guestRowId") int guestRowId
+    @JsonProperty("guestRowId") int guestRowId,
+    @JsonProperty("registrationRowId") int registrationRowId
 ) {}
