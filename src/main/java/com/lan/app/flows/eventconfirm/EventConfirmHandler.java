@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -76,6 +77,12 @@ public class EventConfirmHandler implements StepHandler {
             String url = siteUrl + "/registration/" + regId;
             kbBuilder.add(KeyboardBuilder.row(
                 KeyboardBuilder.urlBtn(i18n.t(lang, "event_confirm_btn_site"), url)
+            ));
+        }
+
+        if (regId != null) {
+            kbBuilder.add(KeyboardBuilder.row(
+                KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_PREFIX + regId)
             ));
         }
 

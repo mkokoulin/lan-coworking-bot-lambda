@@ -7,6 +7,7 @@ import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.cwbooking.CwBookingFlowDef;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
+import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
@@ -125,6 +126,9 @@ public class CommandRouter {
             } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVF_PREFIX)) {
                 session.setFlow(EventsListFlowDef.FLOW);
                 session.setStep(EventsListFlowDef.STEP_FESTIVAL);
+            } else if (cb != null && cb.startsWith(EventChangeFlowDef.CB_PREFIX)) {
+                session.setFlow(EventChangeFlowDef.FLOW);
+                session.setStep(EventChangeFlowDef.STEP_WAIT_MESSAGE);
             }
         }
 

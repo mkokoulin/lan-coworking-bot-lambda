@@ -9,6 +9,7 @@ import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
 import com.lan.app.flows.cwlink.CwLinkFlowRegistrar;
 import com.lan.app.flows.wifi.WifiFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
+import com.lan.app.flows.eventchange.EventChangeFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
 import com.lan.app.flows.eventpayment.EventPaymentFlowRegistrar;
 import com.lan.app.flows.eventslist.EventsListFlowRegistrar;
@@ -39,6 +40,7 @@ public class FlowBootstrap {
     private final DonationFlowRegistrar donationFlowRegistrar;
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
+    private final EventChangeFlowRegistrar eventChangeFlowRegistrar;
     private final MyEventsFlowRegistrar myEventsFlowRegistrar;
     private final EventsListFlowRegistrar eventsListFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
@@ -62,6 +64,7 @@ public class FlowBootstrap {
         DonationFlowRegistrar donationFlowRegistrar,
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
+        EventChangeFlowRegistrar eventChangeFlowRegistrar,
         MyEventsFlowRegistrar myEventsFlowRegistrar,
         EventsListFlowRegistrar eventsListFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar,
@@ -83,6 +86,7 @@ public class FlowBootstrap {
         this.donationFlowRegistrar = donationFlowRegistrar;
         this.registrationFlowRegistrar = registrationFlowRegistrar;
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
+        this.eventChangeFlowRegistrar = eventChangeFlowRegistrar;
         this.myEventsFlowRegistrar = myEventsFlowRegistrar;
         this.eventsListFlowRegistrar = eventsListFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
@@ -106,6 +110,7 @@ public class FlowBootstrap {
         donationFlowRegistrar.register();
         registrationFlowRegistrar.register();
         eventConfirmFlowRegistrar.register();
+        eventChangeFlowRegistrar.register();
         // myevents must be registered BEFORE eventslist so that eventslist can override "events" command
         myEventsFlowRegistrar.register();
         eventsListFlowRegistrar.register();
