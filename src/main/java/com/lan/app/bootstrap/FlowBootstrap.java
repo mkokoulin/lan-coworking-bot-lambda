@@ -4,6 +4,7 @@ import com.lan.app.flows.about.AboutFlowRegistrar;
 import com.lan.app.flows.coworking.CoworkingFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
+import com.lan.app.flows.eventnotify.EventNotifyFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
@@ -29,6 +30,7 @@ public class FlowBootstrap {
     private final DonationFlowRegistrar donationFlowRegistrar;
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
+    private final EventNotifyFlowRegistrar eventNotifyFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
 
     @Inject
@@ -42,6 +44,7 @@ public class FlowBootstrap {
         DonationFlowRegistrar donationFlowRegistrar,
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
+        EventNotifyFlowRegistrar eventNotifyFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
@@ -53,6 +56,7 @@ public class FlowBootstrap {
         this.donationFlowRegistrar = donationFlowRegistrar;
         this.registrationFlowRegistrar = registrationFlowRegistrar;
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
+        this.eventNotifyFlowRegistrar = eventNotifyFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
     }
 
@@ -66,6 +70,7 @@ public class FlowBootstrap {
         donationFlowRegistrar.register();
         registrationFlowRegistrar.register();
         eventConfirmFlowRegistrar.register();
+        eventNotifyFlowRegistrar.register();
         helpFlowRegistrar.register();
     }
 }

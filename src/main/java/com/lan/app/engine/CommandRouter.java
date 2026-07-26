@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
+import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.session.Session;
 
@@ -37,6 +38,9 @@ public class CommandRouter {
             if ("start".equals(command) && args != null && args.startsWith("reg_")) {
                 session.setFlow(EventConfirmFlowDef.FLOW);
                 session.setStep(EventConfirmFlowDef.STEP_CONFIRM);
+            } else if (command.startsWith(EventNotifyFlowDef.PREFIX_YES) || command.startsWith(EventNotifyFlowDef.PREFIX_NO)) {
+                session.setFlow(EventNotifyFlowDef.FLOW);
+                session.setStep(EventNotifyFlowDef.STEP_ACTION);
             } else {
                 FlowEntry entry = registry.getCommand(command).orElse(null);
                 if (entry != null) {
