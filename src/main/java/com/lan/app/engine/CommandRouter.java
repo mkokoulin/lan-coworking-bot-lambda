@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
+import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.session.Session;
 
@@ -41,6 +42,14 @@ public class CommandRouter {
             } else if (command.startsWith(EventNotifyFlowDef.PREFIX_YES) || command.startsWith(EventNotifyFlowDef.PREFIX_NO)) {
                 session.setFlow(EventNotifyFlowDef.FLOW);
                 session.setStep(EventNotifyFlowDef.STEP_ACTION);
+            } else if (command.startsWith(MyEventsFlowDef.CB_CANCEL_PFX)
+                    || command.startsWith(MyEventsFlowDef.CB_CANCEL_YES_PFX)
+                    || command.startsWith(MyEventsFlowDef.CB_CANCEL_NO_PFX)) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_CANCEL_ACTION);
+            } else if (command.startsWith(MyEventsFlowDef.CB_GUESTS_PFX)) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_GUESTS_PROMPT);
             } else {
                 FlowEntry entry = registry.getCommand(command).orElse(null);
                 if (entry != null) {

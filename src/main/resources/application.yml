@@ -41,6 +41,8 @@ telegram:
 app:
   site-url: ${SITE_URL:}
   backend-url: ${BACKEND_URL:}
+  baserow-url: ${BASEROW_URL:http://localhost:8080}
+  baserow-token: ${BASEROW_TOKEN:}
 
 "%dev":
   quarkus:

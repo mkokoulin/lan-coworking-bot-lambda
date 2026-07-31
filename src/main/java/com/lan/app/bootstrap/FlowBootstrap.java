@@ -9,6 +9,8 @@ import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
 import com.lan.app.flows.meetingroom.MeetingFlowRegistrar;
+import com.lan.app.flows.myevents.MyEventsFlowRegistrar;
+import com.lan.app.flows.news.NewsFlowRegistrar;
 import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
 import io.quarkus.runtime.Startup;
@@ -32,6 +34,8 @@ public class FlowBootstrap {
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
     private final EventNotifyFlowRegistrar eventNotifyFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
+    private final NewsFlowRegistrar newsFlowRegistrar;
+    private final MyEventsFlowRegistrar myEventsFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -45,7 +49,9 @@ public class FlowBootstrap {
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
         EventNotifyFlowRegistrar eventNotifyFlowRegistrar,
-        HelpFlowRegistrar helpFlowRegistrar
+        HelpFlowRegistrar helpFlowRegistrar,
+        NewsFlowRegistrar newsFlowRegistrar,
+        MyEventsFlowRegistrar myEventsFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -58,6 +64,8 @@ public class FlowBootstrap {
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
         this.eventNotifyFlowRegistrar = eventNotifyFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
+        this.newsFlowRegistrar = newsFlowRegistrar;
+        this.myEventsFlowRegistrar = myEventsFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -72,5 +80,7 @@ public class FlowBootstrap {
         eventConfirmFlowRegistrar.register();
         eventNotifyFlowRegistrar.register();
         helpFlowRegistrar.register();
+        newsFlowRegistrar.register();
+        myEventsFlowRegistrar.register();
     }
 }
