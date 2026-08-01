@@ -11,6 +11,7 @@ import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
+import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.notification.EventAttendanceHandler;
@@ -129,6 +130,14 @@ public class CommandRouter {
             } else if (cb != null && cb.startsWith(EventChangeFlowDef.CB_PREFIX)) {
                 session.setFlow(EventChangeFlowDef.FLOW);
                 session.setStep(EventChangeFlowDef.STEP_WAIT_MESSAGE);
+            } else if (cb != null && (cb.startsWith(MyEventsFlowDef.CB_CANCEL_PFX)
+                    || cb.startsWith(MyEventsFlowDef.CB_CANCEL_YES_PFX)
+                    || cb.startsWith(MyEventsFlowDef.CB_CANCEL_NO_PFX))) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_CANCEL_CONFIRM);
+            } else if (cb != null && cb.startsWith(MyEventsFlowDef.CB_GUEST_COUNT_PFX)) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_GUEST_COUNT_WAIT);
             }
         }
 

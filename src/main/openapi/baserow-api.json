@@ -5,11 +5,89 @@
       "BotRegistrationDto": {
         "type": "object",
         "properties": {
+          "registration_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the registration, used to cancel it or change its guest count"
+          },
           "event_name": {
             "type": "string"
           },
           "date_start": {
             "$ref": "#/components/schemas/Instant"
+          },
+          "guest_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_cancelled": {
+            "type": "boolean"
+          }
+        }
+      },
+      "BotRegistrationActionResponse": {
+        "type": "object",
+        "description": "Result of a bot-initiated cancel or guest-count-change action on a registration, carrying everything needed to build both the user-facing confirmation and the admin notification.",
+        "properties": {
+          "event_name": {
+            "type": "string"
+          },
+          "date_start": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "previous_guest_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guest_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "guest_first_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "guest_last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "guest_phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "guest_telegram": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        }
+      },
+      "GuestCountUpdateRequest": {
+        "type": "object",
+        "required": [
+          "guest_count"
+        ],
+        "properties": {
+          "guest_count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "examples": [
+              3
+            ],
+            "description": "New total number of people attending under this registration"
           }
         }
       },
@@ -2113,6 +2191,102 @@
           },
           "400": {
             "description": "chatId query parameter is missing or invalid"
+          }
+        }
+      }
+    },
+    "/events/v1/bot/registrations/{regId}/cancel": {
+      "post": {
+        "summary": "Cancel an event registration",
+        "description": "Soft-cancels a registration (sets is_cancelled) so the guest's seat is freed up. Rejects with 409 if the registration is already cancelled or the event has already started.",
+        "operationId": "botCancelRegistration",
+        "tags": [
+          "Bot"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the registration",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "regId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotRegistrationActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "regId is not a valid UUID"
+          },
+          "404": {
+            "description": "Registration not found"
+          },
+          "409": {
+            "description": "Registration already cancelled, or the event has already started"
+          }
+        }
+      }
+    },
+    "/events/v1/bot/registrations/{regId}/guest-count": {
+      "patch": {
+        "summary": "Change the number of guests on an event registration",
+        "description": "Rejects with 409 if the registration is cancelled, the event has already started, or the requested guest count exceeds the event's remaining capacity.",
+        "operationId": "botUpdateRegistrationGuestCount",
+        "tags": [
+          "Bot"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the registration",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "regId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestCountUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Guest count updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotRegistrationActionResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "regId is not a valid UUID, or guest_count is missing/invalid"
+          },
+          "404": {
+            "description": "Registration not found"
+          },
+          "409": {
+            "description": "Registration cancelled, event already started, or not enough remaining capacity"
           }
         }
       }

@@ -27,6 +27,9 @@ import static org.mockito.Mockito.when;
 @QuarkusTest
 class MyEventsHandlerTest {
 
+    private static final OffsetDateTime FUTURE = OffsetDateTime.now().plusDays(30);
+    private static final OffsetDateTime PAST = OffsetDateTime.now().minusDays(30);
+
     @Inject
     MyEventsHandler handler;
 
@@ -53,10 +56,14 @@ class MyEventsHandlerTest {
         return new UpdateContext(100L, "private", 200L, null, "/myevents", null, null, false, "bob", null, null, null);
     }
 
-    private static BotRegistrationDto registration(String name, OffsetDateTime dateStart) {
+    private static BotRegistrationDto registration(String regId, String name, OffsetDateTime dateStart,
+                                                     Integer guestCount, Boolean isCancelled) {
         BotRegistrationDto dto = new BotRegistrationDto();
+        dto.setRegistrationId(regId);
         dto.setEventName(name);
         dto.setDateStart(dateStart);
+        dto.setGuestCount(guestCount);
+        dto.setIsCancelled(isCancelled);
         return dto;
     }
 
@@ -83,10 +90,10 @@ class MyEventsHandlerTest {
     }
 
     @Test
-    void registrations_areListedNumberedWithNameAndDate() {
+    void upcomingRegistration_isListedNumberedWithNameAndDate() {
         Session s = session();
-        OffsetDateTime date = OffsetDateTime.parse("2026-08-01T18:00:00Z");
-        when(botApi.botMyRegistrations(100L)).thenReturn(List.of(registration("Party Night", date)));
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "Party Night", FUTURE, 2, false)));
 
         StepResult result = handler.handle(ctx(), s);
 
@@ -97,9 +104,10 @@ class MyEventsHandlerTest {
     }
 
     @Test
-    void registrationWithoutDateStart_omitsDateLine() {
+    void registrationWithoutDateStart_treatedAsUpcoming_omitsDateLine() {
         Session s = session();
-        when(botApi.botMyRegistrations(100L)).thenReturn(List.of(registration("No Date Event", null)));
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "No Date Event", null, null, false)));
 
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
         handler.handle(ctx(), s);
@@ -110,11 +118,11 @@ class MyEventsHandlerTest {
     }
 
     @Test
-    void multipleRegistrations_areNumberedSequentially() {
+    void multipleUpcomingRegistrations_areNumberedSequentially() {
         Session s = session();
         when(botApi.botMyRegistrations(100L)).thenReturn(List.of(
-                registration("First", null),
-                registration("Second", null)
+                registration("r1", "First", FUTURE, 1, false),
+                registration("r2", "Second", FUTURE.plusDays(1), 1, false)
         ));
 
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
@@ -128,12 +136,70 @@ class MyEventsHandlerTest {
     @Test
     void eventNameWithHtml_isEscaped() {
         Session s = session();
-        when(botApi.botMyRegistrations(100L)).thenReturn(List.of(registration("<b>Injected</b>", null)));
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "<b>Injected</b>", FUTURE, 1, false)));
 
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
         handler.handle(ctx(), s);
 
         verify(telegramClient).sendHtml(eq(100L), captor.capture(), any());
         assertThat(captor.getValue()).contains("&lt;b&gt;Injected&lt;/b&gt;");
+    }
+
+    @Test
+    void pastRegistration_goesToHistoryWithoutNumbering() {
+        Session s = session();
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "Old Meetup", PAST, 1, false)));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(String.class);
+        handler.handle(ctx(), s);
+
+        verify(telegramClient).sendHtml(eq(100L), captor.capture(), any());
+        assertThat(captor.getValue()).doesNotContain("1. <b>Old Meetup</b>");
+        assertThat(captor.getValue()).contains("Old Meetup");
+    }
+
+    @Test
+    void cancelledRegistration_goesToHistoryEvenIfUpcoming() {
+        Session s = session();
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "Cancelled Party", FUTURE, 1, true)));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(String.class);
+        handler.handle(ctx(), s);
+
+        verify(telegramClient).sendHtml(eq(100L), captor.capture(), any());
+        assertThat(captor.getValue()).doesNotContain("1. <b>Cancelled Party</b>");
+        assertThat(captor.getValue()).contains("Cancelled Party");
+    }
+
+    @Test
+    void upcomingRegistration_getsCancelAndGuestCountButtons() {
+        Session s = session();
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "Party Night", FUTURE, 2, false)));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
+        handler.handle(ctx(), s);
+
+        verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
+        String kb = captor.getValue().toString();
+        assertThat(kb).contains(MyEventsFlowDef.CB_CANCEL_PFX + "r1");
+        assertThat(kb).contains(MyEventsFlowDef.CB_GUEST_COUNT_PFX + "r1");
+    }
+
+    @Test
+    void pastRegistration_hasNoActionButtons() {
+        Session s = session();
+        when(botApi.botMyRegistrations(100L)).thenReturn(
+                List.of(registration("r1", "Old Meetup", PAST, 1, false)));
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
+        handler.handle(ctx(), s);
+
+        verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
+        String kb = captor.getValue().toString();
+        assertThat(kb).doesNotContain(MyEventsFlowDef.CB_CANCEL_PFX + "r1");
     }
 }
