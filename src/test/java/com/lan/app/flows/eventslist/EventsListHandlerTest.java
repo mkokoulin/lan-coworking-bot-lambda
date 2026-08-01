@@ -17,6 +17,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -67,10 +68,26 @@ class EventsListHandlerTest {
         return (List<?>) ((Map<String, Object>) replyMarkup).get("inline_keyboard");
     }
 
+    @SuppressWarnings("unchecked")
+    private static List<String> buttonTexts(Object replyMarkup) {
+        List<String> texts = new java.util.ArrayList<>();
+        for (Object row : keyboardRows(replyMarkup)) {
+            for (Object button : (List<?>) row) {
+                texts.add((String) ((Map<String, String>) button).get("text"));
+            }
+        }
+        return texts;
+    }
+
     private static EventResponse event(String name) {
+        return event(name, null);
+    }
+
+    private static EventResponse event(String name, OffsetDateTime dateStart) {
         EventResponse e = new EventResponse();
         e.setId(UUID.randomUUID());
         e.setName(name);
+        e.setDateStart(dateStart);
         return e;
     }
 
@@ -168,6 +185,57 @@ class EventsListHandlerTest {
         verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
         // 1 pinned festival row + nav row
         assertThat(keyboardRows(captor.getValue())).hasSize(2);
+    }
+
+    @Test
+    void pastEvent_isExcludedFromList() {
+        Session s = session();
+        EventResponse past = event("Past Event", OffsetDateTime.now().minusDays(1));
+        EventResponse future = event("Future Event", OffsetDateTime.now().plusDays(1));
+        when(eventApi.eventsV1Get()).thenReturn(List.of(past, future));
+
+        handler.handle(ctx(), s);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
+        verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
+        var texts = buttonTexts(captor.getValue());
+        assertThat(texts.stream().anyMatch(t -> t.contains("Future Event"))).isTrue();
+        assertThat(texts.stream().anyMatch(t -> t.contains("Past Event"))).isFalse();
+    }
+
+    @Test
+    void onlyPastEvents_sendsEmptyMessage() {
+        Session s = session();
+        when(eventApi.eventsV1Get()).thenReturn(List.of(event("Past Event", OffsetDateTime.now().minusDays(1))));
+
+        StepResult result = handler.handle(ctx(), s);
+
+        assertThat(result).isEqualTo(StepResult.finish());
+        verify(i18n).t(eq("ru"), eq("events_list_empty"));
+    }
+
+    @Test
+    void events_areSortedByDateAscending() {
+        Session s = session();
+        EventResponse later = event("Later", OffsetDateTime.now().plusDays(5));
+        EventResponse sooner = event("Sooner", OffsetDateTime.now().plusDays(1));
+        when(eventApi.eventsV1Get()).thenReturn(List.of(later, sooner));
+
+        handler.handle(ctx(), s);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
+        verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
+        var texts = buttonTexts(captor.getValue());
+        int sonerIdx = indexContaining(texts, "Sooner");
+        int laterIdx = indexContaining(texts, "Later");
+        assertThat(sonerIdx).isLessThan(laterIdx);
+    }
+
+    private static int indexContaining(List<String> texts, String needle) {
+        for (int i = 0; i < texts.size(); i++) {
+            if (texts.get(i).contains(needle)) return i;
+        }
+        return -1;
     }
 
     @Test

@@ -16,8 +16,10 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -77,9 +79,15 @@ public class EventsListHandler implements StepHandler {
             .flatMap(f -> f.getEventsIds().stream())
             .collect(Collectors.toSet());
 
-        // Standalone events only — festival sub-events are shown inside their festival pages
+        // Standalone events only — festival sub-events are shown inside their festival pages.
+        // Events that have already started are hidden — registering for something that already
+        // happened makes no sense, and the backend list endpoint doesn't filter by date itself.
+        OffsetDateTime now = OffsetDateTime.now();
         List<EventResponse> standAloneEvents = safeEvents.stream()
             .filter(e -> e.getId() == null || !festivalEventIds.contains(e.getId()))
+            .filter(e -> e.getDateStart() == null || e.getDateStart().isAfter(now))
+            .sorted(Comparator.comparing(EventResponse::getDateStart,
+                Comparator.nullsLast(Comparator.naturalOrder())))
             .toList();
 
         if (standAloneEvents.isEmpty() && safeFestivals.isEmpty()) {
