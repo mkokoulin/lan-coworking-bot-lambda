@@ -3,6 +3,7 @@ package com.lan.app.engine;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
+import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.session.Session;
 import org.junit.jupiter.api.Test;
@@ -70,6 +71,35 @@ class CommandRouterTest {
 
         assertEquals(EventConfirmFlowDef.FLOW, session.getFlow());
         assertEquals(EventConfirmFlowDef.STEP_CONFIRM, session.getStep());
+    }
+
+    @Test
+    void cancelFamilyCallbacksRouteToMyEventsCancelStep() {
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_CANCEL_ACTION,
+                (ctx, session) -> StepResult.finish());
+
+        for (String data : new String[] {
+                MyEventsFlowDef.CB_CANCEL_PFX + "reg-1",
+                MyEventsFlowDef.CB_CANCEL_YES_PFX + "reg-1",
+                MyEventsFlowDef.CB_CANCEL_NO_PFX + "reg-1"
+        }) {
+            Session session = Session.newDefault(111L, 111L);
+            router.route(callback(data), session);
+            assertEquals(MyEventsFlowDef.FLOW, session.getFlow());
+            assertEquals(MyEventsFlowDef.STEP_CANCEL_ACTION, session.getStep());
+        }
+    }
+
+    @Test
+    void guestsCallbackRoutesToMyEventsGuestsPromptStep() {
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_PROMPT,
+                (ctx, session) -> StepResult.finish());
+
+        Session session = Session.newDefault(111L, 111L);
+        router.route(callback(MyEventsFlowDef.CB_GUESTS_PFX + "reg-1"), session);
+
+        assertEquals(MyEventsFlowDef.FLOW, session.getFlow());
+        assertEquals(MyEventsFlowDef.STEP_GUESTS_PROMPT, session.getStep());
     }
 
     @Test

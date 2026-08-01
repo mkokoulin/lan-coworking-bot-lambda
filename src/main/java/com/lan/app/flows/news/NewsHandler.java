@@ -52,7 +52,7 @@ public class NewsHandler implements StepHandler {
 
         var kb = KeyboardBuilder.inline(List.of(
             KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "news_btn_home"), "/start")
+                KeyboardBuilder.cbCmd(i18n.t(lang, "news_btn_home"), "start")
             )
         ));
 
