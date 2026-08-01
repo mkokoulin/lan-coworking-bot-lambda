@@ -127,6 +127,9 @@ public class CommandRouter {
             } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVF_PREFIX)) {
                 session.setFlow(EventsListFlowDef.FLOW);
                 session.setStep(EventsListFlowDef.STEP_FESTIVAL);
+            } else if (cb != null && cb.startsWith(EventChangeFlowDef.CB_MENU_PREFIX)) {
+                session.setFlow(EventChangeFlowDef.FLOW);
+                session.setStep(EventChangeFlowDef.STEP_MENU);
             } else if (cb != null && cb.startsWith(EventChangeFlowDef.CB_PREFIX)) {
                 session.setFlow(EventChangeFlowDef.FLOW);
                 session.setStep(EventChangeFlowDef.STEP_WAIT_MESSAGE);

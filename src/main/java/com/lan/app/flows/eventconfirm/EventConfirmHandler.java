@@ -82,7 +82,7 @@ public class EventConfirmHandler implements StepHandler {
 
         if (regId != null) {
             kbBuilder.add(KeyboardBuilder.row(
-                KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_PREFIX + regId)
+                KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_MENU_PREFIX + regId)
             ));
         }
 
