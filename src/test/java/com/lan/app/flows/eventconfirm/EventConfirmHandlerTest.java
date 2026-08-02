@@ -25,6 +25,8 @@ import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -149,6 +151,31 @@ class EventConfirmHandlerTest {
 
         assertThat(result).isEqualTo(StepResult.finish());
         verify(i18n).t(eq("en"), eq("event_confirm_message"));
+    }
+
+    @Test
+    void keyboardSendFails_fallsBackToSafeButtonsOnly() {
+        Session s = session();
+        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/abc123/confirm"))
+                .willReturn(aResponse().withStatus(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"event_name\":\"Party Night\"}")));
+        // 1st call: plain confirm text (no keyboard) — succeeds.
+        // 2nd call: full keyboard (start + site + change) — Telegram rejects it (e.g. bad site URL).
+        // 3rd call: fallback keyboard (start + change only) — succeeds.
+        doNothing()
+                .doThrow(new RuntimeException("Telegram rejected the keyboard"))
+                .doNothing()
+                .when(telegramClient).sendHtml(eq(100L), any(), any());
+
+        StepResult result = handler.handle(textCtx("/start reg_abc123_en"), s);
+
+        assertThat(result).isEqualTo(StepResult.finish());
+        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
+        verify(telegramClient, times(3)).sendHtml(eq(100L), any(), captor.capture());
+        Object fallbackMarkup = captor.getAllValues().get(2);
+        // start button + change button only — no site button in the fallback
+        assertThat(keyboardRows(fallbackMarkup)).hasSize(2);
     }
 
     @Test

@@ -74,7 +74,7 @@ public class EventConfirmHandler implements StepHandler {
         ));
 
         if (regId != null && siteUrl.startsWith("https://")) {
-            String url = siteUrl + "/registration/" + regId;
+            String url = normalizeUrl(siteUrl) + "/registration/" + regId;
             kbBuilder.add(KeyboardBuilder.row(
                 KeyboardBuilder.urlBtn(i18n.t(lang, "event_confirm_btn_site"), url)
             ));
@@ -86,10 +86,49 @@ public class EventConfirmHandler implements StepHandler {
             ));
         }
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
-                KeyboardBuilder.inline(kbBuilder));
+        sendNextMessage(session, lang, kbBuilder, regId);
 
         return StepResult.finish();
+    }
+
+    /**
+     * Telegram rejects a sendMessage call outright if any single inline button in its
+     * reply_markup is invalid (e.g. a malformed site URL from misconfiguration) — so one bad
+     * button was silently taking down the whole keyboard, including the always-safe "main menu"
+     * and "change of plans" buttons. Fall back to just those safe, config-independent buttons
+     * rather than losing navigation entirely.
+     */
+    private void sendNextMessage(Session session, String lang, List<List<java.util.Map<String, String>>> kbBuilder, String regId) {
+        try {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
+                    KeyboardBuilder.inline(kbBuilder));
+        } catch (Exception e) {
+            log.warnf("Failed to send confirm keyboard, retrying with safe buttons only: %s", e.getMessage());
+            var safeRows = new java.util.ArrayList<List<java.util.Map<String, String>>>();
+            safeRows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "event_confirm_btn_start"), "start")
+            ));
+            if (regId != null) {
+                safeRows.add(KeyboardBuilder.row(
+                    KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_MENU_PREFIX + regId)
+                ));
+            }
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
+                    KeyboardBuilder.inline(safeRows));
+        }
+    }
+
+    /**
+     * Collapses an accidentally doubled scheme (e.g. "https://https://example.com" from a
+     * misconfigured APP_SITE_URL) and strips a trailing slash, so concatenating "/registration/<id>"
+     * can never produce a malformed URL like "https://https://example.com//registration/<id>".
+     */
+    static String normalizeUrl(String raw) {
+        String url = raw.trim().replaceFirst("^(https?://)(https?://)+", "$1");
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        return url;
     }
 
     /** Confirms the registration with the backend and returns the event name, if available. */
@@ -128,7 +167,7 @@ public class EventConfirmHandler implements StepHandler {
             return backendUrl + "/events/v1/registrations/" + regId + "/confirm";
         }
         if (!siteUrl.isBlank()) {
-            return siteUrl + "/api/registration/" + regId + "/confirm";
+            return normalizeUrl(siteUrl) + "/api/registration/" + regId + "/confirm";
         }
         return null;
     }
