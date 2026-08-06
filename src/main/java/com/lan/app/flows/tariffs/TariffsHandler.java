@@ -1,0 +1,50 @@
+package com.lan.app.flows.tariffs;
+
+import com.lan.app.domain.UpdateContext;
+import com.lan.app.engine.StepHandler;
+import com.lan.app.engine.StepResult;
+import com.lan.app.flows.coworking.CoworkingPricingService;
+import com.lan.app.i18n.I18n;
+import com.lan.app.session.Session;
+import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
+import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
+
+import java.util.List;
+
+@ApplicationScoped
+public class TariffsHandler implements StepHandler {
+
+    private final TelegramClient telegramClient;
+    private final I18n i18n;
+    private final CoworkingPricingService pricingService;
+
+    @Inject
+    public TariffsHandler(
+        TelegramClient telegramClient,
+        I18n i18n,
+        CoworkingPricingService pricingService
+    ) {
+        this.telegramClient = telegramClient;
+        this.i18n = i18n;
+        this.pricingService = pricingService;
+    }
+
+    @Override
+    public StepResult handle(UpdateContext ctx, Session session) {
+        String lang = session.getLang();
+
+        String text = pricingService.formatPricesBlock(lang);
+
+        var kb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "tariffs_btn_back"), "coworking")
+                )
+        ));
+
+        telegramClient.sendHtml(session.getChatId(), text, kb);
+
+        return StepResult.stay(TariffsFlowDef.FLOW, TariffsFlowDef.STEP_LIST);
+    }
+}

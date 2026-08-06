@@ -3,49 +3,75 @@ package com.lan.app.flows.myevents;
 import com.lan.app.session.Session;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.Instant;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class MyEventsSessionTest {
 
-    private static Session newSession() {
-        return Session.newDefault(1L, 2L);
+    @Test
+    void pendingRegIdRoundTripsThroughSessionPayload() {
+        Session session = Session.newDefault(1L, 1L);
+        assertNull(MyEventsSession.getPendingRegId(session));
+
+        MyEventsSession.setPendingRegId(session, "abc-123");
+        assertEquals("abc-123", MyEventsSession.getPendingRegId(session));
+
+        MyEventsSession.clear(session);
+        assertNull(MyEventsSession.getPendingRegId(session));
     }
 
     @Test
-    void freshSession_hasNoPendingRegId() {
-        Session s = newSession();
+    void pendingRegIdSurvivesAlreadyPresentPayload() {
+        Session session = Session.newDefault(1L, 1L);
+        session.setPayloadJson("{}");
 
-        assertThat(MyEventsSession.getPendingRegId(s)).isNull();
-    }
-
-    @Test
-    void setPendingRegId_getPendingRegId_roundTrips() {
-        Session s = newSession();
-
-        MyEventsSession.setPendingRegId(s, "reg-42");
-
-        assertThat(MyEventsSession.getPendingRegId(s)).isEqualTo("reg-42");
-        assertThat(s.getPayloadJson()).contains("\"myevents.pending_reg_id\":\"reg-42\"");
-    }
-
-    @Test
-    void clear_removesPendingRegId() {
-        Session s = newSession();
-        MyEventsSession.setPendingRegId(s, "reg-42");
-
-        MyEventsSession.clear(s);
-
-        assertThat(MyEventsSession.getPendingRegId(s)).isNull();
+        MyEventsSession.setPendingRegId(session, "xyz");
+        assertEquals("xyz", MyEventsSession.getPendingRegId(session));
     }
 
     @Test
     void malformedPayloadJson_treatedAsEmptyMap_doesNotThrow() {
-        Session s = newSession();
-        s.setPayloadJson("not valid json");
+        Session session = Session.newDefault(1L, 1L);
+        session.setPayloadJson("not valid json");
 
-        assertThat(MyEventsSession.getPendingRegId(s)).isNull();
+        assertNull(MyEventsSession.getPendingRegId(session));
 
-        MyEventsSession.setPendingRegId(s, "reg-1");
-        assertThat(MyEventsSession.getPendingRegId(s)).isEqualTo("reg-1");
+        MyEventsSession.setPendingRegId(session, "reg-1");
+        assertEquals("reg-1", MyEventsSession.getPendingRegId(session));
+    }
+
+    @Test
+    void parseInstantReturnsNullForBlankOrInvalidInput() {
+        assertNull(MyEventsSession.parseInstant(null));
+        assertNull(MyEventsSession.parseInstant(""));
+        assertNull(MyEventsSession.parseInstant("not-a-date"));
+    }
+
+    @Test
+    void parseInstantParsesIso8601() {
+        assertEquals(Instant.parse("2026-01-15T10:00:00Z"),
+                MyEventsSession.parseInstant("2026-01-15T10:00:00Z"));
+    }
+
+    @Test
+    void formatDateReturnsDashForUnparsableInput() {
+        assertEquals("—", MyEventsSession.formatDate(null));
+        assertEquals("—", MyEventsSession.formatDate("garbage"));
+    }
+
+    @Test
+    void guestsLabelUsesRussianPluralRules() {
+        assertEquals("гость", MyEventsSession.guestsLabel(1));
+        assertEquals("гость", MyEventsSession.guestsLabel(21));
+        assertEquals("гостя", MyEventsSession.guestsLabel(2));
+        assertEquals("гостя", MyEventsSession.guestsLabel(4));
+        assertEquals("гостя", MyEventsSession.guestsLabel(22));
+        assertEquals("гостей", MyEventsSession.guestsLabel(0));
+        assertEquals("гостей", MyEventsSession.guestsLabel(5));
+        assertEquals("гостей", MyEventsSession.guestsLabel(11));
+        assertEquals("гостей", MyEventsSession.guestsLabel(12));
+        assertEquals("гостей", MyEventsSession.guestsLabel(14));
+        assertEquals("гостей", MyEventsSession.guestsLabel(111));
     }
 }

@@ -9,30 +9,33 @@ import jakarta.inject.Inject;
 public class MyEventsFlowRegistrar {
 
     private final FlowRegistry registry;
-    private final MyEventsHandler handler;
-    private final MyEventsCancelHandler cancelHandler;
-    private final MyEventsGuestCountHandler guestCountHandler;
+    private final MyEventsListHandler listHandler;
+    private final MyEventsCancelActionHandler cancelActionHandler;
+    private final MyEventsGuestsPromptHandler guestsPromptHandler;
+    private final MyEventsGuestsWaitHandler guestsWaitHandler;
 
     @Inject
     public MyEventsFlowRegistrar(
         FlowRegistry registry,
-        MyEventsHandler handler,
-        MyEventsCancelHandler cancelHandler,
-        MyEventsGuestCountHandler guestCountHandler
+        MyEventsListHandler listHandler,
+        MyEventsCancelActionHandler cancelActionHandler,
+        MyEventsGuestsPromptHandler guestsPromptHandler,
+        MyEventsGuestsWaitHandler guestsWaitHandler
     ) {
         this.registry = registry;
-        this.handler = handler;
-        this.cancelHandler = cancelHandler;
-        this.guestCountHandler = guestCountHandler;
+        this.listHandler = listHandler;
+        this.cancelActionHandler = cancelActionHandler;
+        this.guestsPromptHandler = guestsPromptHandler;
+        this.guestsWaitHandler = guestsWaitHandler;
     }
 
     public void register() {
-        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_SHOW, handler);
-        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_CANCEL_CONFIRM, cancelHandler);
-        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUEST_COUNT_WAIT, guestCountHandler);
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_LIST, listHandler);
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_CANCEL_ACTION, cancelActionHandler);
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_PROMPT, guestsPromptHandler);
+        registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_WAIT, guestsWaitHandler);
 
-        FlowEntry entry = new FlowEntry(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_SHOW);
-        registry.registerCommand("myevents", entry);
-        // "events" is now handled by EventsListFlowRegistrar (browse + register flow)
+        registry.registerCommand("myevents", new FlowEntry(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_LIST));
+        // "events" is handled by EventsListFlowRegistrar (browse + register flow)
     }
 }

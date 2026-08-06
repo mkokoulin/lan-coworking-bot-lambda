@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(git ls-tree *)",
+      "Bash(git rm *)",
+      "Bash(git add *)",
+      "Bash(grep *)",
+      "Bash(./gradlew compileJava compileTestJava -q)",
+      "Bash(./gradlew test *)",
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -A5 \"<failure\" {}')"
+    ]
+  }
+}

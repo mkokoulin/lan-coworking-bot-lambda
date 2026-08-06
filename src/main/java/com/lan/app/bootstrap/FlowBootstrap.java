@@ -11,6 +11,7 @@ import com.lan.app.flows.wifi.WifiFlowRegistrar;
 import com.lan.app.flows.donation.DonationFlowRegistrar;
 import com.lan.app.flows.eventchange.EventChangeFlowRegistrar;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
+import com.lan.app.flows.eventnotify.EventNotifyFlowRegistrar;
 import com.lan.app.flows.eventpayment.EventPaymentFlowRegistrar;
 import com.lan.app.flows.eventslist.EventsListFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
@@ -21,6 +22,7 @@ import com.lan.app.flows.printout.PrintFlowRegistrar;
 import com.lan.app.flows.myevents.MyEventsFlowRegistrar;
 import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
+import com.lan.app.flows.tariffs.TariffsFlowRegistrar;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -41,6 +43,7 @@ public class FlowBootstrap {
     private final RegistrationFlowRegistrar registrationFlowRegistrar;
     private final EventConfirmFlowRegistrar eventConfirmFlowRegistrar;
     private final EventChangeFlowRegistrar eventChangeFlowRegistrar;
+    private final EventNotifyFlowRegistrar eventNotifyFlowRegistrar;
     private final MyEventsFlowRegistrar myEventsFlowRegistrar;
     private final EventsListFlowRegistrar eventsListFlowRegistrar;
     private final HelpFlowRegistrar helpFlowRegistrar;
@@ -48,6 +51,7 @@ public class FlowBootstrap {
     private final WifiFlowRegistrar wifiFlowRegistrar;
     private final ReviewFlowRegistrar reviewFlowRegistrar;
     private final NewsFlowRegistrar newsFlowRegistrar;
+    private final TariffsFlowRegistrar tariffsFlowRegistrar;
     private final EventPaymentFlowRegistrar eventPaymentFlowRegistrar;
     private final CwBookingFlowRegistrar cwBookingFlowRegistrar;
     private final PrintFlowRegistrar printFlowRegistrar;
@@ -65,6 +69,7 @@ public class FlowBootstrap {
         RegistrationFlowRegistrar registrationFlowRegistrar,
         EventConfirmFlowRegistrar eventConfirmFlowRegistrar,
         EventChangeFlowRegistrar eventChangeFlowRegistrar,
+        EventNotifyFlowRegistrar eventNotifyFlowRegistrar,
         MyEventsFlowRegistrar myEventsFlowRegistrar,
         EventsListFlowRegistrar eventsListFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar,
@@ -72,6 +77,7 @@ public class FlowBootstrap {
         WifiFlowRegistrar wifiFlowRegistrar,
         ReviewFlowRegistrar reviewFlowRegistrar,
         NewsFlowRegistrar newsFlowRegistrar,
+        TariffsFlowRegistrar tariffsFlowRegistrar,
         EventPaymentFlowRegistrar eventPaymentFlowRegistrar,
         CwBookingFlowRegistrar cwBookingFlowRegistrar,
         PrintFlowRegistrar printFlowRegistrar,
@@ -87,6 +93,7 @@ public class FlowBootstrap {
         this.registrationFlowRegistrar = registrationFlowRegistrar;
         this.eventConfirmFlowRegistrar = eventConfirmFlowRegistrar;
         this.eventChangeFlowRegistrar = eventChangeFlowRegistrar;
+        this.eventNotifyFlowRegistrar = eventNotifyFlowRegistrar;
         this.myEventsFlowRegistrar = myEventsFlowRegistrar;
         this.eventsListFlowRegistrar = eventsListFlowRegistrar;
         this.helpFlowRegistrar = helpFlowRegistrar;
@@ -94,6 +101,7 @@ public class FlowBootstrap {
         this.wifiFlowRegistrar = wifiFlowRegistrar;
         this.reviewFlowRegistrar = reviewFlowRegistrar;
         this.newsFlowRegistrar = newsFlowRegistrar;
+        this.tariffsFlowRegistrar = tariffsFlowRegistrar;
         this.eventPaymentFlowRegistrar = eventPaymentFlowRegistrar;
         this.cwBookingFlowRegistrar = cwBookingFlowRegistrar;
         this.printFlowRegistrar = printFlowRegistrar;
@@ -111,6 +119,7 @@ public class FlowBootstrap {
         registrationFlowRegistrar.register();
         eventConfirmFlowRegistrar.register();
         eventChangeFlowRegistrar.register();
+        eventNotifyFlowRegistrar.register();
         // myevents must be registered BEFORE eventslist so that eventslist can override "events" command
         myEventsFlowRegistrar.register();
         eventsListFlowRegistrar.register();
@@ -119,6 +128,7 @@ public class FlowBootstrap {
         wifiFlowRegistrar.register();
         reviewFlowRegistrar.register();
         newsFlowRegistrar.register();
+        tariffsFlowRegistrar.register();
         eventPaymentFlowRegistrar.register();
         cwBookingFlowRegistrar.register();
         printFlowRegistrar.register();

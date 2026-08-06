@@ -9,6 +9,7 @@ import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
 import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
+import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
@@ -82,6 +83,17 @@ public class CommandRouter {
             } else if ("start".equals(command) && args != null && args.startsWith("cwlink_")) {
                 session.setFlow(CwLinkFlowDef.FLOW);
                 session.setStep(CwLinkFlowDef.STEP_LINK);
+            } else if (command.startsWith(EventNotifyFlowDef.PREFIX_YES) || command.startsWith(EventNotifyFlowDef.PREFIX_NO)) {
+                session.setFlow(EventNotifyFlowDef.FLOW);
+                session.setStep(EventNotifyFlowDef.STEP_ACTION);
+            } else if (command.startsWith(MyEventsFlowDef.CB_CANCEL_PFX)
+                    || command.startsWith(MyEventsFlowDef.CB_CANCEL_YES_PFX)
+                    || command.startsWith(MyEventsFlowDef.CB_CANCEL_NO_PFX)) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_CANCEL_ACTION);
+            } else if (command.startsWith(MyEventsFlowDef.CB_GUESTS_PFX)) {
+                session.setFlow(MyEventsFlowDef.FLOW);
+                session.setStep(MyEventsFlowDef.STEP_GUESTS_PROMPT);
             } else {
                 FlowEntry entry = registry.getCommand(command).orElse(null);
                 if (entry != null) {
@@ -133,14 +145,6 @@ public class CommandRouter {
             } else if (cb != null && cb.startsWith(EventChangeFlowDef.CB_PREFIX)) {
                 session.setFlow(EventChangeFlowDef.FLOW);
                 session.setStep(EventChangeFlowDef.STEP_WAIT_MESSAGE);
-            } else if (cb != null && (cb.startsWith(MyEventsFlowDef.CB_CANCEL_PFX)
-                    || cb.startsWith(MyEventsFlowDef.CB_CANCEL_YES_PFX)
-                    || cb.startsWith(MyEventsFlowDef.CB_CANCEL_NO_PFX))) {
-                session.setFlow(MyEventsFlowDef.FLOW);
-                session.setStep(MyEventsFlowDef.STEP_CANCEL_CONFIRM);
-            } else if (cb != null && cb.startsWith(MyEventsFlowDef.CB_GUEST_COUNT_PFX)) {
-                session.setFlow(MyEventsFlowDef.FLOW);
-                session.setStep(MyEventsFlowDef.STEP_GUEST_COUNT_WAIT);
             }
         }
 

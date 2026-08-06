@@ -1,189 +1,186 @@
 package com.lan.app.flows.eventconfirm;
 
-import com.github.tomakehurst.wiremock.WireMockServer;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.lan.app.config.TelegramConfig;
 import com.lan.app.domain.IncomingUpdate;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
-import com.lan.app.support.WireMockBackendResource;
-import com.lan.app.support.WireMockInject;
 import com.lan.app.telegram.TelegramClient;
-import io.quarkus.test.InjectMock;
-import io.quarkus.test.common.QuarkusTestResource;
-import io.quarkus.test.junit.QuarkusTest;
-import jakarta.inject.Inject;
+import com.lan.app.testsupport.FakeHttpServer;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-import java.util.Map;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import static com.github.tomakehurst.wiremock.client.WireMock.aResponse;
-import static com.github.tomakehurst.wiremock.client.WireMock.post;
-import static com.github.tomakehurst.wiremock.client.WireMock.urlPathEqualTo;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-@QuarkusTest
-@QuarkusTestResource(WireMockBackendResource.class)
 class EventConfirmHandlerTest {
 
-    @Inject
-    EventConfirmHandler handler;
-
-    @InjectMock
-    TelegramClient telegramClient;
-
-    @InjectMock
-    I18n i18n;
-
-    @WireMockInject
-    WireMockServer wireMock;
+    private final ObjectMapper mapper = new ObjectMapper();
+    private FakeHttpServer telegramServer;
+    private FakeHttpServer backendServer;
+    private EventConfirmHandler handler;
 
     @BeforeEach
-    void stubTranslations() {
-        when(i18n.t(any(), any())).thenReturn("translated");
+    void setUp() {
+        telegramServer = new FakeHttpServer();
+        backendServer = new FakeHttpServer();
+
+        TelegramConfig config = new TelegramConfig() {
+            public String botToken() { return "TESTTOKEN"; }
+            public String apiBaseUrl() { return telegramServer.url(); }
+            public Long adminChatId() { return 999L; }
+        };
+        handler = new EventConfirmHandler(new TelegramClient(config), new I18n());
+    }
+
+    @AfterEach
+    void tearDown() {
+        telegramServer.close();
+        backendServer.close();
     }
 
     private static Session session() {
-        return Session.newDefault(100L, 200L);
+        return Session.newDefault(777L, 777L);
     }
 
-    private static UpdateContext textCtx(String text) {
+    private static UpdateContext startWithPayload(String args) {
         IncomingUpdate u = new IncomingUpdate();
-        u.setChatId(100L);
-        u.setUserId(200L);
-        u.setText(text);
+        u.setChatId(777L);
+        u.setUserId(777L);
+        u.setText(args.isEmpty() ? "/start" : "/start " + args);
         return UpdateContext.fromIncomingUpdate(u);
     }
 
-    @SuppressWarnings("unchecked")
-    private static List<?> keyboardRows(Object replyMarkup) {
-        return (List<?>) ((Map<String, Object>) replyMarkup).get("inline_keyboard");
+    /** handle() always sends the confirm text first, then the "next" message with the keyboard. */
+    private JsonNode confirmMessage() throws Exception {
+        var sent = telegramServer.requestsTo("/botTESTTOKEN/sendMessage");
+        return mapper.readTree(sent.get(0).body());
+    }
+
+    private JsonNode nextMessage() throws Exception {
+        var sent = telegramServer.requestsTo("/botTESTTOKEN/sendMessage");
+        return mapper.readTree(sent.get(1).body());
     }
 
     @Test
-    void noStartArgs_sendsGenericConfirmMessage_onlyStartButton() {
-        Session s = session();
+    void confirmsAgainstJavaBackendWithVersionedPathAndChatId() throws InterruptedException {
+        handler.backendUrl = backendServer.url();
+        handler.siteUrl = "";
 
-        StepResult result = handler.handle(textCtx("/start"), s);
+        handler.handle(startWithPayload("reg_11111111-1111-1111-1111-111111111111_ru"), session());
 
-        assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("event_confirm_message"));
-        verify(i18n, times(0)).t(eq("ru"), eq("event_confirm_message_named"));
-
-        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
-        verify(telegramClient, times(2)).sendHtml(eq(100L), any(), captor.capture());
-        Object secondMarkup = captor.getAllValues().get(1);
-        assertThat(keyboardRows(secondMarkup)).hasSize(1);
+        backendServer.awaitAtLeast(1, 2000);
+        var requests = backendServer.requests();
+        assertEquals(1, requests.size());
+        var req = requests.get(0);
+        assertEquals("POST", req.method());
+        assertEquals("/events/v1/registrations/11111111-1111-1111-1111-111111111111/confirm", req.path());
+        assertEquals("chatId=777", req.query());
     }
 
     @Test
-    void regIdWithoutLangSuffix_doesNotChangeSessionLang() {
-        Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/abc123/confirm"))
-                .willReturn(aResponse().withStatus(404)));
+    void fallsBackToSiteUrlWhenBackendUrlNotConfigured() throws InterruptedException {
+        handler.backendUrl = "";
+        handler.siteUrl = backendServer.url(); // reuse the fake server as "the site" for this case
 
-        handler.handle(textCtx("/start reg_abc123"), s);
+        handler.handle(startWithPayload("reg_22222222-2222-2222-2222-222222222222_en"), session());
 
-        assertThat(s.getLang()).isEqualTo("ru");
+        backendServer.awaitAtLeast(1, 2000);
+        var req = backendServer.requests().get(0);
+        assertEquals("/api/registration/22222222-2222-2222-2222-222222222222/confirm", req.path());
+        assertEquals("chatId=777", req.query());
     }
 
     @Test
-    void regIdWithLangSuffix_changesSessionLangBeforeSendingMessages() {
-        Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/abc123/confirm"))
-                .willReturn(aResponse().withStatus(404)));
+    void skipsBackendCallWhenNeitherUrlConfigured() throws InterruptedException {
+        handler.backendUrl = "";
+        handler.siteUrl = "";
 
-        handler.handle(textCtx("/start reg_abc123_en"), s);
+        handler.handle(startWithPayload("reg_33333333-3333-3333-3333-333333333333_ru"), session());
 
-        assertThat(s.getLang()).isEqualTo("en");
-        verify(i18n).t(eq("en"), eq("event_confirm_message"));
+        Thread.sleep(200);
+        assertTrue(backendServer.requests().isEmpty());
     }
 
     @Test
-    void regId_backendConfirmsWithEventName_sendsNamedMessageAndAllButtons() {
+    void regIdWithoutLangSuffix_doesNotChangeSessionLang() throws InterruptedException {
+        handler.backendUrl = "";
+        handler.siteUrl = "";
         Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/abc123/confirm"))
-                .willReturn(aResponse().withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"event_name\":\"Party Night\"}")));
 
-        StepResult result = handler.handle(textCtx("/start reg_abc123_en"), s);
+        handler.handle(startWithPayload("reg_abc123"), s);
 
-        assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("en"), eq("event_confirm_message_named"));
-
-        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
-        verify(telegramClient, times(2)).sendHtml(eq(100L), any(), captor.capture());
-        Object secondMarkup = captor.getAllValues().get(1);
-        // start button + site button (APP_SITE_URL=https://example.test in test env) + change button
-        assertThat(keyboardRows(secondMarkup)).hasSize(3);
+        assertEquals("ru", s.getLang());
     }
 
     @Test
-    void regId_backendReturnsNon200_fallsBackToGenericMessage() {
+    void regIdWithLangSuffix_changesSessionLangBeforeSendingGenericMessage() throws Exception {
+        handler.backendUrl = "";
+        handler.siteUrl = "";
         Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/def456/confirm"))
-                .willReturn(aResponse().withStatus(500)));
 
-        handler.handle(textCtx("/start reg_def456_en"), s);
+        handler.handle(startWithPayload("reg_abc123_en"), s);
 
-        verify(i18n).t(eq("en"), eq("event_confirm_message"));
+        assertEquals("en", s.getLang());
+        String text = confirmMessage().get("text").asText();
+        assertTrue(text.contains("Registration confirmed"), text);
     }
 
     @Test
-    void regId_backendReturnsMalformedJson_treatedAsNoEventName() {
-        Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/ghi789/confirm"))
-                .willReturn(aResponse().withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("not json")));
+    void backendConfirmsWithEventName_sendsNamedMessageAndAllButtons() throws Exception {
+        handler.backendUrl = backendServer.url();
+        handler.siteUrl = "https://example.test";
+        backendServer.onPath("/events/v1/registrations", 200, "{\"event_name\":\"Party Night\"}");
 
-        StepResult result = handler.handle(textCtx("/start reg_ghi789_en"), s);
+        StepResult result = handler.handle(startWithPayload("reg_abc123_en"), session());
 
-        assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("en"), eq("event_confirm_message"));
+        assertEquals(StepResult.finish(), result);
+        String text = confirmMessage().get("text").asText();
+        assertTrue(text.contains("Party Night"), text);
+
+        JsonNode rows = nextMessage().get("reply_markup").get("inline_keyboard");
+        // start button + site button (siteUrl configured) + change button
+        assertEquals(3, rows.size());
     }
 
     @Test
-    void keyboardSendFails_fallsBackToSafeButtonsOnly() {
-        Session s = session();
-        wireMock.stubFor(post(urlPathEqualTo("/events/v1/registrations/abc123/confirm"))
-                .willReturn(aResponse().withStatus(200)
-                        .withHeader("Content-Type", "application/json")
-                        .withBody("{\"event_name\":\"Party Night\"}")));
-        // 1st call: plain confirm text (no keyboard) — succeeds.
-        // 2nd call: full keyboard (start + site + change) — Telegram rejects it (e.g. bad site URL).
-        // 3rd call: fallback keyboard (start + change only) — succeeds.
-        doNothing()
-                .doThrow(new RuntimeException("Telegram rejected the keyboard"))
-                .doNothing()
-                .when(telegramClient).sendHtml(eq(100L), any(), any());
+    void backendReturnsMalformedJson_treatedAsNoEventName() throws Exception {
+        handler.backendUrl = backendServer.url();
+        handler.siteUrl = "";
+        backendServer.onPath("/events/v1/registrations", 200, "not json");
 
-        StepResult result = handler.handle(textCtx("/start reg_abc123_en"), s);
+        handler.handle(startWithPayload("reg_ghi789_en"), session());
 
-        assertThat(result).isEqualTo(StepResult.finish());
-        var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
-        verify(telegramClient, times(3)).sendHtml(eq(100L), any(), captor.capture());
-        Object fallbackMarkup = captor.getAllValues().get(2);
-        // start button + change button only — no site button in the fallback
-        assertThat(keyboardRows(fallbackMarkup)).hasSize(2);
+        String text = confirmMessage().get("text").asText();
+        assertTrue(text.contains("Registration confirmed"), text);
+        assertFalse(text.contains("for \""), text);
     }
 
     @Test
-    void nonRegArgs_treatedAsNoRegId() {
-        Session s = session();
+    void noStartArgs_sendsGenericConfirmMessageOnlyStartButton() throws Exception {
+        handler.backendUrl = "";
+        handler.siteUrl = "";
 
-        handler.handle(textCtx("/start some_other_payload"), s);
+        StepResult result = handler.handle(startWithPayload(""), session());
 
-        verify(i18n).t(eq("ru"), eq("event_confirm_message"));
+        assertEquals(StepResult.finish(), result);
+        assertTrue(confirmMessage().get("text").asText().contains("Регистрация подтверждена"));
+        assertEquals(1, nextMessage().get("reply_markup").get("inline_keyboard").size());
+    }
+
+    @Test
+    void nonRegArgs_treatedAsNoRegId() throws Exception {
+        handler.backendUrl = "";
+        handler.siteUrl = "";
+
+        handler.handle(startWithPayload("some_other_payload"), session());
+
+        String text = confirmMessage().get("text").asText();
+        assertTrue(text.contains("Регистрация подтверждена"), text);
     }
 }

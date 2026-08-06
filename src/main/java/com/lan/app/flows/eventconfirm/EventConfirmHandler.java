@@ -133,11 +133,8 @@ public class EventConfirmHandler implements StepHandler {
 
     /** Confirms the registration with the backend and returns the event name, if available. */
     private String notifyBackend(String regId, Long chatId) {
-        String url = resolveBackendUrl(regId);
+        String url = resolveBackendUrl(regId, chatId);
         if (url == null) return null;
-        if (chatId != null) {
-            url = url + "?chatId=" + chatId;
-        }
         try {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
@@ -162,12 +159,15 @@ public class EventConfirmHandler implements StepHandler {
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
-    private String resolveBackendUrl(String regId) {
+    private String resolveBackendUrl(String regId, Long chatId) {
+        // chatId is how the backend links this Telegram user to the guest record for
+        // future reminder delivery (see EventRegistrationResource#confirm) — must be forwarded.
+        String chatIdParam = chatId != null ? "?chatId=" + chatId : "";
         if (!backendUrl.isBlank()) {
-            return backendUrl + "/events/v1/registrations/" + regId + "/confirm";
+            return backendUrl + "/events/v1/registrations/" + regId + "/confirm" + chatIdParam;
         }
         if (!siteUrl.isBlank()) {
-            return normalizeUrl(siteUrl) + "/api/registration/" + regId + "/confirm";
+            return normalizeUrl(siteUrl) + "/api/registration/" + regId + "/confirm" + chatIdParam;
         }
         return null;
     }

@@ -8,8 +8,14 @@ import jakarta.inject.Inject;
 @ApplicationScoped
 public class NewsFlowRegistrar {
 
-    @Inject FlowRegistry registry;
-    @Inject NewsHandler newsHandler;
+    private final FlowRegistry registry;
+    private final NewsHandler newsHandler;
+
+    @Inject
+    public NewsFlowRegistrar(FlowRegistry registry, NewsHandler newsHandler) {
+        this.registry = registry;
+        this.newsHandler = newsHandler;
+    }
 
     public void register() {
         registry.registerStep(NewsFlowDef.FLOW, NewsFlowDef.STEP_LIST, newsHandler);

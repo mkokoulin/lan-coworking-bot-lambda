@@ -8,8 +8,10 @@ import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
 import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
+import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
+import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.i18n.I18n;
@@ -144,6 +146,59 @@ class CommandRouterTest {
 
         assertThat(s.getFlow()).isEqualTo(CwLinkFlowDef.FLOW);
         assertThat(s.getStep()).isEqualTo(CwLinkFlowDef.STEP_LINK);
+    }
+
+    @Test
+    void callback_yesPrefix_routesToEventNotifyAction() {
+        Session s = session();
+        RegistrationSession.markRegistered(s);
+        when(registry.getStep(EventNotifyFlowDef.FLOW, EventNotifyFlowDef.STEP_ACTION)).thenReturn(Optional.of(stubHandler));
+
+        router.route(callbackCtx("/" + EventNotifyFlowDef.PREFIX_YES + "10_20_30"), s);
+
+        assertThat(s.getFlow()).isEqualTo(EventNotifyFlowDef.FLOW);
+        assertThat(s.getStep()).isEqualTo(EventNotifyFlowDef.STEP_ACTION);
+    }
+
+    @Test
+    void callback_noPrefix_routesToEventNotifyAction() {
+        Session s = session();
+        RegistrationSession.markRegistered(s);
+        when(registry.getStep(EventNotifyFlowDef.FLOW, EventNotifyFlowDef.STEP_ACTION)).thenReturn(Optional.of(stubHandler));
+
+        router.route(callbackCtx("/" + EventNotifyFlowDef.PREFIX_NO + "10_20_30"), s);
+
+        assertThat(s.getFlow()).isEqualTo(EventNotifyFlowDef.FLOW);
+        assertThat(s.getStep()).isEqualTo(EventNotifyFlowDef.STEP_ACTION);
+    }
+
+    @Test
+    void callback_cancelFamilyPrefixes_routeToMyEventsCancelAction() {
+        when(registry.getStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_CANCEL_ACTION)).thenReturn(Optional.of(stubHandler));
+
+        for (String prefix : new String[] {
+                MyEventsFlowDef.CB_CANCEL_PFX,
+                MyEventsFlowDef.CB_CANCEL_YES_PFX,
+                MyEventsFlowDef.CB_CANCEL_NO_PFX
+        }) {
+            Session session = session();
+            RegistrationSession.markRegistered(session);
+            router.route(callbackCtx("/" + prefix + "reg-1"), session);
+            assertThat(session.getFlow()).isEqualTo(MyEventsFlowDef.FLOW);
+            assertThat(session.getStep()).isEqualTo(MyEventsFlowDef.STEP_CANCEL_ACTION);
+        }
+    }
+
+    @Test
+    void callback_guestsPrefix_routesToMyEventsGuestsPrompt() {
+        Session s = session();
+        RegistrationSession.markRegistered(s);
+        when(registry.getStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_PROMPT)).thenReturn(Optional.of(stubHandler));
+
+        router.route(callbackCtx("/" + MyEventsFlowDef.CB_GUESTS_PFX + "reg-1"), s);
+
+        assertThat(s.getFlow()).isEqualTo(MyEventsFlowDef.FLOW);
+        assertThat(s.getStep()).isEqualTo(MyEventsFlowDef.STEP_GUESTS_PROMPT);
     }
 
     @Test

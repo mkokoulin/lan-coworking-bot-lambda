@@ -135,8 +135,19 @@ public class TelegramClient {
                 return;
             }
             byte[] fileBytes = java.nio.file.Files.readAllBytes(path);
-            String fileName  = path.getFileName().toString();
-            String boundary  = "----FormBoundary" + System.currentTimeMillis();
+            sendPhotoMultipart(chatId, fileBytes, path.getFileName().toString(), "image/jpeg", caption);
+        } catch (Exception e) {
+            System.err.println("[TelegramClient] sendPhoto error: " + e.getMessage());
+        }
+    }
+
+    public void sendPhoto(Long chatId, byte[] fileBytes, String fileName, String caption) {
+        sendPhotoMultipart(chatId, fileBytes, fileName, "image/png", caption);
+    }
+
+    private void sendPhotoMultipart(Long chatId, byte[] fileBytes, String fileName, String contentType, String caption) {
+        try {
+            String boundary = "----FormBoundary" + System.currentTimeMillis();
 
             var baos = new java.io.ByteArrayOutputStream();
             writeFormField(baos, boundary, "chat_id", String.valueOf(chatId));
@@ -147,7 +158,7 @@ public class TelegramClient {
             // file part
             baos.write(("--" + boundary + "\r\n").getBytes());
             baos.write(("Content-Disposition: form-data; name=\"photo\"; filename=\"" + fileName + "\"\r\n").getBytes());
-            baos.write("Content-Type: image/jpeg\r\n\r\n".getBytes());
+            baos.write((("Content-Type: " + contentType + "\r\n\r\n")).getBytes());
             baos.write(fileBytes);
             baos.write(("\r\n--" + boundary + "--\r\n").getBytes());
 

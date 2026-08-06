@@ -32,6 +32,9 @@ dependencies {
 
 implementation("org.slf4j:slf4j-api:1.7.25")
 
+    implementation("com.google.zxing:core:3.5.3")
+    implementation("com.google.zxing:javase:3.5.3")
+
 
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.quarkus:quarkus-junit5-mockito")
@@ -73,8 +76,10 @@ tasks.withType<Test> {
             "APP_SITE_URL" to "https://example.test",
             "APP_BACKEND_URL" to "http://localhost:0",
             "API_TOKEN" to "test-api-token",
+            "WIFI_GUEST_SSID" to "LAN Guest",
             "WIFI_GUEST_PASSWORD" to "guest-pass",
-            "WIFI_RESIDENT_PASSWORD" to "resident-pass",
+            "WIFI_PRIVATE_SSID" to "LAN Residents",
+            "WIFI_PRIVATE_PASSWORD" to "resident-pass",
             "PAYMENT_CARD_NUMBER" to "0000 0000 0000 0000"
         )
     )

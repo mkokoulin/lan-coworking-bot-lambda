@@ -1,20 +1,15 @@
 package com.lan.app.flows.coworking;
 
-import com.lan.app.client.baserow.model.CoworkingTariffResponse;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
-import com.lan.app.service.TariffService;
-import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.session.Session;
 import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -36,7 +31,7 @@ class CoworkingHomeHandlerTest {
     I18n i18n;
 
     @InjectMock
-    TariffService tariffService;
+    CoworkingPricingService pricingService;
 
     @BeforeEach
     void stubTranslations() {
@@ -53,7 +48,7 @@ class CoworkingHomeHandlerTest {
 
     @Test
     void noTariffs_fallsBackToStaticPricesText() {
-        when(tariffService.listAllTariffs()).thenReturn(Collections.emptyList());
+        when(pricingService.formatPricesBlock(anyString())).thenReturn("translated");
         Session s = session();
 
         StepResult result = handler.handle(ctx(), s);
@@ -64,10 +59,8 @@ class CoworkingHomeHandlerTest {
 
     @Test
     void withTariffs_buildsFormattedPriceListInText() {
-        CoworkingTariffResponse tariff = new CoworkingTariffResponse();
-        tariff.setName("Full Day");
-        tariff.setPrice(12345);
-        when(tariffService.listAllTariffs()).thenReturn(List.of(tariff));
+        when(pricingService.formatPricesBlock(anyString()))
+                .thenReturn("💳 Coworking prices:\n• Full Day — 12 345֏");
         Session s = session();
 
         handler.handle(ctx(), s);
@@ -76,6 +69,6 @@ class CoworkingHomeHandlerTest {
         verify(telegramClient).sendHtml(eq(100L), captor.capture(), any());
         assertThat(captor.getValue())
                 .contains("Full Day")
-                .contains("12 345");
+                .contains("12 345");
     }
 }

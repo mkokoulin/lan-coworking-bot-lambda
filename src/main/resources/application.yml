@@ -65,9 +65,12 @@ telegram:
 app:
   site-url: ${APP_SITE_URL:}
   backend-url: ${APP_BACKEND_URL:}
-  wifi:
-    guest-password: ${WIFI_GUEST_PASSWORD:—}
-    resident-password: ${WIFI_RESIDENT_PASSWORD:}
+  baserow-url: ${APP_BACKEND_URL:http://localhost:8080}
+  baserow-token: ${API_TOKEN:}
+  wifi-guest-ssid: ${WIFI_GUEST_SSID:}
+  wifi-guest-password: ${WIFI_GUEST_PASSWORD:}
+  wifi-private-ssid: ${WIFI_PRIVATE_SSID:}
+  wifi-private-password: ${WIFI_PRIVATE_PASSWORD:}
 
 notify:
   secret: ${NOTIFY_SECRET:}
