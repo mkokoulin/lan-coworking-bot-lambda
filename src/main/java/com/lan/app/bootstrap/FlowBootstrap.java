@@ -13,6 +13,8 @@ import com.lan.app.flows.myevents.MyEventsFlowRegistrar;
 import com.lan.app.flows.news.NewsFlowRegistrar;
 import com.lan.app.flows.registration.RegistrationFlowRegistrar;
 import com.lan.app.flows.start.StartFlowRegistrar;
+import com.lan.app.flows.tariffs.TariffsFlowRegistrar;
+import com.lan.app.flows.wifi.WifiFlowRegistrar;
 import io.quarkus.runtime.Startup;
 import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -36,6 +38,8 @@ public class FlowBootstrap {
     private final HelpFlowRegistrar helpFlowRegistrar;
     private final NewsFlowRegistrar newsFlowRegistrar;
     private final MyEventsFlowRegistrar myEventsFlowRegistrar;
+    private final TariffsFlowRegistrar tariffsFlowRegistrar;
+    private final WifiFlowRegistrar wifiFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -51,7 +55,9 @@ public class FlowBootstrap {
         EventNotifyFlowRegistrar eventNotifyFlowRegistrar,
         HelpFlowRegistrar helpFlowRegistrar,
         NewsFlowRegistrar newsFlowRegistrar,
-        MyEventsFlowRegistrar myEventsFlowRegistrar
+        MyEventsFlowRegistrar myEventsFlowRegistrar,
+        TariffsFlowRegistrar tariffsFlowRegistrar,
+        WifiFlowRegistrar wifiFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -66,6 +72,8 @@ public class FlowBootstrap {
         this.helpFlowRegistrar = helpFlowRegistrar;
         this.newsFlowRegistrar = newsFlowRegistrar;
         this.myEventsFlowRegistrar = myEventsFlowRegistrar;
+        this.tariffsFlowRegistrar = tariffsFlowRegistrar;
+        this.wifiFlowRegistrar = wifiFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -82,5 +90,7 @@ public class FlowBootstrap {
         helpFlowRegistrar.register();
         newsFlowRegistrar.register();
         myEventsFlowRegistrar.register();
+        tariffsFlowRegistrar.register();
+        wifiFlowRegistrar.register();
     }
 }

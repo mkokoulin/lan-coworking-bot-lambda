@@ -43,6 +43,10 @@ app:
   backend-url: ${BACKEND_URL:}
   baserow-url: ${BASEROW_URL:http://localhost:8080}
   baserow-token: ${BASEROW_TOKEN:}
+  wifi-guest-ssid: ${WIFI_GUEST_SSID:}
+  wifi-guest-password: ${WIFI_GUEST_PASSWORD:}
+  wifi-private-ssid: ${WIFI_PRIVATE_SSID:}
+  wifi-private-password: ${WIFI_PRIVATE_PASSWORD:}
 
 "%dev":
   quarkus:
