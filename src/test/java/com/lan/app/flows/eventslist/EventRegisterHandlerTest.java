@@ -2,9 +2,11 @@ package com.lan.app.flows.eventslist;
 
 import com.lan.app.client.baserow.api.EventGuestsApi;
 import com.lan.app.client.baserow.api.EventRegistrationsApi;
+import com.lan.app.client.baserow.api.EventResourceApi;
 import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.EventGuestResponse;
 import com.lan.app.client.baserow.model.EventRegistrationCreateRequest;
+import com.lan.app.client.baserow.model.EventResponse;
 import com.lan.app.domain.IncomingUpdate;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepResult;
@@ -52,6 +54,10 @@ class EventRegisterHandlerTest {
     @InjectMock
     @RestClient
     EventGuestsApi eventGuestsApi;
+
+    @InjectMock
+    @RestClient
+    EventResourceApi eventApi;
 
     @InjectMock
     GuestService guestService;
@@ -141,6 +147,33 @@ class EventRegisterHandlerTest {
         assertThat(captor.getValue().getGuestCount()).isEqualTo(1);
         assertThat(captor.getValue().getSource()).isEqualTo("telegram-bot");
         verify(i18n).t(eq("ru"), eq("events_register_success"));
+    }
+
+    @Test
+    void success_notifiesAdminWithEventName() {
+        Session s = session();
+        UUID eventId = UUID.randomUUID();
+        String eventGuestId = UUID.randomUUID().toString();
+        stubEventGuestSuccess(eventGuestId);
+
+        EventResponse event = mock(EventResponse.class);
+        when(event.getName()).thenReturn("Ламповый вечер настолок");
+        when(eventApi.eventsV1ExternalIdGet(eventId)).thenReturn(event);
+
+        CoworkingGuestResponse guest = mock(CoworkingGuestResponse.class);
+        when(guest.getFirstName()).thenReturn("Ann");
+        when(guest.getLastName()).thenReturn("Smith");
+        when(guest.getPhone()).thenReturn("+37491123456");
+        when(guestService.findByChatId(100L)).thenReturn(Optional.of(guest));
+
+        handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
+
+        // telegram.admin-chat-id resolves to 999999 in the test environment (see build.gradle.kts /
+        // TG_ADMIN_CHAT_ID), so the admin notification is asserted against that fixed chat id.
+        var captor = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        assertThat(captor.getValue()).contains("Ламповый вечер настолок");
+        assertThat(captor.getValue()).contains("Ann Smith");
     }
 
     @Test

@@ -9,7 +9,12 @@
       "Bash(grep *)",
       "Bash(./gradlew compileJava compileTestJava -q)",
       "Bash(./gradlew test *)",
-      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -A5 \"<failure\" {}')"
+      "Bash(xargs -I{} sh -c 'echo \"=== {} ===\"; grep -A5 \"<failure\" {}')",
+      "Bash(echo \"exit: $?\")",
+      "Bash(awk -F'\"' '{s+=$2} END{print \"total failures:\", s}')",
+      "Bash(git rev-parse *)",
+      "Bash(git commit *)",
+      "Bash(git push *)"
     ]
   }
 }
