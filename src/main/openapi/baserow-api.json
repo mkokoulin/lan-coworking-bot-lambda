@@ -833,6 +833,13 @@
             ],
             "description": "Total number of people attending under this registration, including the guest themselves",
             "minimum": 1
+          },
+          "isFirstRegistration": {
+            "type": "boolean",
+            "examples": [
+              false
+            ],
+            "description": "Whether this is the guest's first-ever registration for any event"
           }
         }
       },

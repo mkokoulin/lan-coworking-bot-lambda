@@ -6,6 +6,7 @@ import com.lan.app.client.baserow.api.EventResourceApi;
 import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.EventGuestResponse;
 import com.lan.app.client.baserow.model.EventRegistrationCreateRequest;
+import com.lan.app.client.baserow.model.EventRegistrationResponse;
 import com.lan.app.client.baserow.model.EventResponse;
 import com.lan.app.domain.IncomingUpdate;
 import com.lan.app.domain.UpdateContext;
@@ -174,6 +175,42 @@ class EventRegisterHandlerTest {
         verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
         assertThat(captor.getValue()).contains("Ламповый вечер настолок");
         assertThat(captor.getValue()).contains("Ann Smith");
+    }
+
+    @Test
+    void success_firstRegistration_notifiesAdminWithFirstTimeNote() {
+        Session s = session();
+        UUID eventId = UUID.randomUUID();
+        String eventGuestId = UUID.randomUUID().toString();
+        stubEventGuestSuccess(eventGuestId);
+
+        EventRegistrationResponse regResponse = mock(EventRegistrationResponse.class);
+        when(regResponse.getIsFirstRegistration()).thenReturn(true);
+        when(registrationsApi.createEventRegistration(any())).thenReturn(regResponse);
+
+        handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        assertThat(captor.getValue()).contains("Первый раз");
+    }
+
+    @Test
+    void success_repeatRegistration_doesNotNotifyFirstTimeNote() {
+        Session s = session();
+        UUID eventId = UUID.randomUUID();
+        String eventGuestId = UUID.randomUUID().toString();
+        stubEventGuestSuccess(eventGuestId);
+
+        EventRegistrationResponse regResponse = mock(EventRegistrationResponse.class);
+        when(regResponse.getIsFirstRegistration()).thenReturn(false);
+        when(registrationsApi.createEventRegistration(any())).thenReturn(regResponse);
+
+        handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
+
+        var captor = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        assertThat(captor.getValue()).doesNotContain("Первый раз");
     }
 
     @Test

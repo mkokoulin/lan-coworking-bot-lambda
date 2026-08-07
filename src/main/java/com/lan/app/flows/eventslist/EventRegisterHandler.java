@@ -120,12 +120,13 @@ public class EventRegisterHandler implements StepHandler {
             request.setGuestCount(1);
             request.setSource("telegram-bot");
 
-            registrationsApi.createEventRegistration(request);
+            var response = registrationsApi.createEventRegistration(request);
+            boolean isFirstRegistration = response != null && Boolean.TRUE.equals(response.getIsFirstRegistration());
 
             telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "events_register_success"), homeButton(lang));
 
-            notifyAdmin(eventId, cwGuest, session.getChatId());
+            notifyAdmin(eventId, cwGuest, session.getChatId(), isFirstRegistration);
 
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
@@ -211,7 +212,7 @@ public class EventRegisterHandler implements StepHandler {
      * Mirrors the admin notification sent for website registrations (see lan-site's
      * /api/register), which was previously missing entirely for bot-initiated registrations.
      */
-    private void notifyAdmin(UUID eventId, Optional<CoworkingGuestResponse> cwGuest, Long chatId) {
+    private void notifyAdmin(UUID eventId, Optional<CoworkingGuestResponse> cwGuest, Long chatId, boolean isFirstRegistration) {
         try {
             EventResponse event = eventApi.eventsV1ExternalIdGet(eventId);
             String eventName = (event != null && event.getName() != null) ? event.getName() : "—";
@@ -248,6 +249,9 @@ public class EventRegisterHandler implements StepHandler {
                 .append("📱 ").append(escapeHtml(phone));
             if (telegram != null) {
                 msg.append("\n✈️ ").append(escapeHtml(telegram));
+            }
+            if (isFirstRegistration) {
+                msg.append("\n\n🆕 Первый раз на нашем мероприятии");
             }
 
             telegramClient.sendHtml(adminChatId, msg.toString(), null);
