@@ -117,7 +117,7 @@ class EventRegisterHandlerTest {
         StepResult result = handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("auth_required"));
+        verify(i18n).t(eq("en"), eq("auth_required"));
     }
 
     @Test
@@ -147,7 +147,7 @@ class EventRegisterHandlerTest {
         assertThat(captor.getValue().getGuestId()).isEqualTo(UUID.fromString(eventGuestId));
         assertThat(captor.getValue().getGuestCount()).isEqualTo(1);
         assertThat(captor.getValue().getSource()).isEqualTo("telegram-bot");
-        verify(i18n).t(eq("ru"), eq("events_register_success"));
+        verify(i18n).t(eq("en"), eq("events_register_success"));
     }
 
     @Test
@@ -308,7 +308,7 @@ class EventRegisterHandlerTest {
         StepResult result = handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("events_register_already"));
+        verify(i18n).t(eq("en"), eq("events_register_already"));
     }
 
     @Test
@@ -321,7 +321,7 @@ class EventRegisterHandlerTest {
 
         handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
-        verify(i18n).t(eq("ru"), eq("events_register_error"));
+        verify(i18n).t(eq("en"), eq("events_register_error"));
     }
 
     @Test
@@ -333,6 +333,6 @@ class EventRegisterHandlerTest {
 
         handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
-        verify(i18n).t(eq("ru"), eq("events_register_error"));
+        verify(i18n).t(eq("en"), eq("events_register_error"));
     }
 }

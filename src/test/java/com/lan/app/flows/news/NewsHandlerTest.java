@@ -101,10 +101,10 @@ class NewsHandlerTest {
     @Test
     void nonEmptyNewsList_escapesHtmlInTitleAndBody() {
         CoworkingNewsResponse item = new CoworkingNewsResponse();
-        item.setTitleEn("title");
-        item.setTitleRu("<script>alert(1)</script>");
-        item.setBodyEn("body");
-        item.setBodyRu("a & b < c");
+        item.setTitleEn("<script>alert(1)</script>");
+        item.setTitleRu("title");
+        item.setBodyEn("a & b < c");
+        item.setBodyRu("body");
         when(newsApi.listCoworkingNews()).thenReturn(List.of(item));
         Session s = session();
 

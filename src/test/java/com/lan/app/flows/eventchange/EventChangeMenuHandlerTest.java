@@ -85,7 +85,7 @@ class EventChangeMenuHandlerTest {
         StepResult result = handler.handle(callbackCtx("something_else"), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("event_change_menu_error"));
+        verify(i18n).t(eq("en"), eq("event_change_menu_error"));
     }
 
     @Test
@@ -94,6 +94,6 @@ class EventChangeMenuHandlerTest {
 
         handler.handle(callbackCtx(EventChangeFlowDef.CB_MENU_PREFIX), s);
 
-        verify(i18n).t(eq("ru"), eq("event_change_menu_error"));
+        verify(i18n).t(eq("en"), eq("event_change_menu_error"));
     }
 }

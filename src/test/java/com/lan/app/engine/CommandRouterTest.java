@@ -15,7 +15,6 @@ import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
 import com.lan.app.i18n.I18n;
-import com.lan.app.notification.EventAttendanceHandler;
 import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -63,9 +62,6 @@ class CommandRouterTest {
 
     @InjectMock
     CwLoginConfirmHandler cwLoginConfirmHandler;
-
-    @InjectMock
-    EventAttendanceHandler eventAttendanceHandler;
 
     private final StepHandler stubHandler = mock(StepHandler.class);
 
@@ -221,16 +217,6 @@ class CommandRouterTest {
 
         verify(cwLoginConfirmHandler).handle(any(), any());
         assertThat(result).isEqualTo(StepResult.finish());
-    }
-
-    @Test
-    void callback_evtAttYesPrefix_delegatesDirectlyToEventAttendanceHandler() {
-        Session s = session();
-        when(eventAttendanceHandler.handle(any(), any())).thenReturn(StepResult.finish());
-
-        router.route(callbackCtx("evt_att_yes_1_2_3"), s);
-
-        verify(eventAttendanceHandler).handle(any(), any());
     }
 
     @Test

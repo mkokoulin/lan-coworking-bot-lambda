@@ -57,7 +57,7 @@ class EventPaymentStartHandlerTest {
     void handle_withPriceSet_formatsInstructionsWithPriceAndCardNumber() {
         Session s = session();
         EventPaymentSession.setPrice(s, "1500");
-        when(i18n.t("ru", "event_payment_instructions")).thenReturn("Price:%s Card:%s");
+        when(i18n.t("en", "event_payment_instructions")).thenReturn("Price:%s Card:%s");
 
         handler.handle(ctx(), s);
 
@@ -67,7 +67,7 @@ class EventPaymentStartHandlerTest {
     @Test
     void handle_withoutPrice_defaultsToQuestionMark() {
         Session s = session();
-        when(i18n.t("ru", "event_payment_instructions")).thenReturn("Price:%s Card:%s");
+        when(i18n.t("en", "event_payment_instructions")).thenReturn("Price:%s Card:%s");
 
         handler.handle(ctx(), s);
 

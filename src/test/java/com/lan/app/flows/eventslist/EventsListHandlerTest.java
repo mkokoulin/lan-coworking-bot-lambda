@@ -110,7 +110,7 @@ class EventsListHandlerTest {
         StepResult result = handler.handle(ctx(), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("events_list_error"));
+        verify(i18n).t(eq("en"), eq("events_list_error"));
     }
 
     @Test
@@ -120,7 +120,7 @@ class EventsListHandlerTest {
         StepResult result = handler.handle(ctx(), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("events_list_empty"));
+        verify(i18n).t(eq("en"), eq("events_list_empty"));
     }
 
     @Test
@@ -211,7 +211,7 @@ class EventsListHandlerTest {
         StepResult result = handler.handle(ctx(), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(i18n).t(eq("ru"), eq("events_list_empty"));
+        verify(i18n).t(eq("en"), eq("events_list_empty"));
     }
 
     @Test

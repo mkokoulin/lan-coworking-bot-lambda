@@ -117,7 +117,7 @@ class EventChangeHandlerTest {
     void validMessage_formatsAdminNotificationWithGuestRegIdAndEscapedText() {
         Session s = session();
         EventChangeSession.setRegId(s, "77");
-        when(i18n.t("ru", "event_change_admin_notify")).thenReturn("%s|%s|%s");
+        when(i18n.t("en", "event_change_admin_notify")).thenReturn("%s|%s|%s");
 
         handler.handle(textCtx("<script>hi</script>", "bob"), s);
 
@@ -128,7 +128,7 @@ class EventChangeHandlerTest {
     void validMessage_noUsername_fallsBackToIdInAdminNotification() {
         Session s = session();
         EventChangeSession.setRegId(s, "77");
-        when(i18n.t("ru", "event_change_admin_notify")).thenReturn("%s|%s|%s");
+        when(i18n.t("en", "event_change_admin_notify")).thenReturn("%s|%s|%s");
 
         handler.handle(textCtx("hello", null), s);
 
@@ -138,7 +138,7 @@ class EventChangeHandlerTest {
     @Test
     void validMessage_noRegId_usesDashPlaceholder() {
         Session s = session();
-        when(i18n.t("ru", "event_change_admin_notify")).thenReturn("%s|%s|%s");
+        when(i18n.t("en", "event_change_admin_notify")).thenReturn("%s|%s|%s");
 
         handler.handle(textCtx("hello", "bob"), s);
 

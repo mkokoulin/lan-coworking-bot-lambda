@@ -115,7 +115,7 @@ class EventConfirmHandlerTest {
 
         handler.handle(startWithPayload("reg_abc123"), s);
 
-        assertEquals("ru", s.getLang());
+        assertEquals("en", s.getLang());
     }
 
     @Test
@@ -169,7 +169,7 @@ class EventConfirmHandlerTest {
         StepResult result = handler.handle(startWithPayload(""), session());
 
         assertEquals(StepResult.finish(), result);
-        assertTrue(confirmMessage().get("text").asText().contains("Регистрация подтверждена"));
+        assertTrue(confirmMessage().get("text").asText().contains("Registration confirmed"));
         assertEquals(1, nextMessage().get("reply_markup").get("inline_keyboard").size());
     }
 
@@ -181,6 +181,6 @@ class EventConfirmHandlerTest {
         handler.handle(startWithPayload("some_other_payload"), session());
 
         String text = confirmMessage().get("text").asText();
-        assertTrue(text.contains("Регистрация подтверждена"), text);
+        assertTrue(text.contains("Registration confirmed"), text);
     }
 }

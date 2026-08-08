@@ -15,7 +15,6 @@ import com.lan.app.flows.eventslist.EventsListFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
-import com.lan.app.notification.EventAttendanceHandler;
 import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -43,7 +42,6 @@ public class CommandRouter {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final CwLoginConfirmHandler cwLoginConfirmHandler;
-    private final EventAttendanceHandler eventAttendanceHandler;
 
     @Inject
     public CommandRouter(
@@ -51,15 +49,13 @@ public class CommandRouter {
         GuestService guestService,
         TelegramClient telegramClient,
         I18n i18n,
-        CwLoginConfirmHandler cwLoginConfirmHandler,
-        EventAttendanceHandler eventAttendanceHandler
+        CwLoginConfirmHandler cwLoginConfirmHandler
     ) {
         this.registry = registry;
         this.guestService = guestService;
         this.telegramClient = telegramClient;
         this.i18n = i18n;
         this.cwLoginConfirmHandler = cwLoginConfirmHandler;
-        this.eventAttendanceHandler = eventAttendanceHandler;
     }
 
     public StepResult route(UpdateContext ctx, Session session) {
@@ -128,8 +124,6 @@ public class CommandRouter {
                 session.setStep(EventPaymentFlowDef.STEP_ADMIN);
             } else if (cb != null && (cb.startsWith("cw_confirm_") || cb.startsWith("cw_reject_"))) {
                 return cwLoginConfirmHandler.handle(ctx, session);
-            } else if (cb != null && (cb.startsWith("evt_att_yes_") || cb.startsWith("evt_att_no_"))) {
-                return eventAttendanceHandler.handle(ctx, session);
             } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVT_REG_PREFIX)) {
                 session.setFlow(EventsListFlowDef.FLOW);
                 session.setStep(EventsListFlowDef.STEP_REGISTER);
