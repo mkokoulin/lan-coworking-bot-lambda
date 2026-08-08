@@ -241,7 +241,8 @@ public class EventRegisterHandler implements StepHandler {
             }
 
             StringBuilder msg = new StringBuilder()
-                .append("📋 <b>Новая регистрация</b>\n\n")
+                .append("📋 <b>Новая регистрация</b>\n")
+                .append("📍 Источник: Бот\n\n")
                 .append("🎪 <b>").append(escapeHtml(eventName)).append("</b>\n")
                 .append(dateLine)
                 .append("\n")
