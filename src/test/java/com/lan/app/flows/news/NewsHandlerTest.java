@@ -77,7 +77,7 @@ class NewsHandlerTest {
 
     @Test
     void nonEmptyNewsList_buildsMessageWithTitleBodyAndLinkAndFinishes() {
-        // Session.newDefault() defaults lang to "ru", so the handler renders the *Ru fields.
+        // Session.newDefault() defaults lang to "en", so the handler renders the *En fields.
         CoworkingNewsResponse item = new CoworkingNewsResponse();
         item.setTitleEn("Big News");
         item.setTitleRu("Большая новость");
@@ -93,8 +93,8 @@ class NewsHandlerTest {
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(telegramClient).sendHtml(eq(100L), captor.capture(), any());
         assertThat(captor.getValue())
-                .contains("Большая новость")
-                .contains("Что-то случилось")
+                .contains("Big News")
+                .contains("Something happened")
                 .contains("https://example.com/news");
     }
 
