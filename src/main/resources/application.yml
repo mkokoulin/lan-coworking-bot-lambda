@@ -75,6 +75,10 @@ app:
 notify:
   secret: ${NOTIFY_SECRET:}
 
+ga:
+  measurement-id: ${GA_MEASUREMENT_ID:G-BSJ90FMQGM}
+  api-secret: ${GA_API_SECRET:}
+
 payment:
   card-number: ${PAYMENT_CARD_NUMBER:—}
 
