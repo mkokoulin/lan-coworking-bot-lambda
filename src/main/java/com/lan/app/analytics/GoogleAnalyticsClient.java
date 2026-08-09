@@ -36,7 +36,11 @@ public class GoogleAnalyticsClient {
     }
 
     public void sendEvent(String clientId, String eventName, Map<String, Object> params) {
-        if (!config.enabled() || clientId == null || clientId.isBlank() || eventName == null || eventName.isBlank()) {
+        if (!config.enabled()) {
+            log.debugf("GA disabled (missing measurement_id/api_secret), skipping event '%s'", eventName);
+            return;
+        }
+        if (clientId == null || clientId.isBlank() || eventName == null || eventName.isBlank()) {
             return;
         }
         try {
@@ -60,12 +64,15 @@ public class GoogleAnalyticsClient {
                     .POST(HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body)))
                     .build();
 
-            http.sendAsync(req, HttpResponse.BodyHandlers.discarding())
+            log.debugf("GA sending event '%s' clientId=%s", eventName, clientId);
+            http.sendAsync(req, HttpResponse.BodyHandlers.ofString())
                     .whenComplete((resp, err) -> {
                         if (err != null) {
                             log.debugf("GA event '%s' failed to send: %s", eventName, err.getMessage());
                         } else if (resp.statusCode() >= 300) {
-                            log.debugf("GA event '%s' rejected with status %d", eventName, resp.statusCode());
+                            log.debugf("GA event '%s' rejected with status %d: %s", eventName, resp.statusCode(), resp.body());
+                        } else {
+                            log.debugf("GA event '%s' accepted with status %d", eventName, resp.statusCode());
                         }
                     });
         } catch (Exception e) {

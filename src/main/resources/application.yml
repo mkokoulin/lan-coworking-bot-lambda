@@ -54,6 +54,8 @@ quarkus:
     category:
       "com.lan.app.telegram":
         level: DEBUG
+      "com.lan.app.analytics":
+        level: DEBUG
       "org.jboss.resteasy.reactive.client.logging":
         level: DEBUG
 
