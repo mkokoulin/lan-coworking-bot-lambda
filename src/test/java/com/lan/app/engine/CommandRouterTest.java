@@ -14,6 +14,7 @@ import com.lan.app.flows.eventslist.EventsListFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
+import com.lan.app.flows.weeklydigest.WeeklyDigestUnsubscribeHandler;
 import com.lan.app.i18n.I18n;
 import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
@@ -62,6 +63,9 @@ class CommandRouterTest {
 
     @InjectMock
     CwLoginConfirmHandler cwLoginConfirmHandler;
+
+    @InjectMock
+    WeeklyDigestUnsubscribeHandler weeklyDigestUnsubscribeHandler;
 
     private final StepHandler stubHandler = mock(StepHandler.class);
 
@@ -216,6 +220,17 @@ class CommandRouterTest {
         StepResult result = router.route(callbackCtx("cw_confirm_" + UUID.randomUUID()), s);
 
         verify(cwLoginConfirmHandler).handle(any(), any());
+        assertThat(result).isEqualTo(StepResult.finish());
+    }
+
+    @Test
+    void callback_digestUnsubPrefix_delegatesDirectlyToWeeklyDigestUnsubscribeHandler() {
+        Session s = session();
+        when(weeklyDigestUnsubscribeHandler.handle(any(), any())).thenReturn(StepResult.finish());
+
+        StepResult result = router.route(callbackCtx("digest_unsub_661"), s);
+
+        verify(weeklyDigestUnsubscribeHandler).handle(any(), any());
         assertThat(result).isEqualTo(StepResult.finish());
     }
 
