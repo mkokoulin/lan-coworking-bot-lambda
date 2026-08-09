@@ -14,6 +14,8 @@ import com.lan.app.flows.eventconfirm.EventConfirmFlowRegistrar;
 import com.lan.app.flows.eventnotify.EventNotifyFlowRegistrar;
 import com.lan.app.flows.eventpayment.EventPaymentFlowRegistrar;
 import com.lan.app.flows.eventslist.EventsListFlowRegistrar;
+import com.lan.app.flows.eventsurvey.EventSurveyFlowRegistrar;
+import com.lan.app.flows.heardabout.HeardAboutFlowRegistrar;
 import com.lan.app.flows.help.HelpFlowRegistrar;
 import com.lan.app.flows.kotolog.KotologFlowRegistrar;
 import com.lan.app.flows.language.LanguageFlowRegistrar;
@@ -56,6 +58,8 @@ public class FlowBootstrap {
     private final CwBookingFlowRegistrar cwBookingFlowRegistrar;
     private final PrintFlowRegistrar printFlowRegistrar;
     private final MenuFlowRegistrar menuFlowRegistrar;
+    private final EventSurveyFlowRegistrar eventSurveyFlowRegistrar;
+    private final HeardAboutFlowRegistrar heardAboutFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -81,7 +85,9 @@ public class FlowBootstrap {
         EventPaymentFlowRegistrar eventPaymentFlowRegistrar,
         CwBookingFlowRegistrar cwBookingFlowRegistrar,
         PrintFlowRegistrar printFlowRegistrar,
-        MenuFlowRegistrar menuFlowRegistrar
+        MenuFlowRegistrar menuFlowRegistrar,
+        EventSurveyFlowRegistrar eventSurveyFlowRegistrar,
+        HeardAboutFlowRegistrar heardAboutFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -106,6 +112,8 @@ public class FlowBootstrap {
         this.cwBookingFlowRegistrar = cwBookingFlowRegistrar;
         this.printFlowRegistrar = printFlowRegistrar;
         this.menuFlowRegistrar = menuFlowRegistrar;
+        this.eventSurveyFlowRegistrar = eventSurveyFlowRegistrar;
+        this.heardAboutFlowRegistrar = heardAboutFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -133,5 +141,7 @@ public class FlowBootstrap {
         cwBookingFlowRegistrar.register();
         printFlowRegistrar.register();
         menuFlowRegistrar.register();
+        eventSurveyFlowRegistrar.register();
+        heardAboutFlowRegistrar.register();
     }
 }

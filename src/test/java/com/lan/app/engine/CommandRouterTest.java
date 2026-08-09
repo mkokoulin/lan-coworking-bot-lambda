@@ -11,6 +11,8 @@ import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
+import com.lan.app.flows.eventsurvey.EventSurveyFlowDef;
+import com.lan.app.flows.heardabout.HeardAboutFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
@@ -173,6 +175,24 @@ class CommandRouterTest {
     }
 
     @Test
+    void callback_heardAboutSourcePrefixes_routeToHeardAboutChoice() {
+        when(registry.getStep(HeardAboutFlowDef.FLOW, HeardAboutFlowDef.STEP_CHOICE)).thenReturn(Optional.of(stubHandler));
+
+        for (String prefix : new String[] {
+                HeardAboutFlowDef.PREFIX_INSTAGRAM,
+                HeardAboutFlowDef.PREFIX_GOOGLE,
+                HeardAboutFlowDef.PREFIX_FRIENDS,
+                HeardAboutFlowDef.PREFIX_OTHER
+        }) {
+            Session session = session();
+            RegistrationSession.markRegistered(session);
+            router.route(callbackCtx("/" + prefix + "101"), session);
+            assertThat(session.getFlow()).isEqualTo(HeardAboutFlowDef.FLOW);
+            assertThat(session.getStep()).isEqualTo(HeardAboutFlowDef.STEP_CHOICE);
+        }
+    }
+
+    @Test
     void callback_cancelFamilyPrefixes_routeToMyEventsCancelAction() {
         when(registry.getStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_CANCEL_ACTION)).thenReturn(Optional.of(stubHandler));
 
@@ -232,6 +252,18 @@ class CommandRouterTest {
 
         verify(weeklyDigestUnsubscribeHandler).handle(any(), any());
         assertThat(result).isEqualTo(StepResult.finish());
+    }
+
+    @Test
+    void callback_surveyRatePrefix_routesToEventSurveyRatingStep() {
+        Session s = session();
+        when(registry.getStep(EventSurveyFlowDef.FLOW, EventSurveyFlowDef.STEP_RATING)).thenReturn(Optional.of(stubHandler));
+
+        router.route(callbackCtx(EventSurveyFlowDef.CB_SURVEY_RATE_PREFIX + "4_42_101_7"), s);
+
+        assertThat(s.getFlow()).isEqualTo(EventSurveyFlowDef.FLOW);
+        assertThat(s.getStep()).isEqualTo(EventSurveyFlowDef.STEP_RATING);
+        verify(stubHandler).handle(any(), any());
     }
 
     @Test

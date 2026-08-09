@@ -11,7 +11,9 @@ import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.flows.eventconfirm.EventConfirmFlowDef;
 import com.lan.app.flows.eventnotify.EventNotifyFlowDef;
 import com.lan.app.flows.eventpayment.EventPaymentFlowDef;
+import com.lan.app.flows.heardabout.HeardAboutFlowDef;
 import com.lan.app.flows.eventslist.EventsListFlowDef;
+import com.lan.app.flows.eventsurvey.EventSurveyFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
@@ -86,6 +88,12 @@ public class CommandRouter {
             } else if (command.startsWith(EventNotifyFlowDef.PREFIX_YES) || command.startsWith(EventNotifyFlowDef.PREFIX_NO)) {
                 session.setFlow(EventNotifyFlowDef.FLOW);
                 session.setStep(EventNotifyFlowDef.STEP_ACTION);
+            } else if (command.startsWith(HeardAboutFlowDef.PREFIX_INSTAGRAM)
+                    || command.startsWith(HeardAboutFlowDef.PREFIX_GOOGLE)
+                    || command.startsWith(HeardAboutFlowDef.PREFIX_FRIENDS)
+                    || command.startsWith(HeardAboutFlowDef.PREFIX_OTHER)) {
+                session.setFlow(HeardAboutFlowDef.FLOW);
+                session.setStep(HeardAboutFlowDef.STEP_CHOICE);
             } else if (command.startsWith(MyEventsFlowDef.CB_CANCEL_PFX)
                     || command.startsWith(MyEventsFlowDef.CB_CANCEL_YES_PFX)
                     || command.startsWith(MyEventsFlowDef.CB_CANCEL_NO_PFX)) {
@@ -120,6 +128,7 @@ public class CommandRouter {
 
         // Route pay_approve_/pay_reject_ callbacks to admin payment handler
         // Route cw_confirm_/cw_reject_ and digest_unsub_ callbacks directly — bypass flow system
+        // Route survey_rate_ callbacks into the event-survey flow at STEP_RATING
         // Route evt_reg_/evt_/evf_ callbacks to the events-list flow
         if (ctx.hasCallback()) {
             String cb = ctx.callbackData();
@@ -130,6 +139,9 @@ public class CommandRouter {
                 return cwLoginConfirmHandler.handle(ctx, session);
             } else if (cb != null && cb.startsWith("digest_unsub_")) {
                 return weeklyDigestUnsubscribeHandler.handle(ctx, session);
+            } else if (cb != null && cb.startsWith(EventSurveyFlowDef.CB_SURVEY_RATE_PREFIX)) {
+                session.setFlow(EventSurveyFlowDef.FLOW);
+                session.setStep(EventSurveyFlowDef.STEP_RATING);
             } else if (cb != null && cb.startsWith(EventsListFlowDef.CB_EVT_REG_PREFIX)) {
                 session.setFlow(EventsListFlowDef.FLOW);
                 session.setStep(EventsListFlowDef.STEP_REGISTER);

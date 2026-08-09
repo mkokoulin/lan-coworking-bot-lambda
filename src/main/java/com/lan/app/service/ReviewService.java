@@ -18,11 +18,21 @@ public class ReviewService {
     ReviewsApi reviewsApi;
 
     public boolean createReview(String authorName, int rating, String text) {
+        return createReview(authorName, rating, text, null, null, null);
+    }
+
+    public boolean createReview(
+        String authorName, int rating, String text,
+        Integer eventRowId, Integer guestRowId, Integer registrationRowId
+    ) {
         try {
             var req = new CreateReviewRequest()
                 .authorName(authorName)
                 .rating(rating)
-                .text(text);
+                .text(text)
+                .eventRowId(eventRowId)
+                .guestRowId(guestRowId)
+                .registrationRowId(registrationRowId);
             reviewsApi.createReview(req);
             return true;
         } catch (WebApplicationException e) {

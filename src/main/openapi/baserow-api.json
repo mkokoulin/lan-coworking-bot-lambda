@@ -1275,6 +1275,18 @@
           "text": {
             "type": "string",
             "nullable": true
+          },
+          "eventRowId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "guestRowId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "registrationRowId": {
+            "type": "integer",
+            "nullable": true
           }
         }
       },
