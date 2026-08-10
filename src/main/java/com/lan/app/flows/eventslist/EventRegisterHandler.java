@@ -25,6 +25,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 import java.time.DateTimeException;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
@@ -220,7 +221,8 @@ public class EventRegisterHandler implements StepHandler {
             String dateLine = "";
             if (event != null && event.getDateStart() != null) {
                 try {
-                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d MMM, HH:mm", Locale.of("ru"));
+                    DateTimeFormatter fmt = DateTimeFormatter.ofPattern("d MMM, HH:mm", Locale.of("ru"))
+                        .withZone(ZoneId.of("Asia/Yerevan"));
                     dateLine = "📅 " + event.getDateStart().format(fmt) + "\n";
                 } catch (DateTimeException ignored) {
                     // keep dateLine empty if formatting fails

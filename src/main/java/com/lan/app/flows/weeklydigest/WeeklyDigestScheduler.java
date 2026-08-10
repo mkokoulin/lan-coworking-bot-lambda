@@ -23,6 +23,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
@@ -153,7 +154,8 @@ public class WeeklyDigestScheduler {
     private String buildDigestBody(String lang, List<EventResponse> events) {
         boolean isRu = "ru".equals(lang);
         Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
-        DateTimeFormatter fmt = DateTimeFormatter.ofPattern(isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale);
+        DateTimeFormatter fmt = DateTimeFormatter.ofPattern(isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale)
+            .withZone(ZoneId.of("Asia/Yerevan"));
 
         StringBuilder sb = new StringBuilder(i18n.t(lang, "weekly_digest_header"));
         for (EventResponse e : events) {

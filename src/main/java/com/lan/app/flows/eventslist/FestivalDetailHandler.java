@@ -16,6 +16,7 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -140,7 +141,8 @@ public class FestivalDetailHandler implements StepHandler {
         boolean isRu = "ru".equals(lang);
         Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
-            isRu ? "d MMMM yyyy" : "MMMM d, yyyy", locale);
+            isRu ? "d MMMM yyyy" : "MMMM d, yyyy", locale)
+            .withZone(ZoneId.of("Asia/Yerevan"));
 
         var sb = new StringBuilder();
         sb.append("🎪 <b>").append(escapeHtml(f.getName())).append("</b>\n");
@@ -174,7 +176,8 @@ public class FestivalDetailHandler implements StepHandler {
             boolean isRu = "ru".equals(lang);
             Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
-                isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale);
+                isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale)
+                .withZone(ZoneId.of("Asia/Yerevan"));
             return "📅 " + name + " — " + e.getDateStart().format(fmt);
         }
         return "📅 " + name;

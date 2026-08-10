@@ -14,6 +14,7 @@ import jakarta.inject.Inject;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -131,7 +132,8 @@ public class EventDetailHandler implements StepHandler {
         boolean isRu = "ru".equals(lang);
         Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
-            isRu ? "d MMMM yyyy, HH:mm" : "MMMM d, yyyy, HH:mm", locale);
+            isRu ? "d MMMM yyyy, HH:mm" : "MMMM d, yyyy, HH:mm", locale)
+            .withZone(ZoneId.of("Asia/Yerevan"));
 
         var sb = new StringBuilder();
         sb.append("<b>").append(escapeHtml(e.getName())).append("</b>\n");

@@ -17,6 +17,7 @@ import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.jboss.logging.Logger;
 
 import java.time.OffsetDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -156,7 +157,8 @@ public class EventsListHandler implements StepHandler {
             boolean isRu = "ru".equals(lang);
             Locale locale = isRu ? Locale.of("ru") : Locale.ENGLISH;
             DateTimeFormatter fmt = DateTimeFormatter.ofPattern(
-                isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale);
+                isRu ? "d MMM, HH:mm" : "MMM d, HH:mm", locale)
+                .withZone(ZoneId.of("Asia/Yerevan"));
             return "📅 " + name + " — " + e.getDateStart().format(fmt);
         }
         return "📅 " + name;
