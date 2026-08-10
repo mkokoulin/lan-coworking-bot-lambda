@@ -54,11 +54,11 @@ class MyEventsGuestsWaitHandlerTest {
     }
 
     private UpdateContext text(String messageText) {
-        return new UpdateContext(555L, "private", 555L, null, messageText, null, false, null, null);
+        return new UpdateContext(555L, "private", 555L, null, messageText, null, null, false, null, null, null, null);
     }
 
     private UpdateContext callback(String data) {
-        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, true, null, null);
+        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, null, true, null, null, null, null);
     }
 
     private List<JsonNode> sentMessages() throws Exception {

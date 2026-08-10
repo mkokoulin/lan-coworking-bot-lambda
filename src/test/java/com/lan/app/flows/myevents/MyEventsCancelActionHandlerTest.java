@@ -53,7 +53,7 @@ class MyEventsCancelActionHandlerTest {
     }
 
     private UpdateContext callback(String data) {
-        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, true, null, null);
+        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, null, true, null, null, null, null);
     }
 
     private List<JsonNode> sentMessages() throws Exception {
@@ -163,7 +163,7 @@ class MyEventsCancelActionHandlerTest {
     @Test
     void nullCommandFinishesWithoutSendingAnything() throws Exception {
         Session session = Session.newDefault(555L, 555L);
-        UpdateContext ctx = new UpdateContext(555L, "private", 555L, null, null, null, false, null, null);
+        UpdateContext ctx = new UpdateContext(555L, "private", 555L, null, null, null, null, false, null, null, null, null);
 
         StepResult result = handler.handle(ctx, session);
 

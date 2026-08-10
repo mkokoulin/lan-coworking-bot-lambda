@@ -31,6 +31,17 @@ class MyEventsSessionTest {
     }
 
     @Test
+    void malformedPayloadJson_treatedAsEmptyMap_doesNotThrow() {
+        Session session = Session.newDefault(1L, 1L);
+        session.setPayloadJson("not valid json");
+
+        assertNull(MyEventsSession.getPendingRegId(session));
+
+        MyEventsSession.setPendingRegId(session, "reg-1");
+        assertEquals("reg-1", MyEventsSession.getPendingRegId(session));
+    }
+
+    @Test
     void parseInstantReturnsNullForBlankOrInvalidInput() {
         assertNull(MyEventsSession.parseInstant(null));
         assertNull(MyEventsSession.parseInstant(""));

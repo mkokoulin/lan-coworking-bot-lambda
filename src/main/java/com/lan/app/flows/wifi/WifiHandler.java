@@ -3,7 +3,9 @@ package com.lan.app.flows.wifi;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.i18n.I18n;
+import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -36,11 +38,13 @@ public class WifiHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
+    private final GuestService guestService;
 
     @Inject
-    public WifiHandler(TelegramClient telegramClient, I18n i18n) {
+    public WifiHandler(TelegramClient telegramClient, I18n i18n, GuestService guestService) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
+        this.guestService = guestService;
     }
 
     @Override
@@ -52,11 +56,13 @@ public class WifiHandler implements StepHandler {
                 KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "wifi_btn_home"), "start"))
         ));
 
+        boolean authenticated = isAuthenticated(session);
+
         List<Network> networks = new ArrayList<>();
         if (!guestSsid.isBlank()) {
             networks.add(new Network(i18n.t(lang, "wifi_caption_guest"), guestSsid, guestPassword));
         }
-        if (!privateSsid.isBlank()) {
+        if (authenticated && !privateSsid.isBlank()) {
             networks.add(new Network(i18n.t(lang, "wifi_caption_private"), privateSsid, privatePassword));
         }
 
@@ -82,6 +88,20 @@ public class WifiHandler implements StepHandler {
         telegramClient.sendHtml(chatId, fallbackLines.toString(), kb);
 
         return StepResult.finish();
+    }
+
+    private boolean isAuthenticated(Session session) {
+        if (RegistrationSession.isRegistered(session)) return true;
+        if (RegistrationSession.isManualLogout(session)) return false;
+        var guest = guestService.findByChatId(session.getChatId());
+        if (guest.isPresent()) {
+            RegistrationSession.markRegistered(session);
+            if (guest.get().getId() != null) {
+                RegistrationSession.setGuestId(session, guest.get().getId().toString());
+            }
+            return true;
+        }
+        return false;
     }
 
     private record Network(String captionTemplate, String ssid, String password) {}

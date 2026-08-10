@@ -46,6 +46,16 @@ public class IncomingUpdateFactory {
         if (message.contact() != null && message.contact().phone_number() != null) {
             target.setSharedPhone(message.contact().phone_number().trim());
         }
+
+        if (message.photo() != null && !message.photo().isEmpty()) {
+            var largest = message.photo().get(message.photo().size() - 1);
+            target.setFileId(largest.fileId());
+        } else if (message.document() != null && message.document().fileId() != null) {
+            target.setFileId(message.document().fileId());
+            if (message.document().fileName() != null) {
+                target.setFileName(message.document().fileName());
+            }
+        }
     }
 
     private void fillFromCallback(IncomingUpdate target, TelegramCallbackQuery callback) {
@@ -55,9 +65,15 @@ public class IncomingUpdateFactory {
             target.setFirstName(callback.from.first_name);
             target.setUsername(callback.from.username);
         }
-        if (callback.message != null && callback.message.chat() != null) {
-            target.setChatId(callback.message.chat().id);
+        if (callback.message != null) {
+            if (callback.message.chat() != null) {
+                target.setChatId(callback.message.chat().id);
+            }
+            if (callback.message.message_id() != null) {
+                target.setCallbackMessageId(callback.message.message_id().intValue());
+            }
         }
         target.setCallbackData(callback.data == null ? "" : callback.data.trim());
+        target.setCallbackQueryId(callback.id);
     }
 }

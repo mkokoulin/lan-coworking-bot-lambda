@@ -35,6 +35,7 @@ public class MyEventsFlowRegistrar {
         registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_PROMPT, guestsPromptHandler);
         registry.registerStep(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_WAIT, guestsWaitHandler);
 
-        registry.registerCommand("events", new FlowEntry(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_LIST));
+        registry.registerCommand("myevents", new FlowEntry(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_LIST));
+        // "events" is handled by EventsListFlowRegistrar (browse + register flow)
     }
 }

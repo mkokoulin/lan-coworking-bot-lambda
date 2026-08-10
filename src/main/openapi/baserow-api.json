@@ -1,1284 +1,3258 @@
 {
-  "openapi" : "3.1.0",
-  "components" : {
-    "schemas" : {
-      "CoworkingActiveTariffListItemResponse" : {
-        "type" : "object",
-        "required" : [ "id", "daysUsed", "dateStart", "dateEnd" ],
-        "description" : "Lightweight representation of an active coworking tariff, used in list views",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the active tariff"
+  "openapi": "3.1.0",
+  "components": {
+    "schemas": {
+      "BotRegistrationDto": {
+        "type": "object",
+        "properties": {
+          "registration_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the registration, used to cancel it or change its guest count"
           },
-          "daysUsed" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 5 ],
-            "description" : "Number of days the tariff has already been used",
-            "minimum" : 0
+          "event_name": {
+            "type": "string"
           },
-          "dateStart" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-01-15T10:00:00Z" ],
-            "description" : "Date and time when the tariff became active (ISO-8601, UTC)"
+          "date_start": {
+            "$ref": "#/components/schemas/Instant"
           },
-          "dateEnd" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-12-31T23:59:59Z" ],
-            "description" : "Date and time when the tariff expires (ISO-8601, UTC)"
+          "guest_count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_cancelled": {
+            "type": "boolean"
           }
         }
       },
-      "CoworkingActiveTariffResponse" : {
-        "type" : "object",
-        "required" : [ "id", "guestId", "daysUsed", "dateStart", "dateEnd", "tariffId" ],
-        "description" : "Detailed representation of an active coworking tariff, including guest and tariff references",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the active tariff"
+      "BotRegistrationActionResponse": {
+        "type": "object",
+        "description": "Result of a bot-initiated cancel or guest-count-change action on a registration, carrying everything needed to build both the user-facing confirmation and the admin notification.",
+        "properties": {
+          "event_name": {
+            "type": "string"
           },
-          "guestId" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "6ba7b810-9dad-11d1-80b4-00c04fd430c8" ],
-            "description" : "External unique identifier of the guest this active tariff belongs to"
+          "date_start": {
+            "$ref": "#/components/schemas/Instant"
           },
-          "daysUsed" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 5 ],
-            "description" : "Number of days the tariff has already been used",
-            "minimum" : 0
+          "previous_guest_count": {
+            "type": "integer",
+            "format": "int32"
           },
-          "dateStart" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-01-15T10:00:00Z" ],
-            "description" : "Date and time when the tariff became active (ISO-8601, UTC)"
+          "guest_count": {
+            "type": "integer",
+            "format": "int32"
           },
-          "dateEnd" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-12-31T23:59:59Z" ],
-            "description" : "Date and time when the tariff expires (ISO-8601, UTC)"
+          "guest_first_name": {
+            "type": [
+              "string",
+              "null"
+            ]
           },
-          "tariffId" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "7c9e6679-7425-40de-944b-e07fc1f90ae7" ],
-            "description" : "External unique identifier of the underlying tariff definition"
+          "guest_last_name": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "guest_phone": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "guest_telegram": {
+            "type": [
+              "string",
+              "null"
+            ]
           }
         }
       },
-      "CoworkingGuestResponse" : {
-        "type" : "object",
-        "required" : [ "id", "firstName", "lastName", "telegram", "phone" ],
-        "description" : "Coworking guest details including personal and contact information",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the guest"
-          },
-          "firstName" : {
-            "type" : "string",
-            "examples" : [ "Ivan" ],
-            "description" : "Guest's first name"
-          },
-          "lastName" : {
-            "type" : "string",
-            "examples" : [ "Petrov" ],
-            "description" : "Guest's last name"
-          },
-          "telegram" : {
-            "type" : "string",
-            "examples" : [ "ivan_petrov" ],
-            "description" : "Guest's Telegram username (without the @ prefix)"
-          },
-          "phone" : {
-            "type" : "string",
-            "examples" : [ "+79161234567" ],
-            "description" : "Guest's phone number in international format"
+      "GuestCountUpdateRequest": {
+        "type": "object",
+        "required": [
+          "guest_count"
+        ],
+        "properties": {
+          "guest_count": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1,
+            "examples": [
+              3
+            ],
+            "description": "New total number of people attending under this registration"
           }
         }
       },
-      "CoworkingMeetingRoomBookingResponse" : {
-        "type" : "object",
-        "required" : [ "id", "guestId", "dateStart", "dateEnd", "persons" ],
-        "description" : "Meeting room booking details, including the guest who made the booking and the reserved time slot",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the meeting room booking"
+      "CoworkingActiveTariffListItemResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "daysUsed",
+          "dateStart",
+          "dateEnd"
+        ],
+        "description": "Lightweight representation of an active coworking tariff, used in list views",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the active tariff"
           },
-          "guestId" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "6ba7b810-9dad-11d1-80b4-00c04fd430c8" ],
-            "description" : "External unique identifier of the guest who made the booking"
+          "daysUsed": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              5
+            ],
+            "description": "Number of days the tariff has already been used",
+            "minimum": 0
           },
-          "dateStart" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-04-20T09:00:00Z" ],
-            "description" : "Date and time when the booking starts (ISO-8601, UTC)"
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-01-15T10:00:00Z"
+            ],
+            "description": "Date and time when the tariff became active (ISO-8601, UTC)"
           },
-          "dateEnd" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-04-20T11:00:00Z" ],
-            "description" : "Date and time when the booking ends (ISO-8601, UTC). Must be later than dateStart."
-          },
-          "persons" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 4 ],
-            "description" : "Number of people expected to attend the meeting",
-            "minimum" : 1
-          },
-          "comment" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "Client presentation, projector required" ],
-            "description" : "Optional free-text comment or note about the booking (e.g. agenda, special requirements)"
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-12-31T23:59:59Z"
+            ],
+            "description": "Date and time when the tariff expires (ISO-8601, UTC)"
           }
         }
       },
-      "CoworkingNotificationResponse" : {
-        "type" : "object",
-        "required" : [ "id", "message", "sentAt" ],
-        "description" : "Coworking notification details including the message content and the time it was sent",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the notification"
+      "CoworkingActiveTariffResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "guestId",
+          "daysUsed",
+          "dateStart",
+          "dateEnd",
+          "tariffId"
+        ],
+        "description": "Detailed representation of an active coworking tariff, including guest and tariff references",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the active tariff"
           },
-          "message" : {
-            "type" : "string",
-            "examples" : [ "Your booking for meeting room A at 10:00 starts in 15 minutes" ],
-            "description" : "Notification message text"
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+            ],
+            "description": "External unique identifier of the guest this active tariff belongs to"
           },
-          "sentAt" : {
-            "$ref" : "#/components/schemas/Instant",
-            "type" : "string",
-            "examples" : [ "2026-04-18T09:45:00Z" ],
-            "description" : "Date and time when the notification was sent (ISO-8601, UTC)"
+          "daysUsed": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              5
+            ],
+            "description": "Number of days the tariff has already been used",
+            "minimum": 0
+          },
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-01-15T10:00:00Z"
+            ],
+            "description": "Date and time when the tariff became active (ISO-8601, UTC)"
+          },
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-12-31T23:59:59Z"
+            ],
+            "description": "Date and time when the tariff expires (ISO-8601, UTC)"
+          },
+          "tariffId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "7c9e6679-7425-40de-944b-e07fc1f90ae7"
+            ],
+            "description": "External unique identifier of the underlying tariff definition"
           }
         }
       },
-      "CoworkingTariffResponse" : {
-        "type" : "object",
-        "required" : [ "id", "name", "price", "fixedDesk", "filterCoffeeAndTea", "printoutScan", "luggageStorage" ],
-        "description" : "Coworking tariff details including price and included services",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the tariff"
+      "CoworkingGuestResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "telegramChatId",
+          "firstName",
+          "lastName",
+          "telegram",
+          "phone"
+        ],
+        "description": "Coworking guest details including personal and contact information",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the guest"
           },
-          "name" : {
-            "type" : "string",
-            "examples" : [ "Day Pass" ],
-            "description" : "Tariff name"
+          "telegramChatId": {
+            "type": "integer",
+            "format": "int64",
+            "examples": [
+              1000000
+            ],
+            "description": "Telegram chat id of the guest"
           },
-          "price" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 1500 ],
-            "description" : "Tariff price in the base currency (e.g. RUB), as a whole number",
-            "minimum" : 0
+          "firstName": {
+            "type": "string",
+            "examples": [
+              "Ivan"
+            ],
+            "description": "Guest's first name"
           },
-          "meetingRoom" : {
-            "type" : "string",
-            "examples" : [ "2 hours per day" ],
-            "description" : "Meeting room access description or allowance included in the tariff (e.g. 'Unlimited', '2 hours per day', 'Not included')"
+          "lastName": {
+            "type": "string",
+            "examples": [
+              "Petrov"
+            ],
+            "description": "Guest's last name"
           },
-          "fixedDesk" : {
-            "type" : "boolean",
-            "examples" : [ true ],
-            "description" : "Whether a fixed (dedicated) desk is included in the tariff"
+          "telegram": {
+            "type": "string",
+            "examples": [
+              "ivan_petrov"
+            ],
+            "description": "Guest's Telegram username (without the @ prefix)"
           },
-          "filterCoffeeAndTea" : {
-            "type" : "boolean",
-            "examples" : [ true ],
-            "description" : "Whether complimentary filter coffee and tea are included in the tariff"
-          },
-          "printoutScan" : {
-            "type" : "boolean",
-            "examples" : [ false ],
-            "description" : "Whether printing and scanning services are included in the tariff"
-          },
-          "luggageStorage" : {
-            "type" : "boolean",
-            "examples" : [ true ],
-            "description" : "Whether luggage storage is available with this tariff"
+          "phone": {
+            "type": "string",
+            "examples": [
+              "+79161234567"
+            ],
+            "description": "Guest's phone number in international format"
           }
         }
       },
-      "CreateCoworkingGuestRequest" : {
-        "type" : "object",
-        "required" : [ "firstName", "lastName", "telegram", "phone" ],
-        "description" : "Payload for creating a new coworking guest. All fields are required.",
-        "properties" : {
-          "firstName" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "Ivan" ],
-            "pattern" : "\\S",
-            "description" : "Guest's first name. Must be a non-blank string."
+      "CoworkingMeetingRoomBookingResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "guestId",
+          "dateStart",
+          "dateEnd",
+          "persons"
+        ],
+        "description": "Meeting room booking details, including the guest who made the booking and the reserved time slot",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the meeting room booking"
           },
-          "lastName" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "Petrov" ],
-            "pattern" : "\\S",
-            "description" : "Guest's last name. Must be a non-blank string."
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+            ],
+            "description": "External unique identifier of the guest who made the booking"
           },
-          "telegram" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "ivan_petrov" ],
-            "pattern" : "\\S",
-            "description" : "Guest's Telegram username (without the @ prefix). Must be a non-blank string."
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-04-20T09:00:00Z"
+            ],
+            "description": "Date and time when the booking starts (ISO-8601, UTC)"
           },
-          "phone" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "+79161234567" ],
-            "pattern" : "\\S",
-            "description" : "Guest's phone number in international format. Must be a non-blank string."
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-04-20T11:00:00Z"
+            ],
+            "description": "Date and time when the booking ends (ISO-8601, UTC). Must be later than dateStart."
+          },
+          "persons": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              4
+            ],
+            "description": "Number of people expected to attend the meeting",
+            "minimum": 1
+          },
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "Client presentation, projector required"
+            ],
+            "description": "Optional free-text comment or note about the booking (e.g. agenda, special requirements)"
           }
         }
       },
-      "CreateCoworkingMeetingRoomBookingRequest" : {
-        "type" : "object",
-        "required" : [ "guestId", "dateStart", "dateEnd", "persons" ],
-        "properties" : {
-          "guestId" : {
-            "$ref" : "#/components/schemas/UUID"
+      "CoworkingNotificationResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "message",
+          "sentAt"
+        ],
+        "description": "Coworking notification details including the message content and the time it was sent",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the notification"
           },
-          "dateStart" : {
-            "$ref" : "#/components/schemas/Instant"
+          "message": {
+            "type": "string",
+            "examples": [
+              "Your booking for meeting room A at 10:00 starts in 15 minutes"
+            ],
+            "description": "Notification message text"
           },
-          "dateEnd" : {
-            "$ref" : "#/components/schemas/Instant"
-          },
-          "persons" : {
-            "type" : "integer",
-            "format" : "int32"
-          },
-          "comment" : {
-            "type" : "string"
+          "sentAt": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-04-18T09:45:00Z"
+            ],
+            "description": "Date and time when the notification was sent (ISO-8601, UTC)"
           }
         }
       },
-      "ErrorResponse" : {
-        "type" : "object",
-        "required" : [ "code", "message" ],
-        "description" : "Standard error response returned by the API when a request fails. Contains a machine-readable error code, a human-readable message, and optional context details.",
-        "properties" : {
-          "code" : {
-            "type" : "string",
-            "examples" : [ "VALIDATION_FAILED" ],
-            "description" : "Machine-readable error code identifying the failure type. Typically a stable, uppercase string that clients can branch on."
+      "CoworkingTariffResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "price",
+          "fixedDesk",
+          "filterCoffeeAndTea",
+          "printoutScan",
+          "luggageStorage"
+        ],
+        "description": "Coworking tariff details including price and included services",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the tariff"
           },
-          "message" : {
-            "type" : "string",
-            "examples" : [ "One or more fields failed validation" ],
-            "description" : "Human-readable error message describing what went wrong. Intended for display to the end user or for logging."
+          "name": {
+            "type": "string",
+            "examples": [
+              "Day Pass"
+            ],
+            "description": "Tariff name"
           },
-          "details" : {
-            "type" : [ "object", "null" ],
-            "examples" : [ {
-              "field" : "phone",
-              "reason" : "must not be blank"
-            } ],
-            "additionalProperties" : { },
-            "description" : "Optional map with additional context about the error. Structure depends on the error code — for validation errors it may contain field-level violations, for not-found errors it may contain the requested identifier, and so on."
+          "price": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              1500
+            ],
+            "description": "Tariff price in the base currency (e.g. RUB), as a whole number",
+            "minimum": 0
+          },
+          "meetingRoom": {
+            "type": "string",
+            "examples": [
+              "2 hours per day"
+            ],
+            "description": "Meeting room access description or allowance included in the tariff (e.g. 'Unlimited', '2 hours per day', 'Not included')"
+          },
+          "fixedDesk": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether a fixed (dedicated) desk is included in the tariff"
+          },
+          "filterCoffeeAndTea": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether complimentary filter coffee and tea are included in the tariff"
+          },
+          "printoutScan": {
+            "type": "boolean",
+            "examples": [
+              false
+            ],
+            "description": "Whether printing and scanning services are included in the tariff"
+          },
+          "luggageStorage": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether luggage storage is available with this tariff"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "long",
+              "short"
+            ],
+            "examples": [
+              "long"
+            ],
+            "description": "Tariff type: long for monthly/day-based plans with day deduction support, short for single-day passes"
           }
         }
       },
-      "EventNotificationResponse" : {
-        "type" : "object",
-        "required" : [ "id", "leadHours", "message", "active" ],
-        "description" : "Event notification configuration, defining when and what message should be sent ahead of an event",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "examples" : [ "notif-123" ],
-            "description" : "Unique identifier of the event notification"
+      "CoworkingNewsResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "titleEn",
+          "titleRu"
+        ],
+        "description": "A published coworking news item",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "Unique identifier of the news item"
           },
-          "leadHours" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 24 ],
-            "description" : "Number of hours before the event at which the notification should be sent",
-            "minimum" : 0
+          "titleEn": {
+            "type": "string",
+            "description": "News headline in English"
           },
-          "message" : {
-            "type" : "string",
-            "examples" : [ "Reminder: your coworking tariff expires tomorrow" ],
-            "description" : "Notification message text to be delivered to the recipient"
+          "titleRu": {
+            "type": "string",
+            "description": "News headline in Russian"
           },
-          "active" : {
-            "type" : "boolean",
-            "examples" : [ true ],
-            "description" : "Whether this notification configuration is currently active. Inactive notifications are kept for history but will not be sent."
+          "bodyEn": {
+            "type": "string",
+            "description": "News body text in English"
+          },
+          "bodyRu": {
+            "type": "string",
+            "description": "News body text in Russian"
+          },
+          "link": {
+            "type": "string",
+            "description": "Optional external link"
           }
         }
       },
-      "EventRegistrationCreateRequest" : {
-        "type" : "object",
-        "required" : [ "eventId", "guestId", "guestCount" ],
-        "description" : "Payload for registering a guest to an event. Identifies the event and guest, and captures attendance details such as group size and optional comment.",
-        "properties" : {
-          "eventId" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the event to register for"
+      "CreateCoworkingGuestRequest": {
+        "type": "object",
+        "required": [
+          "firstName",
+          "lastName",
+          "telegram",
+          "phone"
+        ],
+        "description": "Payload for creating a new coworking guest. All fields are required.",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "Ivan"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's first name. Must be a non-blank string."
           },
-          "guestId" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "6ba7b810-9dad-11d1-80b4-00c04fd430c8" ],
-            "description" : "External unique identifier of the guest being registered"
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "Petrov"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's last name. Must be a non-blank string."
           },
-          "guestComment" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "Vegetarian meal preferred" ],
-            "description" : "Optional free-text comment from the guest (e.g. dietary restrictions, accessibility needs, questions)"
+          "telegram": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "ivan_petrov"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's Telegram username (without the @ prefix). Must be a non-blank string."
           },
-          "guestCount" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 2 ],
-            "description" : "Total number of people attending under this registration, including the guest themselves. Must be at least 1.",
-            "minimum" : 1
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "+79161234567"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's phone number in international format. Must be a non-blank string."
           },
-          "source" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "website" ],
-            "description" : "Optional source channel that initiated the registration (e.g. 'website', 'mobile-app', 'telegram-bot'). Used for analytics and attribution."
+          "telegram_chat_id": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "111111111111111"
+            ],
+            "description": ""
           }
         }
       },
-      "EventRegistrationResponse" : {
-        "type" : "object",
-        "required" : [ "id", "eventId", "guestId", "guestCount" ],
-        "description" : "Event registration details, linking a guest to an event and recording their attendance information",
-        "properties" : {
-          "id" : {
-            "type" : "string",
-            "examples" : [ "reg-123" ],
-            "description" : "Unique identifier of the event registration"
+      "CreateCoworkingMeetingRoomBookingRequest": {
+        "type": "object",
+        "required": [
+          "guestId",
+          "dateStart",
+          "dateEnd",
+          "persons"
+        ],
+        "properties": {
+          "guestId": {
+            "$ref": "#/components/schemas/UUID"
           },
-          "eventId" : {
-            "type" : "string",
-            "examples" : [ "event-456" ],
-            "description" : "Identifier of the event the guest is registered for"
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant"
           },
-          "guestId" : {
-            "type" : "string",
-            "examples" : [ "guest-789" ],
-            "description" : "Identifier of the guest who registered for the event"
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant"
           },
-          "guestComment" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "Vegetarian meal preferred" ],
-            "description" : "Optional free-text comment from the guest (e.g. dietary restrictions, accessibility needs, questions)"
+          "persons": {
+            "type": "integer",
+            "format": "int32"
           },
-          "guestCount" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 2 ],
-            "description" : "Total number of people attending under this registration, including the guest themselves",
-            "minimum" : 1
+          "comment": {
+            "type": "string"
           }
         }
       },
-      "EventResponse" : {
-        "type" : "object",
-        "required" : [ "id", "name", "dateStart", "dateEnd", "showForm" ],
-        "description" : "Event details including schedule, registration links, and notification configuration",
-        "properties" : {
-          "id" : {
-            "$ref" : "#/components/schemas/UUID",
-            "type" : "string",
-            "examples" : [ "550e8400-e29b-41d4-a716-446655440000" ],
-            "description" : "External unique identifier of the event"
+      "CreateEventGuestRequest": {
+        "type": "object",
+        "required": [
+          "first_name",
+          "phone",
+          "chat_id"
+        ],
+        "description": "Payload for creating a new event guest",
+        "properties": {
+          "first_name": {
+            "type": "string",
+            "pattern": "\\S",
+            "description": "Guest's first name"
           },
-          "name" : {
-            "type" : "string",
-            "examples" : [ "Startup Pitch Night" ],
-            "description" : "Event name"
+          "last_name": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Guest's last name (optional)"
           },
-          "dateStart" : {
-            "type" : "string",
-            "examples" : [ "2026-05-10T18:00:00Z" ],
-            "description" : "Date and time when the event starts, as a string in the format defined by the source system (typically ISO-8601)"
+          "phone": {
+            "type": "string",
+            "pattern": "\\S",
+            "description": "Guest's phone number"
           },
-          "dateEnd" : {
-            "type" : "string",
-            "examples" : [ "2026-05-10T21:00:00Z" ],
-            "description" : "Date and time when the event ends, as a string in the format defined by the source system (typically ISO-8601). Must be later than dateStart."
+          "telegram": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Guest's Telegram username (with @)"
           },
-          "description" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "An evening of pitches from emerging startups, followed by networking drinks." ],
-            "description" : "Free-text description of the event, may contain plain text or formatted content"
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Source channel, e.g. 'website'"
           },
-          "externalRegistrationUrl" : {
-            "type" : [ "string", "null" ],
-            "format" : "uri",
-            "examples" : [ "https://timepad.ru/event/1234567" ],
-            "description" : "External URL for event registration on a third-party platform (e.g. Timepad, Eventbrite). Used when registration is handled outside this system."
+          "chat_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": ""
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "required": [
+          "code",
+          "message"
+        ],
+        "description": "Standard error response returned by the API when a request fails. Contains a machine-readable error code, a human-readable message, and optional context details.",
+        "properties": {
+          "code": {
+            "type": "string",
+            "examples": [
+              "VALIDATION_FAILED"
+            ],
+            "description": "Machine-readable error code identifying the failure type. Typically a stable, uppercase string that clients can branch on."
           },
-          "registrationUrl" : {
-            "type" : [ "string", "null" ],
-            "format" : "uri",
-            "examples" : [ "https://coworking.example.com/events/550e8400/register" ],
-            "description" : "Internal registration URL within this system"
+          "message": {
+            "type": "string",
+            "examples": [
+              "One or more fields failed validation"
+            ],
+            "description": "Human-readable error message describing what went wrong. Intended for display to the end user or for logging."
           },
-          "instagramUrl" : {
-            "type" : [ "string", "null" ],
-            "format" : "uri",
-            "examples" : [ "https://instagram.com/p/Abc123Def456" ],
-            "description" : "Link to the event's Instagram post or story"
+          "details": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "examples": [
+              {
+                "field": "phone",
+                "reason": "must not be blank"
+              }
+            ],
+            "additionalProperties": {},
+            "description": "Optional map with additional context about the error. Structure depends on the error code — for validation errors it may contain field-level violations, for not-found errors it may contain the requested identifier, and so on."
+          }
+        }
+      },
+      "EventGuestResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "firstName",
+          "phone"
+        ],
+        "description": "Event guest details",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "External unique identifier (UUID) of the guest"
           },
-          "type" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "meetup" ],
-            "description" : "Event type or category (e.g. 'meetup', 'workshop', 'conference')"
+          "firstName": {
+            "type": "string",
+            "description": "Guest's first name"
           },
-          "showForm" : {
-            "type" : "boolean",
-            "examples" : [ true ],
-            "description" : "Whether the internal registration form should be shown to users. When false, users are expected to register via externalRegistrationUrl."
+          "lastName": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Guest's last name"
           },
-          "notifications" : {
-            "type" : [ "array", "null" ],
-            "examples" : [ [ "notif-123", "notif-456" ] ],
-            "items" : {
-              "type" : "string"
+          "telegram": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Guest's Telegram username"
+          },
+          "phone": {
+            "type": "string",
+            "description": "Guest's phone number"
+          },
+          "chatId": {
+            "type": "integer",
+            "format": "int64",
+            "description": ""
+          }
+        }
+      },
+      "EventNotificationResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "leadHours",
+          "message",
+          "active"
+        ],
+        "description": "Event notification configuration, defining when and what message should be sent ahead of an event",
+        "properties": {
+          "id": {
+            "type": "string",
+            "examples": [
+              "notif-123"
+            ],
+            "description": "Unique identifier of the event notification"
+          },
+          "leadHours": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              24
+            ],
+            "description": "Number of hours before the event at which the notification should be sent",
+            "minimum": 0
+          },
+          "message": {
+            "type": "string",
+            "examples": [
+              "Reminder: your coworking tariff expires tomorrow"
+            ],
+            "description": "Notification message text to be delivered to the recipient"
+          },
+          "active": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether this notification configuration is currently active. Inactive notifications are kept for history but will not be sent."
+          }
+        }
+      },
+      "EventRegistrationCreateRequest": {
+        "type": "object",
+        "required": [
+          "eventId",
+          "guestId",
+          "guestCount"
+        ],
+        "description": "Payload for registering a guest to an event. Identifies the event and guest, and captures attendance details such as group size and optional comment.",
+        "properties": {
+          "eventId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the event to register for"
+          },
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "6ba7b810-9dad-11d1-80b4-00c04fd430c8"
+            ],
+            "description": "External unique identifier of the guest being registered"
+          },
+          "guestComment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "Vegetarian meal preferred"
+            ],
+            "description": "Optional free-text comment from the guest (e.g. dietary restrictions, accessibility needs, questions)"
+          },
+          "guestCount": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              2
+            ],
+            "description": "Total number of people attending under this registration, including the guest themselves. Must be at least 1.",
+            "minimum": 1
+          },
+          "source": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "website"
+            ],
+            "description": "Optional source channel that initiated the registration (e.g. 'website', 'mobile-app', 'telegram-bot'). Used for analytics and attribution."
+          }
+        }
+      },
+      "EventRegistrationResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "eventId",
+          "guestId",
+          "guestCount"
+        ],
+        "description": "Event registration details, linking a guest to an event and recording their attendance information",
+        "properties": {
+          "id": {
+            "type": "string",
+            "examples": [
+              "reg-123"
+            ],
+            "description": "Unique identifier of the event registration"
+          },
+          "eventId": {
+            "type": "string",
+            "examples": [
+              "event-456"
+            ],
+            "description": "Identifier of the event the guest is registered for"
+          },
+          "guestId": {
+            "type": "string",
+            "examples": [
+              "guest-789"
+            ],
+            "description": "Identifier of the guest who registered for the event"
+          },
+          "guestComment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "Vegetarian meal preferred"
+            ],
+            "description": "Optional free-text comment from the guest (e.g. dietary restrictions, accessibility needs, questions)"
+          },
+          "guestCount": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              2
+            ],
+            "description": "Total number of people attending under this registration, including the guest themselves",
+            "minimum": 1
+          },
+          "isFirstRegistration": {
+            "type": "boolean",
+            "examples": [
+              false
+            ],
+            "description": "Whether this is the guest's first-ever registration for any event"
+          }
+        }
+      },
+      "EventResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "dateStart",
+          "dateEnd",
+          "showForm",
+          "isPin"
+        ],
+        "description": "Event details including schedule, registration links, and notification configuration",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the event"
+          },
+          "name": {
+            "type": "string",
+            "examples": [
+              "Startup Pitch Night"
+            ],
+            "description": "Event name"
+          },
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-05-10T18:00:00Z"
+            ],
+            "description": "Date and time when the event starts, as a string in the format defined by the source system (typically ISO-8601)"
+          },
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-05-10T21:00:00Z"
+            ],
+            "description": "Date and time when the event ends, as a string in the format defined by the source system (typically ISO-8601). Must be later than dateStart."
+          },
+          "description": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "An evening of pitches from emerging startups, followed by networking drinks."
+            ],
+            "description": "Free-text description of the event, may contain plain text or formatted content"
+          },
+          "externalRegistrationUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "examples": [
+              "https://timepad.ru/event/1234567"
+            ],
+            "description": "External URL for event registration on a third-party platform (e.g. Timepad, Eventbrite). Used when registration is handled outside this system."
+          },
+          "registrationUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "examples": [
+              "https://coworking.example.com/events/550e8400/register"
+            ],
+            "description": "Internal registration URL within this system"
+          },
+          "instagramUrl": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uri",
+            "examples": [
+              "https://instagram.com/p/Abc123Def456"
+            ],
+            "description": "Link to the event's Instagram post or story"
+          },
+          "showForm": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether the internal registration form should be shown to users. When false, users are expected to register via externalRegistrationUrl."
+          },
+          "notifications": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "examples": [
+              [
+                "notif-123",
+                "notif-456"
+              ]
+            ],
+            "items": {
+              "type": "string"
             },
-            "description" : "List of notification identifiers configured for this event. Each identifier references an EventNotificationResponse and defines when a reminder should be sent."
+            "description": "List of notification identifiers configured for this event. Each identifier references an EventNotificationResponse and defines when a reminder should be sent."
           },
-          "comment" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "Need to confirm catering by May 1" ],
-            "description" : "Internal comment or note about the event, not intended for public display"
+          "comment": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "Need to confirm catering by May 1"
+            ],
+            "description": "Internal comment or note about the event, not intended for public display"
           },
-          "showEvent" : {
-            "type" : [ "array", "null" ],
-            "examples" : [ [ "website", "mobile-app" ] ],
-            "items" : {
-              "type" : "string"
+          "isPin": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": ""
+          }
+        }
+      },
+      "EventTypeResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "value",
+          "color"
+        ],
+        "description": "Event type definition (e.g. 'meetup', 'workshop') with its display color for UI rendering",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int32",
+            "examples": [
+              1
+            ],
+            "description": "Unique numeric identifier of the event type",
+            "minimum": 1
+          },
+          "value": {
+            "type": "string",
+            "examples": [
+              "meetup"
+            ],
+            "description": "Human-readable name of the event type (e.g. 'meetup', 'workshop', 'conference')"
+          },
+          "color": {
+            "type": "string",
+            "examples": [
+              "#FF5733"
+            ],
+            "description": "Color associated with the event type, used for visual differentiation in the UI. Typically a CSS color name or hex code."
+          }
+        }
+      },
+      "FestivalResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "eventsIds",
+          "dateStart",
+          "dateEnd",
+          "isVisible",
+          "isPin"
+        ],
+        "description": "Festival details including its events, dates, and visibility settings",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "examples": [
+              "550e8400-e29b-41d4-a716-446655440000"
+            ],
+            "description": "External unique identifier of the festival"
+          },
+          "name": {
+            "type": "string",
+            "examples": [
+              "Summer Fest 2026"
+            ],
+            "description": "Festival name"
+          },
+          "description": {
+            "type": "string",
+            "examples": [
+              "An outdoor summer festival featuring music, art, and workshops"
+            ],
+            "description": "Short description of the festival"
+          },
+          "eventsIds": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
             },
-            "description" : "List of channels or contexts where this event should be displayed (e.g. 'website', 'mobile-app', 'telegram-bot')"
+            "description": "List of external UUIDs of events included in this festival"
+          },
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-07-01T10:00:00Z"
+            ],
+            "description": "Festival start date and time (ISO 8601 UTC)"
+          },
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant",
+            "type": "string",
+            "examples": [
+              "2026-07-05T22:00:00Z"
+            ],
+            "description": "Festival end date and time (ISO 8601 UTC)"
+          },
+          "isVisible": {
+            "type": "boolean",
+            "examples": [
+              true
+            ],
+            "description": "Whether the festival is publicly visible"
+          },
+          "isPin": {
+            "type": "boolean",
+            "examples": [
+              false
+            ],
+            "description": "Whether the festival is pinned (highlighted) in listings"
           }
         }
       },
-      "EventTypeResponse" : {
-        "type" : "object",
-        "required" : [ "id", "value", "color" ],
-        "description" : "Event type definition (e.g. 'meetup', 'workshop') with its display color for UI rendering",
-        "properties" : {
-          "id" : {
-            "type" : "integer",
-            "format" : "int32",
-            "examples" : [ 1 ],
-            "description" : "Unique numeric identifier of the event type",
-            "minimum" : 1
-          },
-          "value" : {
-            "type" : "string",
-            "examples" : [ "meetup" ],
-            "description" : "Human-readable name of the event type (e.g. 'meetup', 'workshop', 'conference')"
-          },
-          "color" : {
-            "type" : "string",
-            "examples" : [ "#FF5733" ],
-            "description" : "Color associated with the event type, used for visual differentiation in the UI. Typically a CSS color name or hex code."
+      "Instant": {
+        "type": "string",
+        "format": "date-time",
+        "examples": [
+          "2022-03-10T16:15:50Z"
+        ]
+      },
+      "UUID": {
+        "type": "string",
+        "format": "uuid",
+        "pattern": "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
+      },
+      "LinkCoworkingGuestChatByIdRequest": {
+        "type": "object",
+        "required": [
+          "chatId"
+        ],
+        "description": "Links a Telegram chat ID to a coworking guest by their UUID.",
+        "properties": {
+          "chatId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Telegram chat ID to link to the guest."
           }
         }
       },
-      "Instant" : {
-        "type" : "string",
-        "format" : "date-time"
-      },
-      "UUID" : {
-        "type" : "string",
-        "format" : "uuid",
-        "pattern" : "[a-fA-F0-9]{8}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{4}-[a-fA-F0-9]{12}"
-      },
-      "UpdateCoworkingGuestRequest" : {
-        "type" : "object",
-        "required" : [ "firstName", "lastName", "phone" ],
-        "description" : "Payload for updating an existing coworking guest. The 'telegram' field is optional; if omitted, the current value is kept.",
-        "properties" : {
-          "firstName" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "Ivan" ],
-            "pattern" : "\\S",
-            "description" : "Guest's first name. Must be a non-blank string."
+      "LinkCoworkingGuestChatRequest": {
+        "type": "object",
+        "required": [
+          "phone",
+          "chatId"
+        ],
+        "description": "Links a Telegram chat ID to a coworking guest identified by phone number.",
+        "properties": {
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Guest's phone number in international format."
           },
-          "lastName" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "Petrov" ],
-            "pattern" : "\\S",
-            "description" : "Guest's last name. Must be a non-blank string."
-          },
-          "phone" : {
-            "type" : "string",
-            "minLength" : 1,
-            "examples" : [ "+79161234567" ],
-            "pattern" : "\\S",
-            "description" : "Guest's phone number in international format. Must be a non-blank string."
-          },
-          "telegram" : {
-            "type" : [ "string", "null" ],
-            "examples" : [ "ivan_petrov" ],
-            "description" : "Guest's Telegram username (without the @ prefix). Optional — if omitted, the current value is preserved."
+          "chatId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Telegram chat ID to link to the guest."
           }
         }
       },
-      "UpdateCoworkingMeetingRoomBookingRequest" : {
-        "type" : "object",
-        "required" : [ "dateStart", "dateEnd", "persons" ],
-        "properties" : {
-          "dateStart" : {
-            "$ref" : "#/components/schemas/Instant"
+      "UpdateCoworkingGuestRequest": {
+        "type": "object",
+        "required": [
+          "firstName",
+          "lastName",
+          "phone"
+        ],
+        "description": "Payload for updating an existing coworking guest. The 'telegram' field is optional; if omitted, the current value is kept.",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "Ivan"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's first name. Must be a non-blank string."
           },
-          "dateEnd" : {
-            "$ref" : "#/components/schemas/Instant"
+          "lastName": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "Petrov"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's last name. Must be a non-blank string."
           },
-          "persons" : {
-            "type" : "integer",
-            "format" : "int32",
-            "minimum" : 1
+          "phone": {
+            "type": "string",
+            "minLength": 1,
+            "examples": [
+              "+79161234567"
+            ],
+            "pattern": "\\S",
+            "description": "Guest's phone number in international format. Must be a non-blank string."
           },
-          "comment" : {
-            "type" : "string"
+          "telegram": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "examples": [
+              "ivan_petrov"
+            ],
+            "description": "Guest's Telegram username (without the @ prefix). Optional — if omitted, the current value is preserved."
+          }
+        }
+      },
+      "UpdateCoworkingMeetingRoomBookingRequest": {
+        "type": "object",
+        "required": [
+          "dateStart",
+          "dateEnd",
+          "persons"
+        ],
+        "properties": {
+          "dateStart": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "dateEnd": {
+            "$ref": "#/components/schemas/Instant"
+          },
+          "persons": {
+            "type": "integer",
+            "format": "int32",
+            "minimum": 1
+          },
+          "comment": {
+            "type": "string"
+          }
+        }
+      },
+      "CreateCoworkingGuestTariffRequest": {
+        "type": "object",
+        "required": [
+          "guestId",
+          "tariffId"
+        ],
+        "description": "Request to create a pending guest tariff",
+        "properties": {
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "External UUID of the coworking guest"
+          },
+          "tariffId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "External UUID of the tariff to request"
+          }
+        }
+      },
+      "CoworkingGuestTariffResponse": {
+        "type": "object",
+        "required": [
+          "id",
+          "tariffId",
+          "guestId",
+          "daysUsed",
+          "status"
+        ],
+        "description": "Tariff assigned to a coworking guest",
+        "properties": {
+          "id": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "External unique identifier of the guest tariff"
+          },
+          "tariffId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "Identifier of the tariff definition"
+          },
+          "guestId": {
+            "$ref": "#/components/schemas/UUID",
+            "type": "string",
+            "description": "Identifier of the guest"
+          },
+          "daysUsed": {
+            "type": "integer",
+            "format": "int32",
+            "description": "Number of days already used"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["PENDING", "ACTIVE", "EXPIRED", "CANCELLED", "SUSPENDED"],
+            "description": "Current status of the guest tariff"
+          }
+        }
+      },
+      "CreateReviewRequest": {
+        "type": "object",
+        "required": [
+          "authorName",
+          "rating"
+        ],
+        "properties": {
+          "authorName": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "text": {
+            "type": "string",
+            "nullable": true
+          },
+          "eventRowId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "guestRowId": {
+            "type": "integer",
+            "nullable": true
+          },
+          "registrationRowId": {
+            "type": "integer",
+            "nullable": true
+          }
+        }
+      },
+      "ReviewResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer"
+          },
+          "text": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "UnlinkCoworkingGuestChatRequest": {
+        "type": "object",
+        "required": [
+          "chatId"
+        ],
+        "properties": {
+          "chatId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Telegram chat ID to unlink"
+          }
+        }
+      },
+      "LinkStatusResponse": {
+        "type": "object",
+        "properties": {
+          "linked": {
+            "type": "boolean",
+            "description": "True when the Telegram account has been successfully linked for this session"
+          },
+          "rejected": {
+            "type": "boolean",
+            "description": "True when the link was rejected"
+          },
+          "conflict": {
+            "type": "boolean",
+            "description": "True when the Telegram chat ID is already registered to another account"
           }
         }
       }
     },
-    "securitySchemes" : {
-      "bearerAuth" : {
-        "type" : "http",
-        "scheme" : "bearer",
-        "bearerFormat" : "JWT"
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
       },
-      "SecurityScheme" : {
-        "type" : "http",
-        "scheme" : "bearer",
-        "bearerFormat" : "JWT",
-        "description" : "Authentication"
+      "SecurityScheme": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Authentication"
       }
     }
   },
-  "info" : {
-    "contact" : {
-      "email" : "support@example.com",
-      "name" : "LAN Team"
+  "info": {
+    "contact": {
+      "email": "support@example.com",
+      "name": "LAN Team"
     },
-    "description" : "REST API for working with coworking and events through Baserow",
-    "title" : "LAN Baserow API",
-    "version" : "1.0.0"
+    "description": "REST API for working with coworking and events through Baserow",
+    "title": "LAN Baserow API",
+    "version": "1.0.0"
   },
-  "tags" : [ {
-    "name" : "Coworking Active Tariffs",
-    "description" : "Manage active coworking tariffs: retrieve the list of currently active tariffs or fetch detailed information about a specific one"
-  }, {
-    "name" : "Coworking Guests",
-    "description" : "Manage coworking guests: fetch guest details, create new guests, and update existing ones"
-  }, {
-    "name" : "Coworking Meeting Room Bookings",
-    "description" : "Manage meeting room bookings: fetch booking details, create new bookings, and update existing ones"
-  }, {
-    "name" : "Coworking Notifications",
-    "description" : "Manage coworking notifications: retrieve the list of notifications available to the current user"
-  }, {
-    "name" : "Coworking Tariffs",
-    "description" : "Manage coworking tariffs: retrieve the full list or fetch a single tariff by its identifier"
-  }, {
-    "name" : "Secured",
-    "description" : "Diagnostic endpoints for verifying authentication and authorization behavior"
-  } ],
-  "paths" : {
-    "/coworking/active-tariffs" : {
-      "get" : {
-        "summary" : "List all active coworking tariffs",
-        "description" : "Returns a lightweight list of all currently active coworking tariffs. Each item contains only the fields required for list views. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "listCoworkingActiveTariffs",
-        "tags" : [ "Coworking Active Tariffs" ],
-        "responses" : {
-          "200" : {
-            "description" : "Active tariffs retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoworkingActiveTariffListItemResponse"
+  "tags": [
+    {
+      "name": "Bot",
+      "description": "Internal endpoints for the Telegram bot"
+    },
+    {
+      "name": "Coworking Active Tariffs",
+      "description": "Manage active coworking tariffs: retrieve the list of currently active tariffs or fetch detailed information about a specific one"
+    },
+    {
+      "name": "Coworking Guests",
+      "description": "Manage coworking guests: fetch guest details, create new guests, and update existing ones"
+    },
+    {
+      "name": "Coworking Meeting Room Bookings",
+      "description": "Manage meeting room bookings: fetch booking details, create new bookings, and update existing ones"
+    },
+    {
+      "name": "Coworking News",
+      "description": "Manage coworking news: fetch news details"
+    },
+    {
+      "name": "Coworking Notifications",
+      "description": "Manage coworking notifications: retrieve the list of notifications available to the current user"
+    },
+    {
+      "name": "Coworking Tariffs",
+      "description": "Manage coworking tariffs: retrieve the full list or fetch a single tariff by its identifier"
+    },
+    {
+      "name": "Event Guests",
+      "description": "Manage event guests"
+    },
+    {
+      "name": "Event Registrations",
+      "description": "Register guests for events"
+    },
+    {
+      "name": "Festivals",
+      "description": "Manage festivals: retrieve the full list or fetch a single festival by its identifier"
+    },
+    {
+      "name": "Secured",
+      "description": "Diagnostic endpoints for verifying authentication and authorization behavior"
+    }
+  ],
+  "paths": {
+    "/coworking/v1/active-tariffs": {
+      "get": {
+        "summary": "List all active coworking tariffs",
+        "description": "Returns a lightweight list of all currently active coworking tariffs. Each item contains only the fields required for list views. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "listCoworkingActiveTariffs",
+        "tags": [
+          "Coworking Active Tariffs"
+        ],
+        "responses": {
+          "200": {
+            "description": "Active tariffs retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingActiveTariffListItemResponse"
                   }
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/active-tariffs/{externalId}" : {
-      "get" : {
-        "summary" : "Get an active coworking tariff by its identifier",
-        "description" : "Returns the full detailed representation of an active coworking tariff identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "getCoworkingActiveTariffById",
-        "tags" : [ "Coworking Active Tariffs" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the active tariff (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+    "/coworking/v1/active-tariffs/{externalId}": {
+      "get": {
+        "summary": "Get an active coworking tariff by its identifier",
+        "description": "Returns the full detailed representation of an active coworking tariff identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "getCoworkingActiveTariffById",
+        "tags": [
+          "Coworking Active Tariffs"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the active tariff (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Active tariff found and returned successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingActiveTariffResponse"
+        ],
+        "responses": {
+          "200": {
+            "description": "Active tariff found and returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingActiveTariffResponse"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "404" : {
-            "description" : "Active tariff with the given externalId was not found"
+          "404": {
+            "description": "Active tariff with the given externalId was not found"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/guests" : {
-      "post" : {
-        "summary" : "Create a new coworking guest",
-        "description" : "Creates a new coworking guest with the provided personal and contact information. Returns the created guest together with a Location header pointing to the new resource. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "createCoworkingGuest",
-        "tags" : [ "Coworking Guests" ],
-        "requestBody" : {
-          "description" : "Guest creation payload",
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateCoworkingGuestRequest"
+    "/coworking/v1/guests/{externalId}/link-chat": {
+      "patch": {
+        "summary": "Link a Telegram chat ID to a guest by UUID",
+        "description": "Sets the given Telegram chat ID on the coworking guest identified by external UUID.",
+        "operationId": "linkCoworkingGuestChatById",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCoworkingGuestChatByIdRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat ID linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
               }
             }
           },
-          "required" : true
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
         },
-        "responses" : {
-          "201" : {
-            "description" : "Guest created successfully",
-            "headers" : {
-              "Location" : {
-                "description" : "URI of the newly created guest resource",
-                "schema" : {
-                  "type" : "string",
-                  "format" : "uri"
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/link-chat": {
+      "post": {
+        "summary": "Link a Telegram chat ID to a guest by phone",
+        "description": "Finds a coworking guest by phone number and sets the given Telegram chat ID on their record.",
+        "operationId": "linkCoworkingGuestChat",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCoworkingGuestChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chat ID linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest with the given phone not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests": {
+      "get": {
+        "summary": "Find a coworking guest by Telegram chat ID",
+        "description": "Returns the coworking guest whose telegramChatId matches the given value. Returns 404 if no such guest exists.",
+        "operationId": "getCoworkingGuestByChatId",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "query",
+            "required": true,
+            "description": "Telegram chat ID of the guest",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Guest found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "summary": "Create a new coworking guest",
+        "description": "Creates a new coworking guest record.",
+        "operationId": "createCoworkingGuest",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoworkingGuestRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guest created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}": {
+      "patch": {
+        "summary": "Partially update a coworking guest",
+        "description": "Updates one or more fields of an existing coworking guest. Only the fields provided in the request body will be changed; omitted fields remain untouched. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "updateCoworkingGuest",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the guest (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Fields to update. Omitted fields will not be changed.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCoworkingGuestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Guest updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request body validation failed (invalid field values)"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission to access this resource"
+          },
+          "404": {
+            "description": "Guest with the given externalId was not found"
+          },
+          "409": {
+            "description": "Update conflicts with an existing guest (e.g. duplicate phone or telegram)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "Get a coworking guest by its identifier",
+        "description": "Returns detailed information about a coworking guest identified by their external UUID. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "getCoworkingGuestById",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the guest (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Guest found and returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission to access this resource"
+          },
+          "404": {
+            "description": "Guest with the given externalId was not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/meeting-room-booking": {
+      "post": {
+        "summary": "Create a new meeting room booking",
+        "description": "Creates a new meeting room booking for the given time slot and guest. Returns the created booking together with a Location header pointing to the new resource. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "createCoworkingMeetingRoomBooking",
+        "tags": [
+          "Coworking Meeting Room Bookings"
+        ],
+        "requestBody": {
+          "description": "Meeting room booking creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoworkingMeetingRoomBookingRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Booking created successfully",
+            "headers": {
+              "Location": {
+                "description": "URI of the newly created booking resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
                 }
               }
             },
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingGuestResponse"
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingMeetingRoomBookingResponse"
                 }
               }
             }
           },
-          "400" : {
-            "description" : "Request body validation failed (missing or invalid fields)"
+          "400": {
+            "description": "Request body validation failed (missing or invalid fields, e.g. end date before start date)"
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "409" : {
-            "description" : "A guest with the same unique attributes (e.g. phone or telegram) already exists"
+          "404": {
+            "description": "Referenced entity (e.g. guest or meeting room) was not found"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "409": {
+            "description": "The requested time slot conflicts with an existing booking"
+          },
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/guests/{externalId}" : {
-      "patch" : {
-        "summary" : "Partially update a coworking guest",
-        "description" : "Updates one or more fields of an existing coworking guest. Only the fields provided in the request body will be changed; omitted fields remain untouched. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "updateCoworkingGuest",
-        "tags" : [ "Coworking Guests" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the guest to update (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+    "/coworking/v1/meeting-room-booking/{externalId}": {
+      "patch": {
+        "summary": "Partially update a meeting room booking",
+        "description": "Updates one or more fields of an existing meeting room booking. Only the fields provided in the request body will be changed; omitted fields remain untouched. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "updateCoworkingMeetingRoomBooking",
+        "tags": [
+          "Coworking Meeting Room Bookings"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the booking to update (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
-        } ],
-        "requestBody" : {
-          "description" : "Fields to update. Omitted fields will not be changed.",
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UpdateCoworkingGuestRequest"
+        ],
+        "requestBody": {
+          "description": "Fields to update. Omitted fields will not be changed.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCoworkingMeetingRoomBookingRequest"
               }
             }
           },
-          "required" : true
+          "required": true
         },
-        "responses" : {
-          "200" : {
-            "description" : "Guest updated successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingGuestResponse"
+        "responses": {
+          "200": {
+            "description": "Booking updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingMeetingRoomBookingResponse"
                 }
               }
             }
           },
-          "400" : {
-            "description" : "Request body validation failed (invalid field values)"
+          "400": {
+            "description": "Request body validation failed (invalid field values)"
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "404" : {
-            "description" : "Guest with the given externalId was not found"
+          "404": {
+            "description": "Booking with the given externalId was not found"
           },
-          "409" : {
-            "description" : "Update conflicts with an existing guest (e.g. duplicate phone or telegram)"
+          "409": {
+            "description": "The updated time slot conflicts with an existing booking"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       },
-      "get" : {
-        "summary" : "Get a coworking guest by its identifier",
-        "description" : "Returns detailed information about a coworking guest identified by their external UUID. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "getCoworkingGuestById",
-        "tags" : [ "Coworking Guests" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the guest (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+      "get": {
+        "summary": "Get a meeting room booking by its identifier",
+        "description": "Returns detailed information about a meeting room booking identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "getCoworkingMeetingRoomBookingById",
+        "tags": [
+          "Coworking Meeting Room Bookings"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the meeting room booking (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Guest found and returned successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingGuestResponse"
+        ],
+        "responses": {
+          "200": {
+            "description": "Booking found and returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingMeetingRoomBookingResponse"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "404" : {
-            "description" : "Guest with the given externalId was not found"
+          "404": {
+            "description": "Booking with the given externalId was not found"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/meeting-room-booking" : {
-      "post" : {
-        "summary" : "Create a new meeting room booking",
-        "description" : "Creates a new meeting room booking for the given time slot and guest. Returns the created booking together with a Location header pointing to the new resource. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "createCoworkingMeetingRoomBooking",
-        "tags" : [ "Coworking Meeting Room Bookings" ],
-        "requestBody" : {
-          "description" : "Meeting room booking creation payload",
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/CreateCoworkingMeetingRoomBookingRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "201" : {
-            "description" : "Booking created successfully",
-            "headers" : {
-              "Location" : {
-                "description" : "URI of the newly created booking resource",
-                "schema" : {
-                  "type" : "string",
-                  "format" : "uri"
-                }
-              }
-            },
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingMeetingRoomBookingResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body validation failed (missing or invalid fields, e.g. end date before start date)"
-          },
-          "401" : {
-            "description" : "User is not authenticated"
-          },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
-          },
-          "404" : {
-            "description" : "Referenced entity (e.g. guest or meeting room) was not found"
-          },
-          "409" : {
-            "description" : "The requested time slot conflicts with an existing booking"
-          },
-          "500" : {
-            "description" : "Internal server error"
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
-      }
-    },
-    "/coworking/meeting-room-booking/{externalId}" : {
-      "patch" : {
-        "summary" : "Partially update a meeting room booking",
-        "description" : "Updates one or more fields of an existing meeting room booking. Only the fields provided in the request body will be changed; omitted fields remain untouched. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "updateCoworkingMeetingRoomBooking",
-        "tags" : [ "Coworking Meeting Room Bookings" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the booking to update (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "requestBody" : {
-          "description" : "Fields to update. Omitted fields will not be changed.",
-          "content" : {
-            "application/json" : {
-              "schema" : {
-                "$ref" : "#/components/schemas/UpdateCoworkingMeetingRoomBookingRequest"
-              }
-            }
-          },
-          "required" : true
-        },
-        "responses" : {
-          "200" : {
-            "description" : "Booking updated successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingMeetingRoomBookingResponse"
-                }
-              }
-            }
-          },
-          "400" : {
-            "description" : "Request body validation failed (invalid field values)"
-          },
-          "401" : {
-            "description" : "User is not authenticated"
-          },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
-          },
-          "404" : {
-            "description" : "Booking with the given externalId was not found"
-          },
-          "409" : {
-            "description" : "The updated time slot conflicts with an existing booking"
-          },
-          "500" : {
-            "description" : "Internal server error"
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
-      },
-      "get" : {
-        "summary" : "Get a meeting room booking by its identifier",
-        "description" : "Returns detailed information about a meeting room booking identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "getCoworkingMeetingRoomBookingById",
-        "tags" : [ "Coworking Meeting Room Bookings" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the meeting room booking (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
-          }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Booking found and returned successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingMeetingRoomBookingResponse"
-                }
-              }
-            }
-          },
-          "401" : {
-            "description" : "User is not authenticated"
-          },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
-          },
-          "404" : {
-            "description" : "Booking with the given externalId was not found"
-          },
-          "500" : {
-            "description" : "Internal server error"
-          }
-        },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
-      }
-    },
-    "/coworking/notifications" : {
-      "get" : {
-        "summary" : "List all coworking notifications",
-        "description" : "Returns the full list of coworking notifications. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "listCoworkingNotifications",
-        "tags" : [ "Coworking Notifications" ],
-        "responses" : {
-          "200" : {
-            "description" : "Notifications retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoworkingNotificationResponse"
+    "/coworking/v1/notifications": {
+      "get": {
+        "summary": "List all coworking notifications",
+        "description": "Returns the full list of coworking notifications. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "listCoworkingNotifications",
+        "tags": [
+          "Coworking Notifications"
+        ],
+        "responses": {
+          "200": {
+            "description": "Notifications retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingNotificationResponse"
                   }
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/tariffs" : {
-      "get" : {
-        "summary" : "List all coworking tariffs",
-        "description" : "Returns the full list of available coworking tariffs. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "listCoworkingTariffs",
-        "tags" : [ "Coworking Tariffs" ],
-        "responses" : {
-          "200" : {
-            "description" : "Tariffs retrieved successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "type" : "array",
-                  "items" : {
-                    "$ref" : "#/components/schemas/CoworkingTariffResponse"
+    "/coworking/v1/tariffs": {
+      "get": {
+        "summary": "List all coworking tariffs",
+        "description": "Returns the full list of available coworking tariffs. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "listCoworkingTariffs",
+        "tags": [
+          "Coworking Tariffs"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tariffs retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingTariffResponse"
                   }
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/coworking/tariffs/{externalId}" : {
-      "get" : {
-        "summary" : "Get a coworking tariff by its identifier",
-        "description" : "Returns detailed information about a coworking tariff identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "getCoworkingTariffById",
-        "tags" : [ "Coworking Tariffs" ],
-        "parameters" : [ {
-          "description" : "External unique identifier of the tariff (UUID)",
-          "example" : "550e8400-e29b-41d4-a716-446655440000",
-          "in" : "path",
-          "name" : "externalId",
-          "required" : true,
-          "schema" : {
-            "type" : "string",
-            "format" : "uuid"
+    "/coworking/v1/tariffs/{externalId}": {
+      "get": {
+        "summary": "Get a coworking tariff by its identifier",
+        "description": "Returns detailed information about a coworking tariff identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "getCoworkingTariffById",
+        "tags": [
+          "Coworking Tariffs"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the tariff (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
           }
-        } ],
-        "responses" : {
-          "200" : {
-            "description" : "Tariff found and returned successfully",
-            "content" : {
-              "application/json" : {
-                "schema" : {
-                  "$ref" : "#/components/schemas/CoworkingTariffResponse"
+        ],
+        "responses": {
+          "200": {
+            "description": "Tariff found and returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingTariffResponse"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "404" : {
-            "description" : "Tariff with the given externalId was not found"
+          "404": {
+            "description": "Tariff with the given externalId was not found"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     },
-    "/secured/permit-all" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
+    "/events/v1": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/EventResponse"
+                  }
                 }
               }
             }
           }
         },
-        "summary" : "Hello",
-        "tags" : [ "Token Secured Resource" ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "List",
+        "tags": [
+          "Event Resource"
+        ]
       }
     },
-    "/secured/public" : {
-      "get" : {
-        "summary" : "Public diagnostic endpoint",
-        "description" : "Returns a static 'public ok' response. Accessible to anyone — no authentication required. Useful for verifying that the service is reachable.",
-        "operationId" : "securedPublicEndpoint",
-        "tags" : [ "Secured" ],
-        "responses" : {
-          "200" : {
-            "description" : "Service is reachable",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string",
-                  "examples" : [ "public ok" ]
+    "/events/v1/bot/my-registrations": {
+      "get": {
+        "summary": "Return events a Telegram user has registered for",
+        "description": "Looks up event registrations by Telegram chat ID and returns the list of events. Returns an empty array if the user has no registrations.",
+        "operationId": "botMyRegistrations",
+        "tags": [
+          "Bot"
+        ],
+        "parameters": [
+          {
+            "name": "chatId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of event registrations",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BotRegistrationDto"
+                  }
                 }
               }
             }
           },
-          "500" : {
-            "description" : "Internal server error"
+          "400": {
+            "description": "chatId query parameter is missing or invalid"
           }
         }
       }
     },
-    "/secured/roles-allowed" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
+    "/events/v1/bot/registrations/{regId}/cancel": {
+      "post": {
+        "summary": "Cancel an event registration",
+        "description": "Soft-cancels a registration (sets is_cancelled) so the guest's seat is freed up. Rejects with 409 if the registration is already cancelled or the event has already started.",
+        "operationId": "botCancelRegistration",
+        "tags": [
+          "Bot"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the registration",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "regId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registration cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotRegistrationActionResponse"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
+          "400": {
+            "description": "regId is not a valid UUID"
           },
-          "403" : {
-            "description" : "Not Allowed"
+          "404": {
+            "description": "Registration not found"
+          },
+          "409": {
+            "description": "Registration already cancelled, or the event has already started"
           }
-        },
-        "summary" : "Hello Roles Allowed",
-        "tags" : [ "Token Secured Resource" ],
-        "security" : [ {
-          "bearerAuth" : [ "User", "Admin" ]
-        } ]
+        }
       }
     },
-    "/secured/roles-allowed-admin" : {
-      "get" : {
-        "responses" : {
-          "200" : {
-            "description" : "OK",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string"
+    "/events/v1/bot/registrations/{regId}/guest-count": {
+      "patch": {
+        "summary": "Change the number of guests on an event registration",
+        "description": "Rejects with 409 if the registration is cancelled, the event has already started, or the requested guest count exceeds the event's remaining capacity.",
+        "operationId": "botUpdateRegistrationGuestCount",
+        "tags": [
+          "Bot"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the registration",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "regId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GuestCountUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Guest count updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BotRegistrationActionResponse"
                 }
               }
             }
           },
-          "401" : {
-            "description" : "Not Authorized"
+          "400": {
+            "description": "regId is not a valid UUID, or guest_count is missing/invalid"
           },
-          "403" : {
-            "description" : "Not Allowed"
+          "404": {
+            "description": "Registration not found"
+          },
+          "409": {
+            "description": "Registration cancelled, event already started, or not enough remaining capacity"
           }
-        },
-        "summary" : "Hello Roles Allowed Admin",
-        "tags" : [ "Token Secured Resource" ],
-        "security" : [ {
-          "bearerAuth" : [ "Admin" ]
-        } ]
+        }
       }
     },
-    "/secured/user" : {
-      "get" : {
-        "summary" : "Authenticated diagnostic endpoint",
-        "description" : "Returns a greeting containing the authenticated user's name and the list of their groups extracted from the JWT. Useful for verifying that the Bearer token is parsed correctly and that the caller has the expected roles. Accessible to users with the 'admin' or 'web-users' role.",
-        "operationId" : "securedUserEndpoint",
-        "tags" : [ "Secured" ],
-        "responses" : {
-          "200" : {
-            "description" : "Authenticated greeting returned successfully",
-            "content" : {
-              "text/plain" : {
-                "schema" : {
-                  "type" : "string",
-                  "examples" : [ "hello ivan.petrov, groups=[admin, web-users]" ]
+    "/events/v1/festivals": {
+      "get": {
+        "summary": "List all festivals",
+        "description": "Returns the full list of available festivals. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "listFestivals",
+        "tags": [
+          "Festivals"
+        ],
+        "responses": {
+          "200": {
+            "description": "Festivals retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FestivalResponse"
+                  }
                 }
               }
             }
           },
-          "401" : {
-            "description" : "User is not authenticated"
+          "401": {
+            "description": "User is not authenticated"
           },
-          "403" : {
-            "description" : "User does not have permission to access this resource"
+          "403": {
+            "description": "User does not have permission to access this resource"
           },
-          "500" : {
-            "description" : "Internal server error"
+          "500": {
+            "description": "Internal server error"
           }
         },
-        "security" : [ {
-          "bearerAuth" : [ ]
-        } ]
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/festivals/{externalId}": {
+      "get": {
+        "summary": "Get a festival by its identifier",
+        "description": "Returns detailed information about a festival identified by its external UUID. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "getFestivalById",
+        "tags": [
+          "Festivals"
+        ],
+        "parameters": [
+          {
+            "description": "External unique identifier of the festival (UUID)",
+            "example": "550e8400-e29b-41d4-a716-446655440000",
+            "in": "path",
+            "name": "externalId",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Festival found and returned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FestivalResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission to access this resource"
+          },
+          "404": {
+            "description": "Festival with the given externalId was not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/guests": {
+      "post": {
+        "summary": "Create a new event guest",
+        "description": "Creates a new event guest. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "createEventGuest",
+        "tags": [
+          "Event Guests"
+        ],
+        "requestBody": {
+          "description": "Guest creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateEventGuestRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Guest created successfully",
+            "headers": {
+              "Location": {
+                "description": "URI of the newly created guest resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventGuestResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "Insufficient permissions"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/registrations": {
+      "post": {
+        "summary": "Register a guest for an event",
+        "description": "Creates a new event registration linking a guest to an event. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "createEventRegistration",
+        "tags": [
+          "Event Registrations"
+        ],
+        "requestBody": {
+          "description": "Registration creation payload",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EventRegistrationCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Registration created successfully",
+            "headers": {
+              "Location": {
+                "description": "URI of the newly created registration resource",
+                "schema": {
+                  "type": "string",
+                  "format": "uri"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventRegistrationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request body validation failed (missing or invalid fields)"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission to access this resource"
+          },
+          "404": {
+            "description": "Event or guest with the given identifier was not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/registrations/{regId}/confirm": {
+      "post": {
+        "summary": "Mark a site registration as bot-confirmed",
+        "operationId": "confirmRegistration",
+        "tags": [
+          "Event Registrations"
+        ],
+        "parameters": [
+          {
+            "name": "regId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "chatId",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/registrations/{regId}/confirmed": {
+      "get": {
+        "summary": "Check if a registration has been bot-confirmed",
+        "operationId": "isRegistrationConfirmed",
+        "tags": [
+          "Event Registrations"
+        ],
+        "parameters": [
+          {
+            "name": "regId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/events/v1/{externalId}": {
+      "get": {
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/UUID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EventResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "summary": "Get",
+        "tags": [
+          "Event Resource"
+        ]
+      }
+    },
+    "/secured/permit-all": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Hello",
+        "tags": [
+          "Token Secured Resource"
+        ]
+      }
+    },
+    "/secured/public": {
+      "get": {
+        "summary": "Public diagnostic endpoint",
+        "description": "Returns a static 'public ok' response. Accessible to anyone — no authentication required. Useful for verifying that the service is reachable.",
+        "operationId": "securedPublicEndpoint",
+        "tags": [
+          "Secured"
+        ],
+        "responses": {
+          "200": {
+            "description": "Service is reachable",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "examples": [
+                    "public ok"
+                  ]
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/secured/roles-allowed": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized"
+          },
+          "403": {
+            "description": "Not Allowed"
+          }
+        },
+        "summary": "Hello Roles Allowed",
+        "tags": [
+          "Token Secured Resource"
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "User",
+              "Admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/secured/roles-allowed-admin": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not Authorized"
+          },
+          "403": {
+            "description": "Not Allowed"
+          }
+        },
+        "summary": "Hello Roles Allowed Admin",
+        "tags": [
+          "Token Secured Resource"
+        ],
+        "security": [
+          {
+            "bearerAuth": [
+              "Admin"
+            ]
+          }
+        ]
+      }
+    },
+    "/secured/user": {
+      "get": {
+        "summary": "Authenticated diagnostic endpoint",
+        "description": "Returns a greeting containing the authenticated user's name and the list of their groups extracted from the JWT. Useful for verifying that the Bearer token is parsed correctly and that the caller has the expected roles. Accessible to users with the 'admin' or 'web-users' role.",
+        "operationId": "securedUserEndpoint",
+        "tags": [
+          "Secured"
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated greeting returned successfully",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "type": "string",
+                  "examples": [
+                    "hello ivan.petrov, groups=[admin, web-users]"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission to access this resource"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guest-tariffs": {
+      "post": {
+        "summary": "Create a pending guest tariff request",
+        "description": "Creates a guest_tariff record with status 'pending'. The admin must activate it manually.",
+        "operationId": "createGuestTariff",
+        "tags": [
+          "Coworking Guest Tariffs"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCoworkingGuestTariffRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Guest tariff created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestTariffResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "get": {
+        "summary": "List guest tariffs filtered by guestId",
+        "description": "Returns the list of active tariffs for the given guest UUID.",
+        "operationId": "listGuestTariffs",
+        "tags": [
+          "Coworking Guest Tariffs"
+        ],
+        "parameters": [
+          {
+            "name": "guestId",
+            "in": "query",
+            "required": false,
+            "description": "External UUID of the coworking guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of guest tariffs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingGuestTariffResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guest-tariffs/{externalId}/deduct-day": {
+      "post": {
+        "summary": "Deduct one day from a guest tariff",
+        "description": "Increments daysUsed by 1 for the specified guest tariff. Returns the updated record.",
+        "operationId": "deductGuestTariffDay",
+        "tags": [
+          "Coworking Guest Tariffs"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest tariff",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Day deducted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CoworkingGuestTariffResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest tariff not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/tariff-history": {
+      "get": {
+        "summary": "Get all tariffs for a guest (active + expired)",
+        "description": "Returns the full tariff history for the given guest UUID, including both active and expired tariffs.",
+        "operationId": "getGuestTariffHistory",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the coworking guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Full tariff history for the guest",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingGuestTariffResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/news": {
+      "get": {
+        "summary": "List coworking news",
+        "description": "Returns a list of published coworking news items, ordered by publication date descending.",
+        "operationId": "listCoworkingNews",
+        "tags": [
+          "Coworking News"
+        ],
+        "responses": {
+          "200": {
+            "description": "News list retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CoworkingNewsResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/reviews": {
+      "post": {
+        "summary": "Submit a review",
+        "operationId": "createReview",
+        "tags": [
+          "Reviews"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReviewRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Review created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/unlink-chat": {
+      "post": {
+        "summary": "Remove the Telegram chat ID link from a guest",
+        "description": "Clears the Telegram chat ID on the guest whose record matches the given chat ID. Idempotent.",
+        "operationId": "unlinkCoworkingGuestChat",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnlinkCoworkingGuestChatRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Chat ID unlinked (or was already absent)"
+          },
+          "400": {
+            "description": "Validation failed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/link-confirm": {
+      "post": {
+        "summary": "Confirm the Telegram link session for a guest",
+        "description": "Marks the current link session as CONFIRMED. Called by the Telegram bot after the guest opens the deep link and is verified.",
+        "operationId": "confirmCoworkingGuestLink",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session confirmed"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/link-reject": {
+      "post": {
+        "summary": "Reject the Telegram link session for a guest",
+        "description": "Marks the current link session as REJECTED. Called by the Telegram bot when the guest denies the login request.",
+        "operationId": "rejectCoworkingGuestLink",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Session rejected"
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/guests/{externalId}/link-status": {
+      "get": {
+        "summary": "Get the Telegram link session status for a guest",
+        "description": "Returns whether the current link session is confirmed, rejected, or still pending.",
+        "operationId": "getCoworkingGuestLinkStatus",
+        "tags": [
+          "Coworking Guests"
+        ],
+        "parameters": [
+          {
+            "name": "externalId",
+            "in": "path",
+            "required": true,
+            "description": "External UUID of the guest",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Link status returned",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LinkStatusResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User is not authenticated"
+          },
+          "403": {
+            "description": "User does not have permission"
+          },
+          "404": {
+            "description": "Guest not found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
       }
     }
   }
