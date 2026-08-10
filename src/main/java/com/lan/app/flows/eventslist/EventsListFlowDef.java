@@ -14,5 +14,8 @@ public final class EventsListFlowDef {
     public static final String CB_EVT_REG_PREFIX = "evt_reg_";
     public static final String CB_EVF_PREFIX     = "evf_";
 
+    /** Raw callback (exact match, no per-guest id needed) — "subscribe to weekly digest" button. */
+    public static final String CB_DIGEST_SUB = "events_digest_sub";
+
     private EventsListFlowDef() {}
 }

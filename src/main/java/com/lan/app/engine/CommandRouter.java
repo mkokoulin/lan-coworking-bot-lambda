@@ -17,6 +17,7 @@ import com.lan.app.flows.eventsurvey.EventSurveyFlowDef;
 import com.lan.app.flows.myevents.MyEventsFlowDef;
 import com.lan.app.flows.registration.RegistrationSession;
 import com.lan.app.flows.start.StartFlowDef;
+import com.lan.app.flows.weeklydigest.WeeklyDigestSubscribeHandler;
 import com.lan.app.flows.weeklydigest.WeeklyDigestUnsubscribeHandler;
 import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
@@ -46,6 +47,7 @@ public class CommandRouter {
     private final I18n i18n;
     private final CwLoginConfirmHandler cwLoginConfirmHandler;
     private final WeeklyDigestUnsubscribeHandler weeklyDigestUnsubscribeHandler;
+    private final WeeklyDigestSubscribeHandler weeklyDigestSubscribeHandler;
 
     @Inject
     public CommandRouter(
@@ -54,7 +56,8 @@ public class CommandRouter {
         TelegramClient telegramClient,
         I18n i18n,
         CwLoginConfirmHandler cwLoginConfirmHandler,
-        WeeklyDigestUnsubscribeHandler weeklyDigestUnsubscribeHandler
+        WeeklyDigestUnsubscribeHandler weeklyDigestUnsubscribeHandler,
+        WeeklyDigestSubscribeHandler weeklyDigestSubscribeHandler
     ) {
         this.registry = registry;
         this.guestService = guestService;
@@ -62,6 +65,7 @@ public class CommandRouter {
         this.i18n = i18n;
         this.cwLoginConfirmHandler = cwLoginConfirmHandler;
         this.weeklyDigestUnsubscribeHandler = weeklyDigestUnsubscribeHandler;
+        this.weeklyDigestSubscribeHandler = weeklyDigestSubscribeHandler;
     }
 
     public StepResult route(UpdateContext ctx, Session session) {
@@ -127,7 +131,7 @@ public class CommandRouter {
         }
 
         // Route pay_approve_/pay_reject_ callbacks to admin payment handler
-        // Route cw_confirm_/cw_reject_ and digest_unsub_ callbacks directly — bypass flow system
+        // Route cw_confirm_/cw_reject_, digest_unsub_ and events_digest_sub callbacks directly — bypass flow system
         // Route survey_rate_ callbacks into the event-survey flow at STEP_RATING
         // Route evt_reg_/evt_/evf_ callbacks to the events-list flow
         if (ctx.hasCallback()) {
@@ -139,6 +143,8 @@ public class CommandRouter {
                 return cwLoginConfirmHandler.handle(ctx, session);
             } else if (cb != null && cb.startsWith("digest_unsub_")) {
                 return weeklyDigestUnsubscribeHandler.handle(ctx, session);
+            } else if (cb != null && cb.equals(EventsListFlowDef.CB_DIGEST_SUB)) {
+                return weeklyDigestSubscribeHandler.handle(ctx, session);
             } else if (cb != null && cb.startsWith(EventSurveyFlowDef.CB_SURVEY_RATE_PREFIX)) {
                 session.setFlow(EventSurveyFlowDef.FLOW);
                 session.setStep(EventSurveyFlowDef.STEP_RATING);

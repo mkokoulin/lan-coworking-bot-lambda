@@ -119,6 +119,11 @@ public class EventsListHandler implements StepHandler {
             .limit(MAX_FESTIVALS)
             .forEach(f -> rows.add(KeyboardBuilder.row(rawBtn("🎪 " + shortLabel(f.getName()), "evf_" + f.getId()))));
 
+        // Weekly digest subscribe
+        rows.add(KeyboardBuilder.row(
+            rawBtn(i18n.t(lang, "events_list_btn_digest_sub"), EventsListFlowDef.CB_DIGEST_SUB)
+        ));
+
         // Navigation
         rows.add(KeyboardBuilder.row(
             KeyboardBuilder.cbCmd(i18n.t(lang, "events_list_btn_myevents"), "myevents"),

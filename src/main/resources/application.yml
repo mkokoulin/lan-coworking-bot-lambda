@@ -74,7 +74,7 @@ app:
   wifi-private-ssid: ${WIFI_PRIVATE_SSID:}
   wifi-private-password: ${WIFI_PRIVATE_PASSWORD:}
   weekly-digest:
-    cron: ${APP_WEEKLY_DIGEST_CRON:0 0 18 ? * MON}
+    cron: ${APP_WEEKLY_DIGEST_CRON:0 0 16 ? * TUE}
 
 notify:
   secret: ${NOTIFY_SECRET:}

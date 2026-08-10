@@ -135,8 +135,8 @@ class EventsListHandlerTest {
         assertThat(result).isEqualTo(StepResult.stay(EventsListFlowDef.FLOW, EventsListFlowDef.STEP_LIST));
         var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
         verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
-        // 2 event rows + nav row
-        assertThat(keyboardRows(captor.getValue())).hasSize(3);
+        // 2 event rows + digest-subscribe row + nav row
+        assertThat(keyboardRows(captor.getValue())).hasSize(4);
     }
 
     @Test
@@ -152,8 +152,8 @@ class EventsListHandlerTest {
 
         var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
         verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
-        // 1 standalone event row + 1 festival row + nav row
-        assertThat(keyboardRows(captor.getValue())).hasSize(3);
+        // 1 standalone event row + 1 festival row + digest-subscribe row + nav row
+        assertThat(keyboardRows(captor.getValue())).hasSize(4);
     }
 
     @Test
@@ -167,8 +167,8 @@ class EventsListHandlerTest {
 
         var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
         verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
-        // 1 event row + nav row (festival excluded)
-        assertThat(keyboardRows(captor.getValue())).hasSize(2);
+        // 1 event row + digest-subscribe row + nav row (festival excluded)
+        assertThat(keyboardRows(captor.getValue())).hasSize(3);
     }
 
     @Test
@@ -183,8 +183,8 @@ class EventsListHandlerTest {
         assertThat(result).isEqualTo(StepResult.stay(EventsListFlowDef.FLOW, EventsListFlowDef.STEP_LIST));
         var captor = org.mockito.ArgumentCaptor.forClass(Object.class);
         verify(telegramClient).sendHtml(eq(100L), any(), captor.capture());
-        // 1 pinned festival row + nav row
-        assertThat(keyboardRows(captor.getValue())).hasSize(2);
+        // 1 pinned festival row + digest-subscribe row + nav row
+        assertThat(keyboardRows(captor.getValue())).hasSize(3);
     }
 
     @Test
