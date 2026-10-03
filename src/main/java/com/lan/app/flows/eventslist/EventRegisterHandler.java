@@ -127,7 +127,7 @@ public class EventRegisterHandler implements StepHandler {
             telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "events_register_success"), homeButton(lang));
 
-            notifyAdmin(eventId, cwGuest, session.getChatId(), isFirstRegistration);
+            notifyAdmin(eventId, cwGuest, session.getChatId(), request.getGuestCount(), isFirstRegistration);
 
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
@@ -213,7 +213,7 @@ public class EventRegisterHandler implements StepHandler {
      * Mirrors the admin notification sent for website registrations (see lan-site's
      * /api/register), which was previously missing entirely for bot-initiated registrations.
      */
-    private void notifyAdmin(UUID eventId, Optional<CoworkingGuestResponse> cwGuest, Long chatId, boolean isFirstRegistration) {
+    private void notifyAdmin(UUID eventId, Optional<CoworkingGuestResponse> cwGuest, Long chatId, int guestCount, boolean isFirstRegistration) {
         try {
             EventResponse event = eventApi.eventsV1ExternalIdGet(eventId);
             String eventName = (event != null && event.getName() != null) ? event.getName() : "—";
@@ -253,6 +253,7 @@ public class EventRegisterHandler implements StepHandler {
             if (telegram != null) {
                 msg.append("\n✈️ ").append(escapeHtml(telegram));
             }
+            msg.append("\n👥 ").append(guestCount).append(" ").append(guestsLabel(guestCount));
             if (isFirstRegistration) {
                 msg.append("\n\n🆕 Первый раз на нашем мероприятии");
             }
@@ -261,6 +262,15 @@ public class EventRegisterHandler implements StepHandler {
         } catch (Exception e) {
             LOG.warnf(e, "Failed to send admin notification for event=%s, chatId=%d", eventId, chatId);
         }
+    }
+
+    /** Russian plural form for "гость": 1 гость, 2-4 гостя, 5-20/0 гостей (11-14 always "гостей"). */
+    private static String guestsLabel(int n) {
+        int mod10 = n % 10;
+        int mod100 = n % 100;
+        if (mod10 == 1 && mod100 != 11) return "гость";
+        if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return "гостя";
+        return "гостей";
     }
 
     private static String escapeHtml(String text) {
