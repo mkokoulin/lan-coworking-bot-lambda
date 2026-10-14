@@ -5,6 +5,7 @@ import com.lan.app.client.baserow.api.EventRegistrationsApi;
 import com.lan.app.client.baserow.api.EventResourceApi;
 import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.client.baserow.model.CreateEventGuestRequest;
+import com.lan.app.client.baserow.model.ErrorResponse;
 import com.lan.app.client.baserow.model.EventGuestResponse;
 import com.lan.app.client.baserow.model.EventRegistrationCreateRequest;
 import com.lan.app.client.baserow.model.EventResponse;
@@ -132,8 +133,12 @@ public class EventRegisterHandler implements StepHandler {
         } catch (WebApplicationException e) {
             int status = e.getResponse().getStatus();
             if (status == 409) {
+                String errorCode = readErrorCode(e);
+                String messageKey = "EVENT_SOLD_OUT".equals(errorCode)
+                    ? "events_register_full"
+                    : "events_register_already";
                 telegramClient.sendHtml(session.getChatId(),
-                    i18n.t(lang, "events_register_already"), backToListButton(lang));
+                    i18n.t(lang, messageKey), backToListButton(lang));
             } else {
                 LOG.warnf("Event registration failed: HTTP %d, event=%s, eventGuest=%s (cwGuest=%s)",
                     status, eventId, eventGuestId, guestIdStr);
@@ -276,6 +281,15 @@ public class EventRegisterHandler implements StepHandler {
     private static String escapeHtml(String text) {
         if (text == null) return "";
         return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    /** Reads the machine-readable error code from a backend error body, or null if unavailable. */
+    private String readErrorCode(WebApplicationException e) {
+        try {
+            return e.getResponse().readEntity(ErrorResponse.class).getCode();
+        } catch (Exception readError) {
+            return null;
+        }
     }
 
     private Object homeButton(String lang) {

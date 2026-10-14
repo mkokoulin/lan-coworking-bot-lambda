@@ -4,6 +4,7 @@ import com.lan.app.client.baserow.api.EventGuestsApi;
 import com.lan.app.client.baserow.api.EventRegistrationsApi;
 import com.lan.app.client.baserow.api.EventResourceApi;
 import com.lan.app.client.baserow.model.CoworkingGuestResponse;
+import com.lan.app.client.baserow.model.ErrorResponse;
 import com.lan.app.client.baserow.model.EventGuestResponse;
 import com.lan.app.client.baserow.model.EventRegistrationCreateRequest;
 import com.lan.app.client.baserow.model.EventRegistrationResponse;
@@ -20,6 +21,7 @@ import io.quarkus.test.InjectMock;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.WebApplicationException;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.rest.client.inject.RestClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -309,6 +311,24 @@ class EventRegisterHandlerTest {
 
         assertThat(result).isEqualTo(StepResult.finish());
         verify(i18n).t(eq("en"), eq("events_register_already"));
+    }
+
+    @Test
+    void registration409SoldOut_sendsEventFullMessage() {
+        Session s = session();
+        UUID eventId = UUID.randomUUID();
+        stubEventGuestSuccess(UUID.randomUUID().toString());
+        ErrorResponse body = new ErrorResponse().code("EVENT_SOLD_OUT").message("Event is sold out.");
+        when(registrationsApi.createEventRegistration(any()))
+                .thenThrow(new WebApplicationException(Response.status(409)
+                        .entity(body)
+                        .type(MediaType.APPLICATION_JSON)
+                        .build()));
+
+        StepResult result = handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
+
+        assertThat(result).isEqualTo(StepResult.finish());
+        verify(i18n).t(eq("en"), eq("events_register_full"));
     }
 
     @Test
