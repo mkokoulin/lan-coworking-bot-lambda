@@ -3,6 +3,7 @@ package com.lan.app.handler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.lan.app.analytics.AnalyticsService;
 import com.lan.app.domain.IncomingUpdate;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.CommandRouter;
@@ -23,30 +24,40 @@ public class UpdateHandler {
     private final IncomingUpdateFactory incomingUpdateFactory;
     private final SessionRepository sessionRepository;
     private final CommandRouter commandRouter;
+    private final AnalyticsService analyticsService;
 
     @Inject
     public UpdateHandler(
         IncomingUpdateFactory incomingUpdateFactory,
         SessionRepository sessionRepository,
-        CommandRouter commandRouter
+        CommandRouter commandRouter,
+        AnalyticsService analyticsService
     ) {
         this.incomingUpdateFactory = incomingUpdateFactory;
         this.sessionRepository = sessionRepository;
         this.commandRouter = commandRouter;
+        this.analyticsService = analyticsService;
     }
 
     public void handle(TelegramUpdate rawUpdate) {
         IncomingUpdate update = incomingUpdateFactory.fromTelegram(rawUpdate);
-        
-        logger.info("Received update: {}", update);
-        
+
         if (update == null || update.getUserId() == null || update.getChatId() == null) {
             logger.info("Skip update: invalid mapped update");
             return;
         }
 
-        Session session = sessionRepository.findByUserId(update.getUserId())
-                .orElseGet(() -> newSession(update));
+        var existingSession = sessionRepository.findByUserId(update.getUserId());
+        boolean isNewUser = existingSession.isEmpty();
+        Session session = existingSession.orElseGet(() -> newSession(update));
+
+        // Always sync chatId from the actual update — the in-memory session
+        // may have a stale chatId after restart or first admin interaction
+        if (!update.getChatId().equals(session.getChatId())) {
+            logger.info("Updating chatId for userId={}: {} -> {}",
+                    update.getUserId(), session.getChatId(), update.getChatId());
+            session.setChatId(update.getChatId());
+        }
 
         if (alreadyProcessed(session, update)) {
             logger.info("Skip update: already processed updateId={}", update.getUpdateId());
@@ -54,9 +65,12 @@ public class UpdateHandler {
         }
 
         UpdateContext ctx = UpdateContext.fromIncomingUpdate(update);
+        analyticsService.trackUpdate(ctx, session, isNewUser);
 
         StepResult result = commandRouter.route(ctx, session);
         applyStepResult(session, result);
+
+        analyticsService.trackScreen(ctx.userId(), session);
 
         session.setLastProcessedUpdateId(update.getUpdateId());
         sessionRepository.save(session);

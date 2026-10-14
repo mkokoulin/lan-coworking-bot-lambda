@@ -26,7 +26,7 @@ public class Session {
         Session s = new Session();
         s.chatId = chatId;
         s.userId = userId;
-        s.lang = "ru";
+        s.lang = "en";
         s.flow = "";
         s.step = "";
         s.createdAt = now;

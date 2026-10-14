@@ -48,7 +48,7 @@ public class MyEventsGuestsWaitHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        // callback-нажатие (кроме "/events", которое роутится в STEP_LIST раньше) игнорируем — ждём текст
+        // callback-нажатие (кроме "/myevents", которое роутится в STEP_LIST раньше) игнорируем — ждём текст
         if (ctx.hasCallback()) {
             return StepResult.stay(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_WAIT);
         }

@@ -5,15 +5,34 @@ quarkus:
     telegram-api:
       url: https://api.telegram.org
     "com.lan.app.client.baserow.api.CoworkingGuestsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingTariffsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingMeetingRoomBookingsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingActiveTariffsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
     "com.lan.app.client.baserow.api.CoworkingNotificationsApi":
-      url: ${BASEROW_URL:http://localhost:8080}
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.EventGuestsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.EventRegistrationsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.EventResourceApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.BotApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.FestivalsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingGuestTariffsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.CoworkingNewsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    "com.lan.app.client.baserow.api.ReviewsApi":
+      url: ${APP_BACKEND_URL:http://localhost:8080}
+    logging:
+      scope: request-response
+      body-limit: 500
   default-locale: en
   locales:
     - en
@@ -26,27 +45,46 @@ quarkus:
     baserow_api_json:
       auth:
         bearerAuth:
-          bearer-token: ${BASEROW_TOKEN:}
+          bearer-token: ${API_TOKEN:}
   log:
     console:
       json: false
       color: true
       format: "%d{HH:mm:ss} %-5p [%c{2.}] %s%e%n"
+    category:
+      "com.lan.app.telegram":
+        level: DEBUG
+      "com.lan.app.analytics":
+        level: DEBUG
+      "org.jboss.resteasy.reactive.client.logging":
+        level: DEBUG
 
 telegram:
-  bot-token: ${TELEGRAM_BOT_TOKEN}
-  admin-chat-id: ${TELEGRAM_ADMIN_CHAT_ID}
+  bot-token: ${TG_BOT_TOKEN}
+  admin-chat-id: ${TG_ADMIN_CHAT_ID}
   api-base-url: https://api.telegram.org
 
 app:
-  site-url: ${SITE_URL:}
-  backend-url: ${BACKEND_URL:}
-  baserow-url: ${BASEROW_URL:http://localhost:8080}
-  baserow-token: ${BASEROW_TOKEN:}
+  site-url: ${APP_SITE_URL:}
+  backend-url: ${APP_BACKEND_URL:}
+  baserow-url: ${APP_BACKEND_URL:http://localhost:8080}
+  baserow-token: ${API_TOKEN:}
   wifi-guest-ssid: ${WIFI_GUEST_SSID:}
   wifi-guest-password: ${WIFI_GUEST_PASSWORD:}
   wifi-private-ssid: ${WIFI_PRIVATE_SSID:}
   wifi-private-password: ${WIFI_PRIVATE_PASSWORD:}
+  weekly-digest:
+    cron: ${APP_WEEKLY_DIGEST_CRON:0 0 16 ? * TUE}
+
+notify:
+  secret: ${NOTIFY_SECRET:}
+
+ga:
+  measurement-id: ${GA_MEASUREMENT_ID:G-BSJ90FMQGM}
+  api-secret: ${GA_API_SECRET:}
+
+payment:
+  card-number: ${PAYMENT_CARD_NUMBER:—}
 
 "%dev":
   quarkus:
@@ -54,4 +92,4 @@ app:
       enabled: false
 
   baserow:
-    token: ${BASEROW_TOKEN:}
+    token: ${API_TOKEN:}
