@@ -40,8 +40,8 @@ public class EventCapacityAlertScheduler {
     @Scheduled(every = "1m", concurrentExecution = ConcurrentExecution.SKIP)
     void sendFreedCapacityAlerts() {
         if (backendUrl.isBlank()) return;
-        Long adminId = telegramConfig.adminChatId();
-        if (adminId == null) return;
+        Long eventChatId = telegramConfig.eventChatId();
+        if (eventChatId == null) return;
 
         List<EventCapacityAlertDueDto> due;
         try {
@@ -56,7 +56,7 @@ public class EventCapacityAlertScheduler {
 
         for (var alert : due) {
             try {
-                telegramClient.sendHtml(adminId, formatMessage(alert), null);
+                telegramClient.sendHtml(eventChatId, formatMessage(alert), null);
             } catch (Exception e) {
                 log.warnf("Failed to send capacity alert for event '%s': %s", alert.eventName(), e.getMessage());
             }

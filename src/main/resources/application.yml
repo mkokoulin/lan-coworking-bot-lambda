@@ -62,6 +62,7 @@ quarkus:
 telegram:
   bot-token: ${TG_BOT_TOKEN}
   admin-chat-id: ${TG_ADMIN_CHAT_ID}
+  event-chat-id: ${TG_EVENT_CHAT_ID}
   api-base-url: https://api.telegram.org
 
 app:

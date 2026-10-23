@@ -25,4 +25,8 @@ public class TelegramConfig {
     public Long adminChatId() {
         return mapping.adminChatId();
     }
+
+    public Long eventChatId() {
+        return mapping.eventChatId();
+    }
 }

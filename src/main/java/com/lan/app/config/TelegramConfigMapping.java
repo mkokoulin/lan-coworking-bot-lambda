@@ -7,4 +7,5 @@ public interface TelegramConfigMapping {
     String botToken();
     String apiBaseUrl();
     Long adminChatId();
+    Long eventChatId();
 }

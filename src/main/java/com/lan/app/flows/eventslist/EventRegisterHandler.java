@@ -45,8 +45,8 @@ public class EventRegisterHandler implements StepHandler {
     private final EventResourceApi eventApi;
     private final GuestService guestService;
 
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    @ConfigProperty(name = "telegram.event-chat-id")
+    Long eventChatId;
 
     @Inject
     public EventRegisterHandler(
@@ -263,7 +263,7 @@ public class EventRegisterHandler implements StepHandler {
                 msg.append("\n\n🆕 Первый раз на нашем мероприятии");
             }
 
-            telegramClient.sendHtml(adminChatId, msg.toString(), null);
+            telegramClient.sendHtml(eventChatId, msg.toString(), null);
         } catch (Exception e) {
             LOG.warnf(e, "Failed to send admin notification for event=%s, chatId=%d", eventId, chatId);
         }

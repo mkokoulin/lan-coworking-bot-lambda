@@ -16,8 +16,8 @@ public class EventChangeHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
 
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    @ConfigProperty(name = "telegram.event-chat-id")
+    Long eventChatId;
 
     @Inject
     public EventChangeHandler(TelegramClient telegramClient, I18n i18n) {
@@ -50,7 +50,7 @@ public class EventChangeHandler implements StepHandler {
                 ? "@" + ctx.username()
                 : "id:" + ctx.userId();
 
-        telegramClient.sendHtml(adminChatId,
+        telegramClient.sendHtml(eventChatId,
                 i18n.t(lang, "event_change_admin_notify").formatted(
                         guest, regId != null ? regId : "-", escapeHtml(text)),
                 null);

@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class MyEventsGuestsWaitHandlerTest {
 
-    private static final long ADMIN_CHAT_ID = 999L;
+    private static final long EVENT_CHAT_ID = 999L;
 
     private final ObjectMapper mapper = new ObjectMapper();
     private FakeHttpServer telegramServer;
@@ -36,7 +36,7 @@ class MyEventsGuestsWaitHandlerTest {
         TelegramConfig config = new TelegramConfig() {
             public String botToken() { return "TESTTOKEN"; }
             public String apiBaseUrl() { return telegramServer.url(); }
-            public Long adminChatId() { return ADMIN_CHAT_ID; }
+            public Long eventChatId() { return EVENT_CHAT_ID; }
         };
         TelegramClient telegramClient = new TelegramClient(config);
         MyEventsListHandler listHandler = new MyEventsListHandler(telegramClient, new I18n());
@@ -44,7 +44,7 @@ class MyEventsGuestsWaitHandlerTest {
 
         handler = new MyEventsGuestsWaitHandler(telegramClient, new I18n(), listHandler);
         handler.backendUrl = backendServer.url();
-        handler.adminChatId = ADMIN_CHAT_ID;
+        handler.eventChatId = EVENT_CHAT_ID;
     }
 
     @AfterEach
@@ -155,7 +155,7 @@ class MyEventsGuestsWaitHandlerTest {
         assertEquals(3, sent.size());
         assertEquals(555, sent.get(0).get("chat_id").asLong());
         assertTrue(sent.get(0).get("text").asText().contains("Movie Night"));
-        assertEquals(ADMIN_CHAT_ID, sent.get(1).get("chat_id").asLong());
+        assertEquals(EVENT_CHAT_ID, sent.get(1).get("chat_id").asLong());
         assertEquals(555, sent.get(2).get("chat_id").asLong());
     }
 

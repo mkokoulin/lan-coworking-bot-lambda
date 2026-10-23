@@ -108,7 +108,7 @@ class EventChangeHandlerTest {
         StepResult result = handler.handle(textCtx("Please change my slot", "bob"), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
-        verify(telegramClient).sendHtml(eq(999999L), any(), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), any(), isNull());
         verify(telegramClient).sendHtml(eq(100L), any(), isNull());
         assertThat(EventChangeSession.getRegId(s)).isNull();
     }
@@ -121,7 +121,7 @@ class EventChangeHandlerTest {
 
         handler.handle(textCtx("<script>hi</script>", "bob"), s);
 
-        verify(telegramClient).sendHtml(eq(999999L), eq("@bob|77|&lt;script&gt;hi&lt;/script&gt;"), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), eq("@bob|77|&lt;script&gt;hi&lt;/script&gt;"), isNull());
     }
 
     @Test
@@ -132,7 +132,7 @@ class EventChangeHandlerTest {
 
         handler.handle(textCtx("hello", null), s);
 
-        verify(telegramClient).sendHtml(eq(999999L), eq("id:200|77|hello"), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), eq("id:200|77|hello"), isNull());
     }
 
     @Test
@@ -142,6 +142,6 @@ class EventChangeHandlerTest {
 
         handler.handle(textCtx("hello", "bob"), s);
 
-        verify(telegramClient).sendHtml(eq(999999L), eq("@bob|-|hello"), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), eq("@bob|-|hello"), isNull());
     }
 }

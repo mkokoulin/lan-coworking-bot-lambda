@@ -171,10 +171,10 @@ class EventRegisterHandlerTest {
 
         handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
-        // telegram.admin-chat-id resolves to 999999 in the test environment (see build.gradle.kts /
-        // TG_ADMIN_CHAT_ID), so the admin notification is asserted against that fixed chat id.
+        // telegram.event-chat-id resolves to 888888 in the test environment (see build.gradle.kts /
+        // TG_EVENT_CHAT_ID), so the event notification is asserted against that fixed chat id.
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
-        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        verify(telegramClient).sendHtml(eq(888888L), captor.capture(), any());
         assertThat(captor.getValue()).contains("Ламповый вечер настолок");
         assertThat(captor.getValue()).contains("Ann Smith");
     }
@@ -193,7 +193,7 @@ class EventRegisterHandlerTest {
         handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
-        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        verify(telegramClient).sendHtml(eq(888888L), captor.capture(), any());
         assertThat(captor.getValue()).contains("Первый раз");
     }
 
@@ -211,7 +211,7 @@ class EventRegisterHandlerTest {
         handler.handle(callbackCtx(EventsListFlowDef.CB_EVT_REG_PREFIX + eventId), s);
 
         var captor = org.mockito.ArgumentCaptor.forClass(String.class);
-        verify(telegramClient).sendHtml(eq(999999L), captor.capture(), any());
+        verify(telegramClient).sendHtml(eq(888888L), captor.capture(), any());
         assertThat(captor.getValue()).doesNotContain("Первый раз");
     }
 

@@ -20,8 +20,8 @@ public class EventPaymentWaitPhotoHandler implements StepHandler {
     private final I18n i18n;
     private final PaymentPendingStore pendingStore;
 
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    @ConfigProperty(name = "telegram.event-chat-id")
+    Long eventChatId;
 
     @Inject
     public EventPaymentWaitPhotoHandler(TelegramClient telegramClient, I18n i18n, PaymentPendingStore pendingStore) {
@@ -56,7 +56,7 @@ public class EventPaymentWaitPhotoHandler implements StepHandler {
                 "callback_data", "pay_reject_" + regId);
         var keyboard = Map.of("inline_keyboard", List.of(List.of(approveBtn, rejectBtn)));
 
-        telegramClient.sendPhotoByFileId(adminChatId, ctx.fileId(), caption, keyboard);
+        telegramClient.sendPhotoByFileId(eventChatId, ctx.fileId(), caption, keyboard);
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_payment_waiting"), null);
 
         // Clear flow so user doesn't stay in payment step

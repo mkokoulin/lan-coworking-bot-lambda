@@ -72,6 +72,7 @@ tasks.withType<Test> {
         mapOf(
             "TG_BOT_TOKEN" to "test-bot-token",
             "TG_ADMIN_CHAT_ID" to "999999",
+            "TG_EVENT_CHAT_ID" to "888888",
             "NOTIFY_SECRET" to "test-notify-secret",
             "APP_SITE_URL" to "https://example.test",
             "APP_BACKEND_URL" to "http://localhost:0",

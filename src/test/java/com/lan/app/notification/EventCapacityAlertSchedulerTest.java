@@ -71,7 +71,7 @@ class EventCapacityAlertSchedulerTest {
 
     @Test
     void nullAdminChatId_skipsFetchAndSend() {
-        when(telegramConfig.adminChatId()).thenReturn(null);
+        when(telegramConfig.eventChatId()).thenReturn(null);
 
         scheduler.sendFreedCapacityAlerts();
 
@@ -81,7 +81,7 @@ class EventCapacityAlertSchedulerTest {
 
     @Test
     void fetchFailure_logsAndSkipsSend() {
-        when(telegramConfig.adminChatId()).thenReturn(999999L);
+        when(telegramConfig.eventChatId()).thenReturn(888888L);
         wireMock.stubFor(get(urlPathEqualTo(DUE_PATH)).willReturn(aResponse().withStatus(500)));
 
         scheduler.sendFreedCapacityAlerts();
@@ -91,7 +91,7 @@ class EventCapacityAlertSchedulerTest {
 
     @Test
     void emptyDueList_noSend() {
-        when(telegramConfig.adminChatId()).thenReturn(999999L);
+        when(telegramConfig.eventChatId()).thenReturn(888888L);
         wireMock.stubFor(get(urlPathEqualTo(DUE_PATH)).willReturn(okJson("[]")));
 
         scheduler.sendFreedCapacityAlerts();
@@ -101,29 +101,29 @@ class EventCapacityAlertSchedulerTest {
 
     @Test
     void successfulFetch_sendsFormattedMessageToAdmin() {
-        when(telegramConfig.adminChatId()).thenReturn(999999L);
+        when(telegramConfig.eventChatId()).thenReturn(888888L);
         wireMock.stubFor(get(urlPathEqualTo(DUE_PATH)).willReturn(okJson(
             "[{\"eventName\":\"Jam Night\",\"registeredCount\":8,\"maxCapacity\":10}]"
         )));
 
         scheduler.sendFreedCapacityAlerts();
 
-        verify(telegramClient).sendHtml(eq(999999L), contains("Jam Night"), isNull());
-        verify(telegramClient).sendHtml(eq(999999L), contains("Свободно: 2 из 10"), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), contains("Jam Night"), isNull());
+        verify(telegramClient).sendHtml(eq(888888L), contains("Свободно: 2 из 10"), isNull());
     }
 
     @Test
     void perAlertFailureIsolation_continuesToRemainingAlerts() {
-        when(telegramConfig.adminChatId()).thenReturn(999999L);
+        when(telegramConfig.eventChatId()).thenReturn(888888L);
         wireMock.stubFor(get(urlPathEqualTo(DUE_PATH)).willReturn(okJson(
             "[{\"eventName\":\"Event1\",\"registeredCount\":1,\"maxCapacity\":5},"
                 + "{\"eventName\":\"Event2\",\"registeredCount\":2,\"maxCapacity\":5}]"
         )));
-        doThrow(new RuntimeException("boom")).when(telegramClient).sendHtml(eq(999999L), contains("Event1"), any());
+        doThrow(new RuntimeException("boom")).when(telegramClient).sendHtml(eq(888888L), contains("Event1"), any());
 
         scheduler.sendFreedCapacityAlerts();
 
-        verify(telegramClient, times(2)).sendHtml(eq(999999L), any(), any());
-        verify(telegramClient).sendHtml(eq(999999L), contains("Event2"), isNull());
+        verify(telegramClient, times(2)).sendHtml(eq(888888L), any(), any());
+        verify(telegramClient).sendHtml(eq(888888L), contains("Event2"), isNull());
     }
 }

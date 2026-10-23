@@ -84,7 +84,7 @@ class EventPaymentWaitPhotoHandlerTest {
 
         assertThat(result).isEqualTo(StepResult.finish());
         verify(pendingStore).store("reg-1", 100L);
-        verify(telegramClient).sendPhotoByFileId(eq(999999L), eq("file-1"), any(), any());
+        verify(telegramClient).sendPhotoByFileId(eq(888888L), eq("file-1"), any(), any());
         verify(telegramClient).sendHtml(eq(100L), any(), isNull());
         assertThat(s.getFlow()).isEmpty();
         assertThat(s.getStep()).isEmpty();
@@ -99,7 +99,7 @@ class EventPaymentWaitPhotoHandlerTest {
 
         handler.handle(ctxWithPhoto("file-1", "bob"), s);
 
-        verify(telegramClient).sendPhotoByFileId(eq(999999L), eq("file-1"), eq("@bob|2000|reg-9"), any());
+        verify(telegramClient).sendPhotoByFileId(eq(888888L), eq("file-1"), eq("@bob|2000|reg-9"), any());
     }
 
     @Test
@@ -111,7 +111,7 @@ class EventPaymentWaitPhotoHandlerTest {
 
         handler.handle(ctxWithPhoto("file-1", null), s);
 
-        verify(telegramClient).sendPhotoByFileId(eq(999999L), eq("file-1"), eq("100|2000|reg-9"), any());
+        verify(telegramClient).sendPhotoByFileId(eq(888888L), eq("file-1"), eq("100|2000|reg-9"), any());
     }
 
     @Test
@@ -122,6 +122,6 @@ class EventPaymentWaitPhotoHandlerTest {
 
         handler.handle(ctxWithPhoto("file-1", "bob"), s);
 
-        verify(telegramClient).sendPhotoByFileId(eq(999999L), eq("file-1"), eq("@bob|?|reg-9"), any());
+        verify(telegramClient).sendPhotoByFileId(eq(888888L), eq("file-1"), eq("@bob|?|reg-9"), any());
     }
 }
