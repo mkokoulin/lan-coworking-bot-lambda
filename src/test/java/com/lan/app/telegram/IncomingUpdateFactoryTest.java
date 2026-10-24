@@ -141,6 +141,7 @@ class IncomingUpdateFactoryTest {
         assertThat(result.getCallbackData()).isEqualTo("tariff_list");
         assertThat(result.getCallbackQueryId()).isEqualTo("qid1");
         assertThat(result.getChatId()).isEqualTo(3L);
+        assertThat(result.getChatType()).isEqualTo("private");
         assertThat(result.getCallbackMessageId()).isEqualTo(55);
     }
 

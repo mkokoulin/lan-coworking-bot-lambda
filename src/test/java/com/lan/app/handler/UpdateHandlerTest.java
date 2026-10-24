@@ -82,6 +82,60 @@ class UpdateHandlerTest {
         verify(commandRouter, never()).route(any(), any());
     }
 
+    // ===== non-private chat guard =====
+
+    @Test
+    void groupChatType_isSkipped_noSessionOrRouterInteraction() {
+        IncomingUpdate u = update(200L, 100L);
+        u.setChatType("group");
+        when(incomingUpdateFactory.fromTelegram(RAW)).thenReturn(u);
+
+        updateHandler.handle(RAW);
+
+        verify(sessionRepository, never()).findByUserId(any());
+        verify(sessionRepository, never()).save(any());
+        verify(commandRouter, never()).route(any(), any());
+    }
+
+    @Test
+    void supergroupChatType_isSkipped() {
+        IncomingUpdate u = update(200L, 100L);
+        u.setChatType("supergroup");
+        when(incomingUpdateFactory.fromTelegram(RAW)).thenReturn(u);
+
+        updateHandler.handle(RAW);
+
+        verify(commandRouter, never()).route(any(), any());
+    }
+
+    @Test
+    void privateChatType_isProcessedNormally() {
+        IncomingUpdate u = update(200L, 100L);
+        u.setChatType("private");
+        when(incomingUpdateFactory.fromTelegram(RAW)).thenReturn(u);
+        when(sessionRepository.findByUserId(200L)).thenReturn(Optional.empty());
+        when(commandRouter.route(any(), any())).thenReturn(StepResult.finish());
+
+        updateHandler.handle(RAW);
+
+        verify(commandRouter).route(any(), any());
+        verify(sessionRepository).save(any());
+    }
+
+    @Test
+    void missingChatType_isProcessedNormally() {
+        // Callback-query updates on older bot messages (sent before chatType was captured for
+        // callbacks) carry no chatType — must not be treated as a non-private chat to skip.
+        IncomingUpdate u = update(200L, 100L);
+        when(incomingUpdateFactory.fromTelegram(RAW)).thenReturn(u);
+        when(sessionRepository.findByUserId(200L)).thenReturn(Optional.empty());
+        when(commandRouter.route(any(), any())).thenReturn(StepResult.finish());
+
+        updateHandler.handle(RAW);
+
+        verify(commandRouter).route(any(), any());
+    }
+
     // ===== new session creation =====
 
     @Test

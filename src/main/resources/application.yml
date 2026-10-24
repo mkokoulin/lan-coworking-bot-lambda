@@ -31,8 +31,7 @@ quarkus:
     "com.lan.app.client.baserow.api.ReviewsApi":
       url: ${APP_BACKEND_URL:http://localhost:8080}
     logging:
-      scope: request-response
-      body-limit: 500
+      scope: none
   default-locale: en
   locales:
     - en
@@ -51,13 +50,6 @@ quarkus:
       json: false
       color: true
       format: "%d{HH:mm:ss} %-5p [%c{2.}] %s%e%n"
-    category:
-      "com.lan.app.telegram":
-        level: DEBUG
-      "com.lan.app.analytics":
-        level: DEBUG
-      "org.jboss.resteasy.reactive.client.logging":
-        level: DEBUG
 
 telegram:
   bot-token: ${TG_BOT_TOKEN}
@@ -91,6 +83,18 @@ payment:
   quarkus:
     devservices:
       enabled: false
+    rest-client:
+      logging:
+        scope: request-response
+        body-limit: 10240
+    log:
+      category:
+        "com.lan.app.telegram":
+          level: DEBUG
+        "com.lan.app.analytics":
+          level: DEBUG
+        "org.jboss.resteasy.reactive.client.logging":
+          level: DEBUG
 
   baserow:
     token: ${API_TOKEN:}
