@@ -47,6 +47,11 @@ public class UpdateHandler {
             return;
         }
 
+        if (update.getChatType() != null && !"private".equals(update.getChatType())) {
+            logger.info("Skip update: non-private chatType={} chatId={}", update.getChatType(), update.getChatId());
+            return;
+        }
+
         var existingSession = sessionRepository.findByUserId(update.getUserId());
         boolean isNewUser = existingSession.isEmpty();
         Session session = existingSession.orElseGet(() -> newSession(update));

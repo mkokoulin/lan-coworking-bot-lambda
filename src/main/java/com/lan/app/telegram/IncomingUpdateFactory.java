@@ -68,6 +68,7 @@ public class IncomingUpdateFactory {
         if (callback.message != null) {
             if (callback.message.chat() != null) {
                 target.setChatId(callback.message.chat().id);
+                target.setChatType(callback.message.chat().type);
             }
             if (callback.message.message_id() != null) {
                 target.setCallbackMessageId(callback.message.message_id().intValue());
