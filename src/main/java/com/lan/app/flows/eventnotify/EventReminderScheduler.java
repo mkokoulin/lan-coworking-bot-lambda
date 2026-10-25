@@ -94,6 +94,8 @@ public class EventReminderScheduler {
 
             try {
                 telegramClient.sendHtml(recipient.chatId, body, keyboard);
+                log.infof("sendOne: sent notification=%d to chatId=%d (guestRowId=%d, registrationRowId=%d, lang=%s)",
+                    notification.id, recipient.chatId, recipient.guestRowId, recipient.registrationRowId, lang);
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "SENT", null));
             } catch (Exception e) {
                 log.warnf("Failed to send reminder to chatId=%d: %s", recipient.chatId, e.getMessage());
@@ -103,6 +105,7 @@ public class EventReminderScheduler {
 
         try {
             saveResults(notification.id, results);
+            log.infof("sendOne: saved %d result(s) for notification=%d", results.size(), notification.id);
         } catch (Exception e) {
             log.warnf("Failed to save results for notification %d: %s", notification.id, e.getMessage());
         }

@@ -70,7 +70,11 @@ public class EventNotifyActionHandler implements StepHandler {
             notificationId = Integer.parseInt(parts[0]);
             int guestRowId = Integer.parseInt(parts[1]);
             int registrationRowId = Integer.parseInt(parts[2]);
+            log.infof("EventNotify callback: chatId=%d notification=%d guest=%d registration=%d confirmed=%s",
+                session.getChatId(), notificationId, guestRowId, registrationRowId, confirmed);
             saved = recordAction(notificationId, guestRowId, registrationRowId, confirmed ? "CONFIRMED" : "DECLINED");
+            log.infof("EventNotify callback result: chatId=%d notification=%d saved=%s",
+                session.getChatId(), notificationId, saved);
         } catch (NumberFormatException e) {
             log.warnf("Malformed event-notify callback payload: %s", raw);
             return StepResult.finish();
