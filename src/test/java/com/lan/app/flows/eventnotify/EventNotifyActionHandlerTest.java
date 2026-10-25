@@ -35,6 +35,7 @@ class EventNotifyActionHandlerTest {
         };
         handler = new EventNotifyActionHandler(new TelegramClient(config), new I18n());
         handler.backendUrl = backendServer.url();
+        handler.adminChatId = 999L;
     }
 
     @AfterEach
@@ -101,13 +102,39 @@ class EventNotifyActionHandlerTest {
     }
 
     @Test
-    void guestIsStillThankedEvenWhenBackendUrlIsBlank() {
+    void guestIsToldAboutFailureWhenBackendUrlIsBlank() throws Exception {
+        // Previously the guest was thanked regardless of whether the answer was ever recorded —
+        // so a misconfigured/unreachable backend looked identical to a real confirmation, and the
+        // scheduler kept re-sending the same reminder since nothing was ever persisted.
         handler.backendUrl = "";
         Session session = Session.newDefault(555L, 555L);
+        session.setLang("ru");
 
         handler.handle(callback("en_y_10_20_30"), session);
 
-        assertEquals(1, telegramServer.requestsTo("/botTESTTOKEN/sendMessage").size());
+        var telegramRequests = telegramServer.requestsTo("/botTESTTOKEN/sendMessage");
+        JsonNode toGuest = mapper.readTree(telegramRequests.get(0).body());
+        assertEquals(555, toGuest.get("chat_id").asLong());
+        assertTrue(toGuest.get("text").asText().toLowerCase().contains("не получилось"));
         assertTrue(backendServer.requests().isEmpty());
+    }
+
+    @Test
+    void guestIsToldAboutFailureAndAdminIsAlertedWhenBackendRejectsTheAction() throws Exception {
+        backendServer.onPath("/events/v1/bot/event-notifications/10/action", 500, "{}");
+        Session session = Session.newDefault(555L, 555L);
+        session.setLang("ru");
+
+        handler.handle(callback("en_y_10_20_30"), session);
+
+        var guestMessages = telegramServer.requestsTo("/botTESTTOKEN/sendMessage");
+        assertEquals(2, guestMessages.size());
+
+        JsonNode toGuest = mapper.readTree(guestMessages.get(0).body());
+        assertEquals(555, toGuest.get("chat_id").asLong());
+        assertTrue(toGuest.get("text").asText().toLowerCase().contains("не получилось"));
+
+        JsonNode toAdmin = mapper.readTree(guestMessages.get(1).body());
+        assertEquals(999, toAdmin.get("chat_id").asLong());
     }
 }
