@@ -13,6 +13,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -124,6 +129,48 @@ class EventReminderSchedulerTest {
         scheduler.pollAndSend();
         scheduler.pollAndSend();
         scheduler.pollAndSend();
+
+        assertEquals(1, telegramServer.requestsTo("/botTESTTOKEN/sendMessage").size());
+    }
+
+    @Test
+    void concurrentOverlappingPollsStillSendExactlyOnce() throws Exception {
+        // @Scheduled on pollAndSend() now sets concurrentExecution = SKIP specifically to prevent
+        // this, but that guarantee lives in the Quarkus scheduler runtime, not in this method — a
+        // unit test can't exercise it. This instead locks in the fallback invariant at the code
+        // level: even if two polls ever did run at once (e.g. that annotation gets dropped by a
+        // future edit), the dedup set's claim-before-send must still make it impossible for both
+        // to win the race and double-send.
+        String dueJson = """
+            [{"id":40,"messageEn":"E","messageRu":"R","eventName":"Ev",
+              "recipients":[{"chatId":501,"guestRowId":7,"registrationRowId":17}]}]
+            """;
+        backendServer.onPath("/events/v1/bot/event-notifications/due", 200, dueJson);
+
+        int threads = 8;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        CountDownLatch ready = new CountDownLatch(threads);
+        CountDownLatch go = new CountDownLatch(1);
+        try {
+            for (int i = 0; i < threads; i++) {
+                pool.submit(() -> {
+                    ready.countDown();
+                    try {
+                        go.await();
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        return;
+                    }
+                    scheduler.pollAndSend();
+                });
+            }
+            ready.await();
+            go.countDown();
+            pool.shutdown();
+            assertTrue(pool.awaitTermination(10, TimeUnit.SECONDS));
+        } finally {
+            pool.shutdownNow();
+        }
 
         assertEquals(1, telegramServer.requestsTo("/botTESTTOKEN/sendMessage").size());
     }

@@ -10,6 +10,7 @@ import com.lan.app.session.SessionRepository;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduled.ConcurrentExecution;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -62,7 +63,13 @@ public class EventReminderScheduler {
         this.i18n = i18n;
     }
 
-    @Scheduled(every = "5m")
+    // SKIP (not the Quarkus default PROCEED) matters here specifically because of
+    // sentThisProcess below: without it, a slow poll (Baserow backoff/retries can make one tick
+    // run past 5 minutes) could overlap with the next tick, and two threads could both pass the
+    // "not sent yet" check before either records it, sending the same reminder twice. Every other
+    // scheduler in this codebase that touches Telegram/backend state already sets this explicitly
+    // (EventCapacityAlertScheduler, TelegramPollingService) — this one had been missing it.
+    @Scheduled(every = "5m", concurrentExecution = ConcurrentExecution.SKIP)
     void pollAndSend() {
         if (backendUrl.isBlank()) {
             log.debug("app.backend-url not set, skipping event reminder poll");
@@ -91,8 +98,13 @@ public class EventReminderScheduler {
         for (EventNotificationRecipientDto recipient : notification.recipients) {
             if (recipient.chatId == null) continue;
 
+            // Atomic claim (not a contains()-then-add() check): Set.add() returns false if the key
+            // was already present, with no gap a concurrent run could slip through. Claimed before
+            // sending, not after, so two overlapping executions can't both pass a stale check and
+            // both send — the claim itself is what's exclusive, not just the bookkeeping. If the
+            // send actually fails below, the claim is released so a later poll can still retry it.
             String dedupeKey = notification.id + ":" + recipient.chatId;
-            if (sentThisProcess.contains(dedupeKey)) {
+            if (!sentThisProcess.add(dedupeKey)) {
                 log.warnf("sendOne: skipping notification=%d chatId=%d — already sent once this process "
                         + "(backend likely never persisted the previous SENT result)",
                     notification.id, recipient.chatId);
@@ -114,11 +126,11 @@ public class EventReminderScheduler {
 
             try {
                 telegramClient.sendHtml(recipient.chatId, body, keyboard);
-                sentThisProcess.add(dedupeKey);
                 log.infof("sendOne: sent notification=%d to chatId=%d (guestRowId=%d, registrationRowId=%d, lang=%s)",
                     notification.id, recipient.chatId, recipient.guestRowId, recipient.registrationRowId, lang);
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "SENT", null));
             } catch (Exception e) {
+                sentThisProcess.remove(dedupeKey);
                 log.warnf("Failed to send reminder to chatId=%d: %s", recipient.chatId, e.getMessage());
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "FAILED", e.getMessage()));
             }
