@@ -110,6 +110,25 @@ class EventReminderSchedulerTest {
     }
 
     @Test
+    void doesNotResendTheSameNotificationToTheSameChatWithinTheSameProcess() throws Exception {
+        // Reproduces the production incident: the backend kept returning the same guest as "due"
+        // on every 5-minute poll (its own result row never persisted), and the bot kept re-sending
+        // the identical reminder all night. This is the in-process backstop against that, independent
+        // of whatever the backend's own dedup is doing.
+        String dueJson = """
+            [{"id":30,"messageEn":"E","messageRu":"R","eventName":"Ev",
+              "recipients":[{"chatId":401,"guestRowId":6,"registrationRowId":16}]}]
+            """;
+        backendServer.onPath("/events/v1/bot/event-notifications/due", 200, dueJson);
+
+        scheduler.pollAndSend();
+        scheduler.pollAndSend();
+        scheduler.pollAndSend();
+
+        assertEquals(1, telegramServer.requestsTo("/botTESTTOKEN/sendMessage").size());
+    }
+
+    @Test
     void noDueNotificationsSendsNothing() {
         backendServer.onPath("/events/v1/bot/event-notifications/due", 200, "[]");
 

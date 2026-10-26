@@ -21,6 +21,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Polls the backend for due event-reminder notifications (see BotResource#dueEventNotifications
@@ -42,6 +44,16 @@ public class EventReminderScheduler {
     private final I18n i18n;
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
+
+    // Local, process-lifetime backstop against re-sending the same reminder forever when the
+    // backend fails to persist a "SENT" result row (so its own already-notified check never sees
+    // it) — e.g. guests reported the bot re-sending the exact same reminder every 5 minutes all
+    // night. Baserow dedup is still the source of truth across restarts/instances; this only
+    // covers "don't re-send within this running process", which is enough to stop the spam even
+    // while the underlying write failure is unresolved. Unbounded by design — at this bot's scale
+    // (one small coworking space) this never grows large enough to matter within a process's
+    // lifetime, and simplicity matters more than tidiness for a hotfix.
+    private final Set<String> sentThisProcess = ConcurrentHashMap.newKeySet();
 
     @Inject
     public EventReminderScheduler(TelegramClient telegramClient, SessionRepository sessionRepository, I18n i18n) {
@@ -79,6 +91,14 @@ public class EventReminderScheduler {
         for (EventNotificationRecipientDto recipient : notification.recipients) {
             if (recipient.chatId == null) continue;
 
+            String dedupeKey = notification.id + ":" + recipient.chatId;
+            if (sentThisProcess.contains(dedupeKey)) {
+                log.warnf("sendOne: skipping notification=%d chatId=%d — already sent once this process "
+                        + "(backend likely never persisted the previous SENT result)",
+                    notification.id, recipient.chatId);
+                continue;
+            }
+
             String lang = sessionRepository.findByUserId(recipient.chatId)
                     .map(Session::getLang)
                     .orElse("ru");
@@ -94,6 +114,7 @@ public class EventReminderScheduler {
 
             try {
                 telegramClient.sendHtml(recipient.chatId, body, keyboard);
+                sentThisProcess.add(dedupeKey);
                 log.infof("sendOne: sent notification=%d to chatId=%d (guestRowId=%d, registrationRowId=%d, lang=%s)",
                     notification.id, recipient.chatId, recipient.guestRowId, recipient.registrationRowId, lang);
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "SENT", null));
