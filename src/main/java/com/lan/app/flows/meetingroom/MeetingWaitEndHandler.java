@@ -4,6 +4,7 @@ import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
+import com.lan.app.service.MeetingRoomService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -16,16 +17,19 @@ public class MeetingWaitEndHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final Long adminChatId;
+    private final MeetingRoomService meetingRoomService;
 
     @Inject
     public MeetingWaitEndHandler(
         TelegramClient telegramClient,
         I18n i18n,
-        @ConfigProperty(name = "telegram.admin-chat-id") Long adminChatId
+        @ConfigProperty(name = "telegram.admin-chat-id") Long adminChatId,
+        MeetingRoomService meetingRoomService
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
         this.adminChatId = adminChatId;
+        this.meetingRoomService = meetingRoomService;
     }
 
     @Override
@@ -62,14 +66,17 @@ public class MeetingWaitEndHandler implements StepHandler {
 
         String username = ctx.username();
         if (username != null && !username.isBlank()) {
+            String contact = "@" + username;
             telegramClient.sendHtml(adminChatId,
-                i18n.t(lang, "meeting_request_admin").formatted(intervalHuman, "@" + username), null);
-            
+                i18n.t(lang, "meeting_request_admin").formatted(intervalHuman, contact), null);
+
+            meetingRoomService.tryCreateBooking(session.getChatId(), date, start, end, contact);
+
             telegramClient.sendHtml(session.getChatId(),
                 i18n.t(lang, "meeting_confirm_interval").formatted(intervalHuman), null);
-            
+
             MeetingSession.clear(session);
-            
+
             return StepResult.stay(MeetingFlowDef.FLOW, MeetingFlowDef.STEP_DONE);
         }
 

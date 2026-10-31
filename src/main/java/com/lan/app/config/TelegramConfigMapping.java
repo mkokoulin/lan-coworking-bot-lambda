@@ -1,0 +1,11 @@
+package com.lan.app.config;
+
+import io.smallrye.config.ConfigMapping;
+
+@ConfigMapping(prefix = "telegram")
+public interface TelegramConfigMapping {
+    String botToken();
+    String apiBaseUrl();
+    Long adminChatId();
+    Long eventChatId();
+}

@@ -35,8 +35,8 @@ public class MyEventsCancelActionHandler implements StepHandler {
     @ConfigProperty(name = "app.backend-url", defaultValue = "")
     String backendUrl;
 
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    @ConfigProperty(name = "telegram.event-chat-id")
+    Long eventChatId;
 
     @Inject
     public MyEventsCancelActionHandler(TelegramClient telegramClient, I18n i18n, MyEventsListHandler listHandler) {
@@ -86,7 +86,7 @@ public class MyEventsCancelActionHandler implements StepHandler {
                             i18n.t(lang, "my_events_cancel_success")
                                     .formatted(result.eventName, MyEventsSession.formatDate(result.dateStart)),
                             null);
-                    telegramClient.sendHtml(adminChatId, buildAdminMessage(result), null);
+                    telegramClient.sendHtml(eventChatId, buildAdminMessage(result), null);
                 } else if (resp.statusCode() == 409) {
                     telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "my_events_cancel_conflict"), null);
                 } else {

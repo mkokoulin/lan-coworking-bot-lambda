@@ -10,6 +10,7 @@ import com.lan.app.session.SessionRepository;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
 import io.quarkus.scheduler.Scheduled;
+import io.quarkus.scheduler.Scheduled.ConcurrentExecution;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -21,6 +22,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Polls the backend for due event-reminder notifications (see BotResource#dueEventNotifications
@@ -43,6 +46,16 @@ public class EventReminderScheduler {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final ObjectMapper mapper = new ObjectMapper();
 
+    // Local, process-lifetime backstop against re-sending the same reminder forever when the
+    // backend fails to persist a "SENT" result row (so its own already-notified check never sees
+    // it) — e.g. guests reported the bot re-sending the exact same reminder every 5 minutes all
+    // night. Baserow dedup is still the source of truth across restarts/instances; this only
+    // covers "don't re-send within this running process", which is enough to stop the spam even
+    // while the underlying write failure is unresolved. Unbounded by design — at this bot's scale
+    // (one small coworking space) this never grows large enough to matter within a process's
+    // lifetime, and simplicity matters more than tidiness for a hotfix.
+    private final Set<String> sentThisProcess = ConcurrentHashMap.newKeySet();
+
     @Inject
     public EventReminderScheduler(TelegramClient telegramClient, SessionRepository sessionRepository, I18n i18n) {
         this.telegramClient = telegramClient;
@@ -50,7 +63,13 @@ public class EventReminderScheduler {
         this.i18n = i18n;
     }
 
-    @Scheduled(every = "5m")
+    // SKIP (not the Quarkus default PROCEED) matters here specifically because of
+    // sentThisProcess below: without it, a slow poll (Baserow backoff/retries can make one tick
+    // run past 5 minutes) could overlap with the next tick, and two threads could both pass the
+    // "not sent yet" check before either records it, sending the same reminder twice. Every other
+    // scheduler in this codebase that touches Telegram/backend state already sets this explicitly
+    // (EventCapacityAlertScheduler, TelegramPollingService) — this one had been missing it.
+    @Scheduled(every = "5m", concurrentExecution = ConcurrentExecution.SKIP)
     void pollAndSend() {
         if (backendUrl.isBlank()) {
             log.debug("app.backend-url not set, skipping event reminder poll");
@@ -79,6 +98,19 @@ public class EventReminderScheduler {
         for (EventNotificationRecipientDto recipient : notification.recipients) {
             if (recipient.chatId == null) continue;
 
+            // Atomic claim (not a contains()-then-add() check): Set.add() returns false if the key
+            // was already present, with no gap a concurrent run could slip through. Claimed before
+            // sending, not after, so two overlapping executions can't both pass a stale check and
+            // both send — the claim itself is what's exclusive, not just the bookkeeping. If the
+            // send actually fails below, the claim is released so a later poll can still retry it.
+            String dedupeKey = notification.id + ":" + recipient.chatId;
+            if (!sentThisProcess.add(dedupeKey)) {
+                log.warnf("sendOne: skipping notification=%d chatId=%d — already sent once this process "
+                        + "(backend likely never persisted the previous SENT result)",
+                    notification.id, recipient.chatId);
+                continue;
+            }
+
             String lang = sessionRepository.findByUserId(recipient.chatId)
                     .map(Session::getLang)
                     .orElse("ru");
@@ -94,8 +126,11 @@ public class EventReminderScheduler {
 
             try {
                 telegramClient.sendHtml(recipient.chatId, body, keyboard);
+                log.infof("sendOne: sent notification=%d to chatId=%d (guestRowId=%d, registrationRowId=%d, lang=%s)",
+                    notification.id, recipient.chatId, recipient.guestRowId, recipient.registrationRowId, lang);
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "SENT", null));
             } catch (Exception e) {
+                sentThisProcess.remove(dedupeKey);
                 log.warnf("Failed to send reminder to chatId=%d: %s", recipient.chatId, e.getMessage());
                 results.add(new NotificationResultDto(recipient.guestRowId, recipient.registrationRowId, "FAILED", e.getMessage()));
             }
@@ -103,6 +138,7 @@ public class EventReminderScheduler {
 
         try {
             saveResults(notification.id, results);
+            log.infof("sendOne: saved %d result(s) for notification=%d", results.size(), notification.id);
         } catch (Exception e) {
             log.warnf("Failed to save results for notification %d: %s", notification.id, e.getMessage());
         }

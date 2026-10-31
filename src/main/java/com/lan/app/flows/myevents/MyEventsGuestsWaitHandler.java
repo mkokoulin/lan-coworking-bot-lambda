@@ -34,8 +34,8 @@ public class MyEventsGuestsWaitHandler implements StepHandler {
     @ConfigProperty(name = "app.backend-url", defaultValue = "")
     String backendUrl;
 
-    @ConfigProperty(name = "telegram.admin-chat-id")
-    Long adminChatId;
+    @ConfigProperty(name = "telegram.event-chat-id")
+    Long eventChatId;
 
     @Inject
     public MyEventsGuestsWaitHandler(TelegramClient telegramClient, I18n i18n, MyEventsListHandler listHandler) {
@@ -48,7 +48,7 @@ public class MyEventsGuestsWaitHandler implements StepHandler {
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
 
-        // callback-нажатие (кроме "/events", которое роутится в STEP_LIST раньше) игнорируем — ждём текст
+        // callback-нажатие (кроме "/myevents", которое роутится в STEP_LIST раньше) игнорируем — ждём текст
         if (ctx.hasCallback()) {
             return StepResult.stay(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_WAIT);
         }
@@ -93,7 +93,7 @@ public class MyEventsGuestsWaitHandler implements StepHandler {
                         i18n.t(lang, "my_events_guests_success")
                                 .formatted(result.eventName, result.previousGuestCount, result.guestCount),
                         null);
-                telegramClient.sendHtml(adminChatId, buildAdminMessage(result), null);
+                telegramClient.sendHtml(eventChatId, buildAdminMessage(result), null);
                 MyEventsSession.clear(session);
                 return listHandler.handle(ctx, session);
             } else if (resp.statusCode() == 409) {
