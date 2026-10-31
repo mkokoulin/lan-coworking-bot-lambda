@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Test;
 import static io.restassured.RestAssured.given;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @QuarkusTest
@@ -67,6 +70,30 @@ class NotifyResourceTest {
             .when().post("/notify/admin")
             .then().statusCode(200)
             .body("ok", org.hamcrest.Matchers.is(true));
+    }
+
+    @Test
+    void notifyAdmin_withoutRetryId_sendsWithoutKeyboard() {
+        given()
+            .header("Authorization", VALID_AUTH)
+            .contentType("application/json")
+            .body("{\"message\":\"hello admin\"}")
+            .when().post("/notify/admin")
+            .then().statusCode(200);
+
+        verify(telegramClient).sendHtml(anyLong(), eq("hello admin"), isNull());
+    }
+
+    @Test
+    void notifyAdmin_withRetryId_sendsRetryKeyboard() {
+        given()
+            .header("Authorization", VALID_AUTH)
+            .contentType("application/json")
+            .body("{\"message\":\"hello admin\",\"retryId\":\"reg-1\"}")
+            .when().post("/notify/admin")
+            .then().statusCode(200);
+
+        verify(telegramClient).sendHtml(anyLong(), eq("hello admin"), any());
     }
 
     @Test

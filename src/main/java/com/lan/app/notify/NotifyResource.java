@@ -1,6 +1,7 @@
 package com.lan.app.notify;
 
 import com.lan.app.config.TelegramConfig;
+import com.lan.app.flows.siteregistration.SiteRegistrationRetryHandler;
 import com.lan.app.i18n.I18n;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -55,8 +56,14 @@ public class NotifyResource {
             log.warn("adminChatId not configured, skipping notification");
             return Response.status(503).entity("{\"error\":\"admin chat not configured\"}").build();
         }
+        Object keyboard = null;
+        if (req.retryId() != null && !req.retryId().isBlank()) {
+            keyboard = KeyboardBuilder.inline(List.of(KeyboardBuilder.row(
+                KeyboardBuilder.rawBtn("🔄 Повторить отправку в CRM", SiteRegistrationRetryHandler.CB_PREFIX + req.retryId())
+            )));
+        }
         try {
-            telegramClient.sendHtml(adminId, req.message(), null);
+            telegramClient.sendHtml(adminId, req.message(), keyboard);
             return Response.ok("{\"ok\":true}").build();
         } catch (Exception e) {
             log.errorf("Failed to send admin notification: %s", e.getMessage());
