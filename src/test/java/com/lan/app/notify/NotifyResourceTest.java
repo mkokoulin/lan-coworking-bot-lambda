@@ -97,6 +97,32 @@ class NotifyResourceTest {
     }
 
     @Test
+    void notifyAdmin_noChannel_sendsToAdminChat() {
+        given()
+            .header("Authorization", VALID_AUTH)
+            .contentType("application/json")
+            .body("{\"message\":\"hello admin\"}")
+            .when().post("/notify/admin")
+            .then().statusCode(200);
+
+        // TG_ADMIN_CHAT_ID resolves to 999999 in the test environment (see build.gradle.kts).
+        verify(telegramClient).sendHtml(eq(999999L), eq("hello admin"), isNull());
+    }
+
+    @Test
+    void notifyAdmin_eventChannel_sendsToEventChat() {
+        given()
+            .header("Authorization", VALID_AUTH)
+            .contentType("application/json")
+            .body("{\"message\":\"new registration\",\"channel\":\"event\"}")
+            .when().post("/notify/admin")
+            .then().statusCode(200);
+
+        // TG_EVENT_CHAT_ID resolves to 888888 in the test environment (see build.gradle.kts).
+        verify(telegramClient).sendHtml(eq(888888L), eq("new registration"), isNull());
+    }
+
+    @Test
     void notifyAdmin_telegramClientThrows_returns500() {
         doThrow(new RuntimeException("boom")).when(telegramClient).sendHtml(anyLong(), any(), any());
 

@@ -51,9 +51,17 @@ public class NotifyResource {
         if (req == null || req.message() == null || req.message().isBlank()) {
             return Response.status(400).entity("{\"error\":\"message required\"}").build();
         }
-        Long adminId = telegramConfig.adminChatId();
-        if (adminId == null) {
-            log.warn("adminChatId not configured, skipping notification");
+        // Event registrations belong in the event-registrations chat, alongside bot-initiated
+        // registrations (see EventRegisterHandler). Other notifications stay in the admin chat.
+        // Fall back to the admin chat if the event chat is not configured, so a missing env var
+        // never silently drops a registration notification.
+        boolean toEvent = "event".equalsIgnoreCase(req.channel());
+        Long targetId = toEvent ? telegramConfig.eventChatId() : telegramConfig.adminChatId();
+        if (targetId == null) {
+            targetId = telegramConfig.adminChatId();
+        }
+        if (targetId == null) {
+            log.warn("target chat not configured, skipping notification");
             return Response.status(503).entity("{\"error\":\"admin chat not configured\"}").build();
         }
         Object keyboard = null;
@@ -63,7 +71,7 @@ public class NotifyResource {
             )));
         }
         try {
-            telegramClient.sendHtml(adminId, req.message(), keyboard);
+            telegramClient.sendHtml(targetId, req.message(), keyboard);
             return Response.ok("{\"ok\":true}").build();
         } catch (Exception e) {
             log.errorf("Failed to send admin notification: %s", e.getMessage());
