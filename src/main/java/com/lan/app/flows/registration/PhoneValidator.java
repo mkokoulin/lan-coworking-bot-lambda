@@ -2,18 +2,21 @@ package com.lan.app.flows.registration;
 
 import java.util.regex.Pattern;
 
-final class PhoneValidator {
+public final class PhoneValidator {
 
     private static final Pattern AM_PATTERN = Pattern.compile(
             "^\\+?374(10|11|33|41|43|44|49|55|77|91|93|94|95|96|98|99)\\d{6}$"
     );
 
-    static String normalize(String input) {
+    public static String normalize(String input) {
         if (input == null) return null;
-        String digits = input.replaceAll("[\\s\\-()]", "");
+        String trimmed = input.trim();
+        boolean hasPlus = trimmed.startsWith("+");
+        String digits = trimmed.replaceAll("[^\\d]", "");
+        if (hasPlus) digits = "+" + digits;
 
         if (digits.startsWith("+374")) {
-            
+            // already canonical prefix
         } else if (digits.startsWith("374")) {
             digits = "+" + digits;
         } else if (digits.startsWith("0") && digits.length() == 9) {

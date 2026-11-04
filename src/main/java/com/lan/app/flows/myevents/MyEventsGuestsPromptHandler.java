@@ -36,7 +36,7 @@ public class MyEventsGuestsPromptHandler implements StepHandler {
         MyEventsSession.setPendingRegId(session, regId);
 
         var kb = KeyboardBuilder.inline(List.of(KeyboardBuilder.row(
-                KeyboardBuilder.cbCmd(i18n.t(lang, "my_events_btn_back"), "events")
+                KeyboardBuilder.cbCmd(i18n.t(lang, "my_events_btn_back"), "myevents")
         )));
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "my_events_guests_prompt"), kb);
         return StepResult.stay(MyEventsFlowDef.FLOW, MyEventsFlowDef.STEP_GUESTS_WAIT);

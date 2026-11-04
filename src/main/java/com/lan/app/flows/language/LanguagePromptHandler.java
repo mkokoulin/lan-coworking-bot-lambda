@@ -20,16 +20,20 @@ public class LanguagePromptHandler implements StepHandler {
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
+        String lang = session.getLang();
         var kb = KeyboardBuilder.inline(List.of(
                 KeyboardBuilder.row(
                         KeyboardBuilder.cbCmd("🇺🇸 English", LanguageFlowDef.CB_EN),
                         KeyboardBuilder.cbCmd("🇷🇺 Русский", LanguageFlowDef.CB_RU)
+                ),
+                KeyboardBuilder.row(
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
                 )
         ));
 
         telegramClient.sendHtml(
                 session.getChatId(),
-                i18n.t(session.getLang(), "language_prompt"),
+                i18n.t(lang, "language_prompt"),
                 kb
         );
 
