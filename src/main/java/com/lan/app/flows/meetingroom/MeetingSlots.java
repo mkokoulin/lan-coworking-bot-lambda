@@ -16,6 +16,10 @@ final class MeetingSlots {
     private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
 
     static Object calendarKeyboard() {
+        return calendarKeyboard(null);
+    }
+
+    static Object calendarKeyboard(Map<String, String> homeButton) {
         LocalDate today = LocalDate.now();
         List<List<Map<String, String>>> rows = new ArrayList<>();
         for (int i = 0; i < 7; i++) {
@@ -24,19 +28,32 @@ final class MeetingSlots {
             String cb    = MeetingFlowDef.CB_DATE_PFX + day.format(ISO_FMT);
             rows.add(KeyboardBuilder.row(KeyboardBuilder.cbCmd(label, cb)));
         }
+        if (homeButton != null) {
+            rows.add(KeyboardBuilder.row(homeButton));
+        }
         return KeyboardBuilder.inline(rows);
     }
 
     static Object startTimeKeyboard() {
+        return startTimeKeyboard(null);
+    }
+
+    static Object startTimeKeyboard(Map<String, String> homeButton) {
         return timesKeyboard(MeetingFlowDef.CB_START_PFX,
-                generateSlots(MeetingFlowDef.SLOT_START_HOUR, MeetingFlowDef.SLOT_END_HOUR));
+                generateSlots(MeetingFlowDef.SLOT_START_HOUR, MeetingFlowDef.SLOT_END_HOUR),
+                homeButton);
     }
 
     static Object endTimeKeyboard(String startHHMM) {
+        return endTimeKeyboard(startHHMM, null);
+    }
+
+    static Object endTimeKeyboard(String startHHMM, Map<String, String> homeButton) {
         LocalTime start = LocalTime.parse(startHHMM, TIME_FMT);
         LocalTime minEnd = start.plusMinutes(MeetingFlowDef.SLOT_STEP_MIN);
         return timesKeyboard(MeetingFlowDef.CB_END_PFX,
-                generateSlotsFrom(minEnd, MeetingFlowDef.SLOT_END_HOUR));
+                generateSlotsFrom(minEnd, MeetingFlowDef.SLOT_END_HOUR),
+                homeButton);
     }
 
     static boolean isValidInterval(String startHHMM, String endHHMM) {
@@ -51,7 +68,7 @@ final class MeetingSlots {
         }
     }
 
-    private static Object timesKeyboard(String prefix, List<String> times) {
+    private static Object timesKeyboard(String prefix, List<String> times, Map<String, String> homeButton) {
         int perRow = 4;
         List<List<Map<String, String>>> rows = new ArrayList<>();
         for (int i = 0; i < times.size(); i += perRow) {
@@ -60,6 +77,9 @@ final class MeetingSlots {
                 row.add(KeyboardBuilder.cbCmd(times.get(j), prefix + times.get(j)));
             }
             rows.add(row);
+        }
+        if (homeButton != null) {
+            rows.add(KeyboardBuilder.row(homeButton));
         }
         return KeyboardBuilder.inline(rows);
     }

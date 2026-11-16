@@ -1,8 +1,11 @@
 package com.lan.app.flows.eventconfirm;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.eventchange.EventChangeFlowDef;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -26,6 +29,7 @@ public class EventConfirmHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final ObjectMapper mapper = new ObjectMapper();
 
     @ConfigProperty(name = "app.site-url", defaultValue = "")
     String siteUrl;
@@ -45,7 +49,7 @@ public class EventConfirmHandler implements StepHandler {
         String regId = null;
 
         if (args != null && args.startsWith("reg_")) {
-            // Format: reg_<uuid>_<lang>  or  reg_<uuid>
+            // Format: reg_<uuid>_<lang>
             String payload = args.substring("reg_".length());
             String[] parts = payload.split("_", 2);
             regId = parts[0];
@@ -56,11 +60,13 @@ public class EventConfirmHandler implements StepHandler {
 
         String lang = session.getLang();
 
-        if (regId != null) {
-            notifyBackend(regId, session.getChatId());
-        }
+        String eventName = regId != null ? notifyBackend(regId, session.getChatId()) : null;
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_message"), null);
+        String confirmMessage = (eventName != null && !eventName.isBlank())
+                ? i18n.t(lang, "event_confirm_message_named").formatted(escapeHtml(eventName))
+                : i18n.t(lang, "event_confirm_message");
+
+        telegramClient.sendHtml(session.getChatId(), confirmMessage, null);
 
         var kbBuilder = new java.util.ArrayList<List<java.util.Map<String, String>>>();
         kbBuilder.add(KeyboardBuilder.row(
@@ -68,39 +74,89 @@ public class EventConfirmHandler implements StepHandler {
         ));
 
         if (regId != null && siteUrl.startsWith("https://")) {
-            String url = siteUrl + "/registration/" + regId;
+            String url = normalizeUrl(siteUrl) + "/registration/" + regId;
             kbBuilder.add(KeyboardBuilder.row(
                 KeyboardBuilder.urlBtn(i18n.t(lang, "event_confirm_btn_site"), url)
             ));
         }
 
-        telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
-                KeyboardBuilder.inline(kbBuilder));
+        if (regId != null) {
+            kbBuilder.add(KeyboardBuilder.row(
+                KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_MENU_PREFIX + regId)
+            ));
+        }
+
+        sendNextMessage(session, lang, kbBuilder, regId);
 
         return StepResult.finish();
     }
 
-    private void notifyBackend(String regId, Long chatId) {
+    /**
+     * Telegram rejects a sendMessage call outright if any single inline button in its
+     * reply_markup is invalid (e.g. a malformed site URL from misconfiguration) — so one bad
+     * button was silently taking down the whole keyboard, including the always-safe "main menu"
+     * and "change of plans" buttons. Fall back to just those safe, config-independent buttons
+     * rather than losing navigation entirely.
+     */
+    private void sendNextMessage(Session session, String lang, List<List<java.util.Map<String, String>>> kbBuilder, String regId) {
+        try {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
+                    KeyboardBuilder.inline(kbBuilder));
+        } catch (Exception e) {
+            log.warnf("Failed to send confirm keyboard, retrying with safe buttons only: %s", e.getMessage());
+            var safeRows = new java.util.ArrayList<List<java.util.Map<String, String>>>();
+            safeRows.add(KeyboardBuilder.row(
+                KeyboardBuilder.cbCmd(i18n.t(lang, "event_confirm_btn_start"), "start")
+            ));
+            if (regId != null) {
+                safeRows.add(KeyboardBuilder.row(
+                    KeyboardBuilder.rawBtn(i18n.t(lang, "event_confirm_btn_change"), EventChangeFlowDef.CB_MENU_PREFIX + regId)
+                ));
+            }
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "event_confirm_next"),
+                    KeyboardBuilder.inline(safeRows));
+        }
+    }
+
+    /**
+     * Collapses an accidentally doubled scheme (e.g. "https://https://example.com" from a
+     * misconfigured APP_SITE_URL) and strips a trailing slash, so concatenating "/registration/<id>"
+     * can never produce a malformed URL like "https://https://example.com//registration/<id>".
+     */
+    static String normalizeUrl(String raw) {
+        String url = raw.trim().replaceFirst("^(https?://)(https?://)+", "$1");
+        while (url.endsWith("/")) {
+            url = url.substring(0, url.length() - 1);
+        }
+        return url;
+    }
+
+    /** Confirms the registration with the backend and returns the event name, if available. */
+    private String notifyBackend(String regId, Long chatId) {
         String url = resolveBackendUrl(regId, chatId);
-        if (url == null) return;
+        if (url == null) return null;
         try {
             HttpRequest req = HttpRequest.newBuilder()
                     .uri(URI.create(url))
                     .POST(HttpRequest.BodyPublishers.noBody())
                     .build();
-            httpClient.sendAsync(req, HttpResponse.BodyHandlers.discarding())
-                    .thenAccept(res -> {
-                        if (res.statusCode() != 200) {
-                            log.warnf("Backend confirm returned %d for reg %s", res.statusCode(), regId);
-                        }
-                    })
-                    .exceptionally(ex -> {
-                        log.warnf("Failed to notify backend for reg %s: %s", regId, ex.getMessage());
-                        return null;
-                    });
+            HttpResponse<String> res = httpClient.send(req, HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                log.warnf("Backend confirm returned %d for reg %s: %s", res.statusCode(), regId, res.body());
+                return null;
+            }
+            JsonNode node = mapper.readTree(res.body());
+            JsonNode eventName = node.get("event_name");
+            return eventName != null && !eventName.isNull() ? eventName.asText() : null;
         } catch (Exception e) {
-            log.warnf("Failed to build backend confirm request for reg %s: %s", regId, e.getMessage());
+            log.warnf("Failed to notify backend for reg %s: %s", regId, e.getMessage());
+            return null;
         }
+    }
+
+    private static String escapeHtml(String text) {
+        if (text == null) return "";
+        return text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     private String resolveBackendUrl(String regId, Long chatId) {
@@ -111,7 +167,7 @@ public class EventConfirmHandler implements StepHandler {
             return backendUrl + "/events/v1/registrations/" + regId + "/confirm" + chatIdParam;
         }
         if (!siteUrl.isBlank()) {
-            return siteUrl + "/api/registration/" + regId + "/confirm" + chatIdParam;
+            return normalizeUrl(siteUrl) + "/api/registration/" + regId + "/confirm" + chatIdParam;
         }
         return null;
     }

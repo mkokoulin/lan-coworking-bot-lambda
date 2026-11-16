@@ -1,8 +1,6 @@
 package com.lan.app.flows.coworking;
 
 import com.lan.app.domain.UpdateContext;
-import com.lan.app.engine.FlowEntry;
-import com.lan.app.engine.FlowRegistry;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
@@ -19,35 +17,22 @@ public class CoworkingHomeHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
     private final I18n i18n;
-    private final FlowRegistry registry;
     private final CoworkingPricingService pricingService;
 
     @Inject
     public CoworkingHomeHandler(
         TelegramClient telegramClient,
         I18n i18n,
-        FlowRegistry registry,
         CoworkingPricingService pricingService
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
-        this.registry = registry;
         this.pricingService = pricingService;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
         String lang = session.getLang();
-
-        if (ctx.hasCallback() && ctx.callbackData().startsWith("/")) {
-            String command = ctx.callbackData().substring(1); // "booking", "meetingroom", ...
-            FlowEntry entry = registry.getCommand(command).orElse(null);
-            if (entry != null) {
-                session.setFlow(entry.flow());
-                session.setStep(entry.step());
-                return new StepResult(entry.flow(), entry.step());
-            }
-        }
 
         String text = i18n.t(lang, "coworking_intro") + "\n\n"
                 + pricingService.formatPricesBlock(lang) + "\n\n"
@@ -63,11 +48,11 @@ public class CoworkingHomeHandler implements StepHandler {
                         KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_meetingroom"), "meetingroom")
                 ),
                 KeyboardBuilder.row(
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_events"), "events")
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_printout"), "printout"),
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_wifi"), "wifi")
                 ),
                 KeyboardBuilder.row(
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_about"), "about"),
-                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_language"), "language")
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "coworking_btn_home"), "/start")
                 )
         ));
 

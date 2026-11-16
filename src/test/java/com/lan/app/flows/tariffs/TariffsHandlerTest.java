@@ -45,7 +45,7 @@ class TariffsHandlerTest {
     }
 
     private UpdateContext tariffsCommand() {
-        return new UpdateContext(555L, "private", 555L, null, "/tariffs", null, false, null, null);
+        return new UpdateContext(555L, "private", 555L, null, "/tariffs", null, null, false, null, null, null, null);
     }
 
     @Test

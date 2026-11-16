@@ -3,6 +3,7 @@ package com.lan.app.flows.registration;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 
@@ -13,32 +14,38 @@ import jakarta.inject.Inject;
 public class RegistrationWaitAdditionalPhoneHandler implements StepHandler {
 
     private final TelegramClient telegramClient;
+    private final I18n i18n;
+    private final RegistrationSummaryHandler summaryHandler;
 
     @Inject
-    public RegistrationWaitAdditionalPhoneHandler(TelegramClient telegramClient) {
+    public RegistrationWaitAdditionalPhoneHandler(TelegramClient telegramClient, I18n i18n, RegistrationSummaryHandler summaryHandler) {
         this.telegramClient = telegramClient;
+        this.i18n = i18n;
+        this.summaryHandler = summaryHandler;
     }
 
     @Override
     public StepResult handle(UpdateContext ctx, Session session) {
+        String lang = session.getLang();
+
+        if (ctx.hasCallback() && "reg_skip".equals(ctx.callbackPayload())) {
+            return summaryHandler.handle(ctx, session);
+        }
+
         String rawPhone = ctx.messageText();
-        String input = rawPhone != null ? rawPhone.trim() : "";
 
-        if ("/skip".equals(input)) {
-            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        if (rawPhone == null || rawPhone.isBlank()) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_empty"), null);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
         }
 
-        String normalized = PhoneValidator.normalize(input.replaceAll("\\s+", ""));
-        if (normalized != null) {
-            RegistrationSession.setPhone(session, normalized);
-            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_SUMMARY);
+        String normalized = PhoneValidator.normalize(rawPhone.trim());
+        if (normalized == null) {
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "reg_phone_invalid"), null);
+            return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
         }
 
-        telegramClient.sendHtml(session.getChatId(),
-                "Напиши свой армянский номер 😊 Он нужен, чтобы мы могли оперативно с тобой связаться!\n"
-                + "Например: +374 XX XXX XXX\n\nНет армянского номера? Просто нажми /skip 👌", null);
-
-        return StepResult.stay(RegistrationFlowDef.FLOW, RegistrationFlowDef.STEP_WAIT_ADDITIONAL_PHONE);
+        RegistrationSession.setPhone(session, normalized);
+        return summaryHandler.handle(ctx, session);
     }
 }
-

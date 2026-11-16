@@ -6,8 +6,11 @@ import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
+import com.lan.app.ui.KeyboardBuilder;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+
+import java.util.List;
 
 @ApplicationScoped
 public class LanguageWaitChoiceHandler implements StepHandler {
@@ -38,10 +41,13 @@ public class LanguageWaitChoiceHandler implements StepHandler {
 
         session.setLang(newLang);
 
+        var kb = KeyboardBuilder.inline(List.of(
+            KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(newLang, "profile_btn_back"), "start"))
+        ));
         telegramClient.sendHtml(
                 session.getChatId(),
                 i18n.t(newLang, "language_selected").formatted(label),
-                null
+                kb
         );
 
         // сбрасываем флоу — пользователь возвращается в свободное состояние
