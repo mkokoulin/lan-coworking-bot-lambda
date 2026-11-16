@@ -5,7 +5,6 @@ import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.service.BirthdayWishService;
-import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import com.lan.app.ui.KeyboardBuilder;
@@ -20,19 +19,16 @@ public class BirthdayTextHandler implements StepHandler {
     private final TelegramClient telegramClient;
     private final I18n i18n;
     private final BirthdayWishService birthdayWishService;
-    private final GuestService guestService;
 
     @Inject
     public BirthdayTextHandler(
         TelegramClient telegramClient,
         I18n i18n,
-        BirthdayWishService birthdayWishService,
-        GuestService guestService
+        BirthdayWishService birthdayWishService
     ) {
         this.telegramClient = telegramClient;
         this.i18n = i18n;
         this.birthdayWishService = birthdayWishService;
-        this.guestService = guestService;
     }
 
     @Override
@@ -45,11 +41,13 @@ public class BirthdayTextHandler implements StepHandler {
             return StepResult.stay(BirthdayFlowDef.FLOW, BirthdayFlowDef.STEP_TEXT);
         }
 
-        String authorName = resolveAuthorName(session);
+        String name = BirthdaySession.getName(session);
+        String authorName = (name == null || name.isBlank()) ? i18n.t(lang, "birthday_anonymous_label") : name;
         String telegramUserId = String.valueOf(session.getUserId());
 
         boolean ok = birthdayWishService.createWish(authorName, telegramUserId, text);
 
+        BirthdaySession.clear(session);
         session.setFlow("");
         session.setStep("");
 
@@ -59,15 +57,5 @@ public class BirthdayTextHandler implements StepHandler {
         ));
         telegramClient.sendHtml(session.getChatId(), i18n.t(lang, msgKey), kb);
         return StepResult.finish();
-    }
-
-    private String resolveAuthorName(Session session) {
-        try {
-            return guestService.findByChatId(session.getChatId())
-                .map(g -> g.getFirstName() + " " + g.getLastName())
-                .orElseGet(() -> "tg_" + session.getUserId());
-        } catch (Exception e) {
-            return "tg_" + session.getUserId();
-        }
     }
 }

@@ -1,11 +1,9 @@
 package com.lan.app.flows.birthday;
 
-import com.lan.app.client.baserow.model.CoworkingGuestResponse;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepResult;
 import com.lan.app.i18n.I18n;
 import com.lan.app.service.BirthdayWishService;
-import com.lan.app.service.GuestService;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
 import io.quarkus.test.InjectMock;
@@ -14,15 +12,11 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -42,13 +36,10 @@ class BirthdayTextHandlerTest {
     @InjectMock
     BirthdayWishService birthdayWishService;
 
-    @InjectMock
-    GuestService guestService;
-
     @BeforeEach
     void setup() {
         lenient().when(i18n.t(any(), any())).thenReturn("translated");
-        lenient().when(guestService.findByChatId(anyLong())).thenReturn(Optional.empty());
+        lenient().when(i18n.t(any(), eq("birthday_anonymous_label"))).thenReturn("Anonymous");
         lenient().when(birthdayWishService.createWish(anyString(), anyString(), anyString())).thenReturn(true);
     }
 
@@ -63,6 +54,7 @@ class BirthdayTextHandlerTest {
     @Test
     void blankText_repromptsAndStaysOnText() {
         Session s = session();
+        BirthdaySession.setName(s, "Ann");
 
         StepResult result = handler.handle(textCtx("   "), s);
 
@@ -72,34 +64,33 @@ class BirthdayTextHandlerTest {
     }
 
     @Test
-    void validText_createsWishAndFinishesWithSuccessMessage() {
+    void withName_createsWishWithNameAndFinishesWithSuccessMessage() {
         Session s = session();
+        BirthdaySession.setName(s, "Ann");
 
         StepResult result = handler.handle(textCtx("Happy birthday LAN!"), s);
 
         assertThat(result).isEqualTo(StepResult.finish());
         assertThat(s.getFlow()).isEmpty();
         assertThat(s.getStep()).isEmpty();
-        verify(birthdayWishService).createWish(eq("tg_200"), eq("200"), eq("Happy birthday LAN!"));
+        assertThat(BirthdaySession.getName(s)).isNull();
+        verify(birthdayWishService).createWish(eq("Ann"), eq("200"), eq("Happy birthday LAN!"));
         verify(telegramClient).sendHtml(eq(100L), any(), any());
     }
 
     @Test
-    void guestFound_usesGuestNameAsAuthor() {
-        Session s = session();
-        CoworkingGuestResponse guest = mock(CoworkingGuestResponse.class);
-        when(guest.getFirstName()).thenReturn("Ann");
-        when(guest.getLastName()).thenReturn("Smith");
-        when(guestService.findByChatId(100L)).thenReturn(Optional.of(guest));
+    void noNameStored_usesAnonymousLabelAsAuthor() {
+        Session s = session(); // no name stored → anonymous choice
 
         handler.handle(textCtx("So happy for you!"), s);
 
-        verify(birthdayWishService).createWish(eq("Ann Smith"), eq("200"), eq("So happy for you!"));
+        verify(birthdayWishService).createWish(eq("Anonymous"), eq("200"), eq("So happy for you!"));
     }
 
     @Test
     void wishServiceFails_stillClearsSessionAndFinishesWithErrorMessage() {
         Session s = session();
+        BirthdaySession.setName(s, "Ann");
         when(birthdayWishService.createWish(any(), any(), any())).thenReturn(false);
 
         StepResult result = handler.handle(textCtx("Nice!"), s);

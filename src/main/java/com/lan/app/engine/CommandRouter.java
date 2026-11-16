@@ -40,7 +40,7 @@ public class CommandRouter {
     private static final Set<String> GUEST_COMMANDS = Set.of(
         "start", "wifi", "password", "language", "lang",
         "registration", "register", "reg", "login", "help",
-        "reg_skip", "birthday", BirthdayFlowDef.CB_WISH
+        "reg_skip", "birthday", BirthdayFlowDef.CB_WISH, BirthdayFlowDef.CB_ANONYMOUS
     );
 
     private final FlowRegistry registry;

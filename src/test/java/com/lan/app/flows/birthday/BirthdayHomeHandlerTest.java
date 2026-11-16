@@ -57,12 +57,12 @@ class BirthdayHomeHandlerTest {
     }
 
     @Test
-    void wishCallback_promptsForTextAndAdvancesToText() {
+    void wishCallback_promptsForNameAndAdvancesToName() {
         Session s = session();
 
         StepResult result = handler.handle(callbackCtx(BirthdayFlowDef.CB_WISH), s);
 
-        assertThat(result).isEqualTo(StepResult.stay(BirthdayFlowDef.FLOW, BirthdayFlowDef.STEP_TEXT));
+        assertThat(result).isEqualTo(StepResult.stay(BirthdayFlowDef.FLOW, BirthdayFlowDef.STEP_NAME));
         verify(telegramClient).sendHtml(eq(100L), any(), any());
     }
 

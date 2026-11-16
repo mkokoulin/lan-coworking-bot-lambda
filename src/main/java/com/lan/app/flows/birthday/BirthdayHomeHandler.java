@@ -29,8 +29,11 @@ public class BirthdayHomeHandler implements StepHandler {
         String lang = session.getLang();
 
         if (ctx.hasCallback() && BirthdayFlowDef.CB_WISH.equals(ctx.callbackPayload())) {
-            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "birthday_ask_text"), null);
-            return StepResult.stay(BirthdayFlowDef.FLOW, BirthdayFlowDef.STEP_TEXT);
+            var nameKb = KeyboardBuilder.inline(List.of(
+                KeyboardBuilder.row(KeyboardBuilder.cbCmd(i18n.t(lang, "birthday_btn_anonymous"), BirthdayFlowDef.CB_ANONYMOUS))
+            ));
+            telegramClient.sendHtml(session.getChatId(), i18n.t(lang, "birthday_ask_name"), nameKb);
+            return StepResult.stay(BirthdayFlowDef.FLOW, BirthdayFlowDef.STEP_NAME);
         }
 
         var kb = KeyboardBuilder.inline(List.of(
