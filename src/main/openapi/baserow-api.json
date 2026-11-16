@@ -1312,6 +1312,47 @@
           }
         }
       },
+      "CreateBirthdayWishRequest": {
+        "type": "object",
+        "required": [
+          "authorName",
+          "text"
+        ],
+        "properties": {
+          "authorName": {
+            "type": "string"
+          },
+          "telegramUserId": {
+            "type": "string",
+            "nullable": true
+          },
+          "text": {
+            "type": "string"
+          }
+        }
+      },
+      "BirthdayWishResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "telegramUserId": {
+            "type": "string"
+          },
+          "text": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
       "UnlinkCoworkingGuestChatRequest": {
         "type": "object",
         "required": [
@@ -3053,6 +3094,51 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request"
+          },
+          "401": {
+            "description": "Unauthorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/coworking/v1/birthday-wishes": {
+      "post": {
+        "summary": "Submit a birthday wish",
+        "operationId": "createBirthdayWish",
+        "tags": [
+          "Birthday wishes"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateBirthdayWishRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Birthday wish created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BirthdayWishResponse"
                 }
               }
             }

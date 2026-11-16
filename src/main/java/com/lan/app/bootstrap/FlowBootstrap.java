@@ -1,6 +1,7 @@
 package com.lan.app.bootstrap;
 
 import com.lan.app.flows.about.AboutFlowRegistrar;
+import com.lan.app.flows.birthday.BirthdayFlowRegistrar;
 import com.lan.app.flows.menu.MenuFlowRegistrar;
 import com.lan.app.flows.cwbooking.CwBookingFlowRegistrar;
 import com.lan.app.flows.news.NewsFlowRegistrar;
@@ -60,6 +61,7 @@ public class FlowBootstrap {
     private final MenuFlowRegistrar menuFlowRegistrar;
     private final EventSurveyFlowRegistrar eventSurveyFlowRegistrar;
     private final HeardAboutFlowRegistrar heardAboutFlowRegistrar;
+    private final BirthdayFlowRegistrar birthdayFlowRegistrar;
 
     @Inject
     public FlowBootstrap(
@@ -87,7 +89,8 @@ public class FlowBootstrap {
         PrintFlowRegistrar printFlowRegistrar,
         MenuFlowRegistrar menuFlowRegistrar,
         EventSurveyFlowRegistrar eventSurveyFlowRegistrar,
-        HeardAboutFlowRegistrar heardAboutFlowRegistrar
+        HeardAboutFlowRegistrar heardAboutFlowRegistrar,
+        BirthdayFlowRegistrar birthdayFlowRegistrar
     ) {
         this.startFlowRegistrar = startFlowRegistrar;
         this.coworkingFlowRegistrar = coworkingFlowRegistrar;
@@ -114,6 +117,7 @@ public class FlowBootstrap {
         this.menuFlowRegistrar = menuFlowRegistrar;
         this.eventSurveyFlowRegistrar = eventSurveyFlowRegistrar;
         this.heardAboutFlowRegistrar = heardAboutFlowRegistrar;
+        this.birthdayFlowRegistrar = birthdayFlowRegistrar;
     }
 
     void onStart(@Observes StartupEvent event) {
@@ -143,5 +147,6 @@ public class FlowBootstrap {
         menuFlowRegistrar.register();
         eventSurveyFlowRegistrar.register();
         heardAboutFlowRegistrar.register();
+        birthdayFlowRegistrar.register();
     }
 }

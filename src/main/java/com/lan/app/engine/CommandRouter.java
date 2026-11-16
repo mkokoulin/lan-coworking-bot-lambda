@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.lan.app.domain.UpdateContext;
+import com.lan.app.flows.birthday.BirthdayFlowDef;
 import com.lan.app.flows.cwbooking.CwBookingFlowDef;
 import com.lan.app.flows.cwlink.CwLinkFlowDef;
 import com.lan.app.flows.cwlink.CwLoginConfirmHandler;
@@ -39,7 +40,7 @@ public class CommandRouter {
     private static final Set<String> GUEST_COMMANDS = Set.of(
         "start", "wifi", "password", "language", "lang",
         "registration", "register", "reg", "login", "help",
-        "reg_skip"
+        "reg_skip", "birthday", BirthdayFlowDef.CB_WISH
     );
 
     private final FlowRegistry registry;
@@ -93,6 +94,9 @@ public class CommandRouter {
             } else if ("start".equals(command) && args != null && args.startsWith("cwlink_")) {
                 session.setFlow(CwLinkFlowDef.FLOW);
                 session.setStep(CwLinkFlowDef.STEP_LINK);
+            } else if ("start".equals(command) && "birthday".equals(args)) {
+                session.setFlow(BirthdayFlowDef.FLOW);
+                session.setStep(BirthdayFlowDef.STEP_HOME);
             } else if (command.startsWith(EventNotifyFlowDef.PREFIX_YES) || command.startsWith(EventNotifyFlowDef.PREFIX_NO)) {
                 session.setFlow(EventNotifyFlowDef.FLOW);
                 session.setStep(EventNotifyFlowDef.STEP_ACTION);
