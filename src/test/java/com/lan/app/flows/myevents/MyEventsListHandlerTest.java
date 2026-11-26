@@ -47,7 +47,7 @@ class MyEventsListHandlerTest {
     }
 
     private UpdateContext eventsCommand() {
-        return new UpdateContext(555L, "private", 555L, null, "/events", null, false, null, null);
+        return new UpdateContext(555L, "private", 555L, null, "/myevents", null, null, false, null, null, null, null);
     }
 
     private JsonNode lastMessage() throws Exception {

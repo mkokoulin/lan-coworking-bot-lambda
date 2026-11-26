@@ -38,7 +38,7 @@ class MyEventsGuestsPromptHandlerTest {
     }
 
     private UpdateContext callback(String data) {
-        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, true, null, null);
+        return new UpdateContext(555L, "private", 555L, null, null, "/" + data, null, true, null, null, null, null);
     }
 
     @Test
@@ -57,13 +57,13 @@ class MyEventsGuestsPromptHandlerTest {
         JsonNode body = mapper.readTree(sent.get(0).body());
         assertTrue(body.get("text").asText().contains("Введите новое количество"));
         JsonNode backBtn = body.get("reply_markup").get("inline_keyboard").get(0).get(0);
-        assertEquals("/events", backBtn.get("callback_data").asText());
+        assertEquals("/myevents", backBtn.get("callback_data").asText());
     }
 
     @Test
     void nullCommandFinishesWithoutSendingAnything() {
         Session session = Session.newDefault(555L, 555L);
-        UpdateContext ctx = new UpdateContext(555L, "private", 555L, null, null, null, false, null, null);
+        UpdateContext ctx = new UpdateContext(555L, "private", 555L, null, null, null, null, false, null, null, null, null);
 
         StepResult result = handler.handle(ctx, session);
 

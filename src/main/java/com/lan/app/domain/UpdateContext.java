@@ -7,9 +7,12 @@ public record UpdateContext(
         Integer messageId,
         String  messageText,
         String  callbackData,
+        String  callbackQueryId,
         boolean callback,
         String  username,
-        String  sharedPhone
+        String  sharedPhone,
+        String  fileId,
+        String  fileName
 ) {
 
     public static UpdateContext fromIncomingUpdate(IncomingUpdate update) {
@@ -17,12 +20,15 @@ public record UpdateContext(
                 update.getChatId(),
                 update.getChatType(),
                 update.getUserId(),
-                null,
+                update.getCallbackMessageId(),
                 update.getText(),
                 update.getCallbackData(),
+                update.getCallbackQueryId(),
                 update.getCallbackData() != null && !update.getCallbackData().isBlank(),
                 update.getUsername(),
-                update.getSharedPhone()
+                update.getSharedPhone(),
+                update.getFileId(),
+                update.getFileName()
         );
     }
 
@@ -38,6 +44,10 @@ public record UpdateContext(
 
     public boolean hasSharedPhone() {
         return sharedPhone != null && !sharedPhone.isBlank();
+    }
+
+    public boolean hasPhoto() {
+        return fileId != null && !fileId.isBlank();
     }
 
     public boolean isCommand() {

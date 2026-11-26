@@ -37,6 +37,9 @@ public class KotologHomeHandler implements StepHandler {
                 ),
                 KeyboardBuilder.row(
                         KeyboardBuilder.cbCmd(i18n.t(lang, "kotolog_btn_help"), KotologFlowDef.CB_HELP)
+                ),
+                KeyboardBuilder.row(
+                        KeyboardBuilder.cbCmd(i18n.t(lang, "profile_btn_back"), "start")
                 )
         ));
 
