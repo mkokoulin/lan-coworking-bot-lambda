@@ -6,6 +6,7 @@ import com.lan.app.config.TelegramConfig;
 import com.lan.app.domain.UpdateContext;
 import com.lan.app.engine.StepHandler;
 import com.lan.app.engine.StepResult;
+import com.lan.app.flows.donation.DonationFlowDef;
 import com.lan.app.i18n.I18n;
 import com.lan.app.session.Session;
 import com.lan.app.telegram.TelegramClient;
@@ -63,14 +64,12 @@ public class CwBookingConfirmHandler implements StepHandler {
 
         String lang = session.getLang();
 
-        // Direct button click (no deep link) — show booking info with site link
+        // Direct button click (no deep link) — show first-visit info, no site redirect needed
         if (bookingId == null) {
             var kbRows = new ArrayList<List<Map<String, String>>>();
-            if (!siteUrl.isBlank()) {
-                kbRows.add(KeyboardBuilder.row(
-                    KeyboardBuilder.urlBtn(i18n.t(lang, "booking_btn_site"), siteUrl + "/coworking")
-                ));
-            }
+            kbRows.add(KeyboardBuilder.row(
+                KeyboardBuilder.urlBtn(i18n.t(lang, "booking_btn_contact"), DonationFlowDef.CONTACT_URL)
+            ));
             kbRows.add(KeyboardBuilder.row(
                 KeyboardBuilder.cbCmd(i18n.t(lang, "booking_btn_home"), "/start")
             ));

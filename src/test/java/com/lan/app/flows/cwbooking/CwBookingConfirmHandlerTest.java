@@ -23,8 +23,8 @@ import static org.mockito.Mockito.when;
 
 /**
  * app.site-url is unset in the test environment (defaults to "" per @ConfigProperty),
- * so confirmOnSite() short-circuits without making a real HTTP call, and the site-link
- * button never appears — both are exploited here to keep this test purely local.
+ * so confirmOnSite() short-circuits without making a real HTTP call — exploited here
+ * to keep this test purely local.
  */
 @QuarkusTest
 class CwBookingConfirmHandlerTest {
@@ -55,7 +55,7 @@ class CwBookingConfirmHandlerTest {
     }
 
     @Test
-    void noDeepLinkArgs_sendsBookingPromptWithHomeButtonOnly_andFinishes() {
+    void noDeepLinkArgs_sendsBookingPromptWithContactAndHomeButtons_andFinishes() {
         Session s = session();
 
         StepResult result = handler.handle(textCtx("/coworking"), s);
